@@ -25,6 +25,3 @@ jobs:
       run: |
         # stop the build if there are Python syntax errors or undefined names
         pylint --rcfile ./pyCUFSM/.pylintrc ./pyCUFSM/*.py
-    - name: Test with pytest
-      run: |
-        pytest
