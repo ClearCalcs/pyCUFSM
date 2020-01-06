@@ -4,7 +4,7 @@ import analysis
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE
-# 
+#
 # Each function within this file was originally its own separate file.
 # Original MATLAB comments, especially those retaining to authorship or
 # change history, have been generally retained unaltered
@@ -777,7 +777,7 @@ def y_dofs(nodes, elements, m_node, n_mno, ndm, r_yd, r_ud, sect_props, el_props
 
     # to eliminate zero columns from d_y
     sdy = d_y
-    d_y = []
+    d_y = np.zeros((n_mno, sum(ind)))
     k_local = 0
     for i in range(0, 4):
         if ind[i] == 1:
