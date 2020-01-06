@@ -3,10 +3,11 @@ from scipy import linalg as spla
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE
-# 
+#
 # Each function within this file was originally its own separate file.
 # Original MATLAB comments, especially those retaining to authorship or
 # change history, have been generally retained unaltered
+
 
 def template_calc(sect):
     n_d = 4
