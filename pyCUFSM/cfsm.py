@@ -9,6 +9,7 @@ import analysis
 # Original MATLAB comments, especially those retaining to authorship or
 # change history, have been generally retained unaltered
 
+
 def base_column(nodes, elements, props, length, b_c, m_a, sect_props):
     # this routine creates base vectors for a column with length length for all the
     # specified longitudinal terms in m_a
@@ -21,11 +22,11 @@ def base_column(nodes, elements, props, length, b_c, m_a, sect_props):
     # input data
     #   nodes, elements, props - basic data
     #   b_c: ['S-S'] a string specifying boundary conditions to be analyzed:
-        #'S-S' simply-pimply supported boundary condition at loaded edges
-        #'C-C' clamped-clamped boundary condition at loaded edges
-        #'S-C' simply-clamped supported boundary condition at loaded edges
-        #'C-F' clamped-free supported boundary condition at loaded edges
-        #'C-bulk' clamped-guided supported boundary condition at loaded edges
+    #'S-S' simply-pimply supported boundary condition at loaded edges
+    #'C-C' clamped-clamped boundary condition at loaded edges
+    #'S-C' simply-clamped supported boundary condition at loaded edges
+    #'C-F' clamped-free supported boundary condition at loaded edges
+    #'C-bulk' clamped-guided supported boundary condition at loaded edges
     #   m_a - longitudinal terms (half-wave numbers)
 
     # output data
@@ -101,9 +102,10 @@ def base_column(nodes, elements, props, length, b_c, m_a, sect_props):
             r_ys=r_ys,
             dof_perm=dof_perm
         )
-        b_v_l[(n_dof_m*i):n_dof_m*(i+1), (n_dof_m*i):n_dof_m*(i+1)] = b_v_m
+        b_v_l[(n_dof_m*i):n_dof_m*(i + 1), (n_dof_m*i):n_dof_m*(i + 1)] = b_v_m
 
     return b_v_l, ngm, ndm, nlm
+
 
 def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, nlm, b_c):
     # this routine optionally makes orthogonalization and normalization of base vectors
@@ -152,13 +154,13 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
 
     n_nodes = len(nodes[:, 1])
     n_dof_m = 4*n_nodes
-    total_m = len(m_a) # Total number of longitudinal terms m_i
+    total_m = len(m_a)  # Total number of longitudinal terms m_i
     b_v = np.zeros(n_dof_m*total_m)
 
     if gbt_con['couple'] == 1:
         # uncoupled basis
         for i, m_i in enumerate(m_a):
-            b_v_m = b_v_l[n_dof_m*i:n_dof_m*(i+1), n_dof_m*i:n_dof_m*(i+1)]
+            b_v_m = b_v_l[n_dof_m*i:n_dof_m*(i + 1), n_dof_m*i:n_dof_m*(i + 1)]
             # k_global/kg_global
             if gbt_con['norm'] == 2 or gbt_con['norm'] == 3 \
                 or gbt_con['o_space'] == 2 or gbt_con['o_space'] == 3 \
@@ -166,7 +168,7 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                 el_props = analysis.elem_prop(nodes, elements)
                 # axial loading or real loading by either gbt_con['orth'] = 2 or gbt_con['orth'] = 3
                 if gbt_con['orth'] == 1 or gbt_con['orth'] == 2:
-                    nodes[:, 7] = np.ones_like(nodes[:, 7]) # set u_p stress to 1.0 (axial)
+                    nodes[:, 7] = np.ones_like(nodes[:, 7])  # set u_p stress to 1.0 (axial)
 
                 [k_global, kg_global] = create_k_globals(
                     m_i=m_i,
@@ -220,10 +222,7 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                         kg_global_sub \
                             = b_v_m[:, dof_index[i_sub, 0]:dof_index[i_sub, 1]].conj().T @ \
                             kg_global @ b_v_m[:, dof_index[i_sub, 0]:dof_index[i_sub, 1]]
-                        [eigenvalues, eigenvectors] = spla.eig(
-                            a=k_global_sub,
-                            b=kg_global_sub
-                        )
+                        [eigenvalues, eigenvectors] = spla.eig(a=k_global_sub, b=kg_global_sub)
                         lf_sub = np.real(eigenvalues)
                         indexsub = np.argsort(lf_sub)
                         lf_sub = lf_sub[indexsub]
@@ -236,11 +235,15 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                                 s_matrix = eigenvectors.conj().T @ kg_global_sub @ eigenvectors
 
                             s_matrix = np.diag(s_matrix)
-                            for j in range(0, dof_index[i_sub, 1]-dof_index[i_sub, 0]):
-                                eigenvectors[:, j] = np.transpose(np.conj(np.linalg.lstsq(
-                                    eigenvectors[:, j].conj().T,
-                                    np.sqrt(s_matrix).conj().T
-                                )))
+                            for j in range(0, dof_index[i_sub, 1] - dof_index[i_sub, 0]):
+                                eigenvectors[:, j] = np.transpose(
+                                    np.conj(
+                                        np.linalg.lstsq(
+                                            eigenvectors[:, j].conj().T,
+                                            np.sqrt(s_matrix).conj().T
+                                        )
+                                    )
+                                )
 
                         b_v_m[:, dof_index[i_sub, 1]:dof_index[i_sub, 2]] \
                             = b_v_m[:, dof_index[i_sub, 1]:dof_index[i_sub, 2]] @ eigenvectors
@@ -249,26 +252,38 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
             if (gbt_con['norm'] == 2 or gbt_con['norm'] == 3) and gbt_con['o_space'] == 1:
                 for j in range(0, n_dof_m):
                     if gbt_con['norm'] == 2:
-                        b_v_m[:, j] = np.transpose(np.conj(np.linalg.lstsq(
-                            b_v_m[:, j].conj().T,
-                            np.sqrt(b_v_m[:, j].conj().T @ k_global @ b_v_m[:, j]).conj().T
-                        )))
+                        b_v_m[:, j] = np.transpose(
+                            np.conj(
+                                np.linalg.lstsq(
+                                    b_v_m[:, j].conj().T,
+                                    np.sqrt(b_v_m[:, j].conj().T @ k_global @ b_v_m[:, j]).conj().T
+                                )
+                            )
+                        )
 
                     if gbt_con['norm'] == 3:
-                        b_v_m[:, j] = np.transpose(np.conj(np.linalg.lstsq(
-                            b_v_m[:, j].conj().T,
-                            np.sqrt(b_v_m[:, j].conj().T @ kg_global @ b_v_m[:, j]).conj().T
-                        )))
+                        b_v_m[:, j] = np.transpose(
+                            np.conj(
+                                np.linalg.lstsq(
+                                    b_v_m[:, j].conj().T,
+                                    np.sqrt(b_v_m[:, j].conj().T @ kg_global @ b_v_m[:, j]).conj().T
+                                )
+                            )
+                        )
 
             # normalization for gbt_con['norm'] 1
             if gbt_con['norm'] == 1:
                 for j in range(0, n_dof_m):
-                    b_v_m[:, j] = np.transpose(np.conj(np.linalg.lstsq(
-                        b_v_m[:, j].conj().T,
-                        np.sqrt(b_v_m[:, j].conj().T @ b_v_m[:, j]).conj().T
-                    )))
+                    b_v_m[:, j] = np.transpose(
+                        np.conj(
+                            np.linalg.lstsq(
+                                b_v_m[:, j].conj().T,
+                                np.sqrt(b_v_m[:, j].conj().T @ b_v_m[:, j]).conj().T
+                            )
+                        )
+                    )
 
-            b_v[n_dof_m*i:n_dof_m*(i+1), n_dof_m*i:n_dof_m*(i+1)] = b_v_m
+            b_v[n_dof_m*i:n_dof_m*(i + 1), n_dof_m*i:n_dof_m*(i + 1)] = b_v_m
 
     else:
         # coupled basis
@@ -279,7 +294,7 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
             [el_props] = analysis.elem_prop(nodes, elements)
             # axial loading or real loading by either gbt_con['orth'] = 2 or gbt_con['orth'] = 3
             if gbt_con['orth'] == 1 or gbt_con['orth'] == 2:
-                nodes[:, 7] = np.ones_like(nodes[:, 7]) # set u_p stress to 1.0 (axial)
+                nodes[:, 7] = np.ones_like(nodes[:, 7])  # set u_p stress to 1.0 (axial)
 
             # ZERO OUT THE GLOBAL MATRICES
             k_global = np.zeros(4*n_nodes*total_m, 4*n_nodes*total_m)
@@ -312,15 +327,15 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                 # Generate geometric stiffness matrix (kg_local) in local coordinates
                 node_i = elem[1]
                 node_j = elem[2]
-                ty_1 = nodes[node_i][7] * thick
-                ty_2 = nodes[node_j][7] * thick
+                ty_1 = nodes[node_i][7]*thick
+                ty_2 = nodes[node_j][7]*thick
                 kg_l = analysis.kglocal(
                     length=length,
                     b_strip=b_strip,
                     ty_1=ty_1,
                     ty_2=ty_2,
                     b_c=b_c,
-                    m_a=m_a
+                    m_a=m_a,
                 )
                 # Transform k_local and kg_local into global coordinates
                 alpha = el_props[i, 2]
@@ -328,7 +343,7 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                     alpha=alpha,
                     k_local=k_l,
                     kg_local=kg_l,
-                    m_a=m_a
+                    m_a=m_a,
                 )
 
                 # Add element contribution of k_local to full matrix k_global
@@ -341,7 +356,7 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                     node_i=node_i,
                     node_j=node_j,
                     n_nodes=n_nodes,
-                    m_a=m_a
+                    m_a=m_a,
                 )
 
         # orthogonalization/normalization begins
@@ -357,22 +372,22 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
             dof_index[3, 0] = ngm + ndm + nlm
             dof_index[3, 1] = n_dof_m
 
-            nom = n_dof_m-(ngm + ndm + nlm)
+            nom = n_dof_m - (ngm + ndm + nlm)
 
-            b_v_gdl = np.zeros(((len(m_a)+1)*(ngm+ndm+nlm), 1))
-            b_v_g = np.zeros(((len(m_a)+1)*ngm, 1))
-            b_v_d = np.zeros(((len(m_a)+1)*ndm, 1))
-            b_v_l = np.zeros(((len(m_a)+1)*nlm, 1))
-            b_v_o = np.zeros(((len(m_a)+1)*nom, 1))
+            b_v_gdl = np.zeros(((len(m_a) + 1)*(ngm + ndm + nlm), 1))
+            b_v_g = np.zeros(((len(m_a) + 1)*ngm, 1))
+            b_v_d = np.zeros(((len(m_a) + 1)*ndm, 1))
+            b_v_l = np.zeros(((len(m_a) + 1)*nlm, 1))
+            b_v_o = np.zeros(((len(m_a) + 1)*nom, 1))
             for i, m_i in enumerate(m_a):
                 # considering length-dependency on base vectors
-                b_v_m = b_v_l[:, n_dof_m*i:n_dof_m*(i+1)]# n_dof_m*i:n_dof_m*(i+1)
+                b_v_m = b_v_l[:, n_dof_m*i:n_dof_m*(i + 1)]  # n_dof_m*i:n_dof_m*(i+1)
                 b_v_gdl[:, i*(ngm+ndm+nlm):(i+1)*(ngm+ndm+nlm)] \
                     = b_v_m[:, dof_index[1, 1]:dof_index[3, 2]]
-                b_v_g[:, i*ngm:(i+1)*ngm] = b_v_m[:, dof_index[1, 1]:dof_index[1, 2]]
-                b_v_d[:, i*ndm:(i+1)*ndm] = b_v_m[:, dof_index[2, 1]:dof_index[2, 2]]
-                b_v_l[:, i*nlm:(i+1)*nlm] = b_v_m[:, dof_index[3, 1]:dof_index[3, 2]]
-                b_v_o[:, i*nom:(i+1)*nom] = b_v_m[:, dof_index[4, 1]:dof_index[4, 2]]
+                b_v_g[:, i*ngm:(i + 1)*ngm] = b_v_m[:, dof_index[1, 1]:dof_index[1, 2]]
+                b_v_d[:, i*ndm:(i + 1)*ndm] = b_v_m[:, dof_index[2, 1]:dof_index[2, 2]]
+                b_v_l[:, i*nlm:(i + 1)*nlm] = b_v_m[:, dof_index[3, 1]:dof_index[3, 2]]
+                b_v_o[:, i*nom:(i + 1)*nom] = b_v_m[:, dof_index[4, 1]:dof_index[4, 2]]
                 #
 
             # define vectors for other modes, gbt_con['o_space'] = 3 only
@@ -383,7 +398,6 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                     b_v[:, i*n_dof_m+dof_index[3, 0]:i*n_dof_m+dof_index[3, 1]] \
                         = b_v_o[:, i*nom+1:(i+1)*nom]
 
-
             # define vectors for other modes, gbt_con['o_space'] = 4 only
             if gbt_con['o_space'] == 4:
                 a_matrix = spla.null_space(b_v_gdl.conj().T)
@@ -391,7 +405,6 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                 for i, m_i in enumerate(m_a):
                     b_v[:, i*n_dof_m+dof_index[3, 0]:i*n_dof_m+dof_index[3, 1]] \
                         = b_v_o[:, i*nom+1:(i+1)*nom]
-
 
             # define vectors for other modes, gbt_con['o_space'] = 5 only
             if gbt_con['o_space'] == 5:
@@ -404,22 +417,19 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
             for i_sub in range(0, 4):
                 if dof_index[i_sub, 2] >= dof_index[i_sub, 1]:
                     if i_sub == 1:
-                        k_global_sub = b_v_g.conj().T * k_global * b_v_g
-                        kg_global_sub = b_v_g.conj().T * kg_global *b_v_g
+                        k_global_sub = b_v_g.conj().T*k_global*b_v_g
+                        kg_global_sub = b_v_g.conj().T*kg_global*b_v_g
                     elif i_sub == 2:
-                        k_global_sub = b_v_d.conj().T * k_global * b_v_d
-                        kg_global_sub = b_v_d.conj().T * kg_global *b_v_d
+                        k_global_sub = b_v_d.conj().T*k_global*b_v_d
+                        kg_global_sub = b_v_d.conj().T*kg_global*b_v_d
                     elif i_sub == 3:
-                        k_global_sub = b_v_l.conj().T * k_global * b_v_l
-                        kg_global_sub = b_v_l.conj().T * kg_global *b_v_l
+                        k_global_sub = b_v_l.conj().T*k_global*b_v_l
+                        kg_global_sub = b_v_l.conj().T*kg_global*b_v_l
                     elif i_sub == 4:
-                        k_global_sub = b_v_o.conj().T * k_global * b_v_o
-                        kg_global_sub = b_v_o.conj().T * kg_global *b_v_o
+                        k_global_sub = b_v_o.conj().T*k_global*b_v_o
+                        kg_global_sub = b_v_o.conj().T*kg_global*b_v_o
 
-                    [eigenvalues, eigenvectors] = spla.eig(
-                        a=k_global_sub,
-                        b=kg_global_sub
-                    )
+                    [eigenvalues, eigenvectors] = spla.eig(a=k_global_sub, b=kg_global_sub)
                     lf_sub = np.real(eigenvalues)
                     indexsub = np.argsort(lf_sub)
                     lf_sub = lf_sub[indexsub]
@@ -430,11 +440,15 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
                         if gbt_con['norm'] == 3:
                             s_matrix = eigenvectors.conj().T @ kg_global_sub @ eigenvectors
                         s_matrix = np.diag(s_matrix)
-                        for i in range(0, (dof_index[i_sub, 1]-dof_index[i_sub, 0])*total_m):
-                            eigenvectors[:, i] = np.transpose(np.conj(np.linalg.lstsq(
-                                eigenvectors[:, i].conj().T,
-                                np.sqrt(s_matrix).conj().T
-                            )))
+                        for i in range(0, (dof_index[i_sub, 1] - dof_index[i_sub, 0])*total_m):
+                            eigenvectors[:, i] = np.transpose(
+                                np.conj(
+                                    np.linalg.lstsq(
+                                        eigenvectors[:, i].conj().T,
+                                        np.sqrt(s_matrix).conj().T
+                                    )
+                                )
+                            )
 
                     if i_sub == 1:
                         b_v_orth = b_v_g @ eigenvectors
@@ -463,24 +477,36 @@ def base_update(gbt_con, b_v_l, length, m_a, nodes, elements, props, ngm, ndm, n
         if (gbt_con['norm'] == 2 or gbt_con['norm'] == 3) and (gbt_con['o_space'] == 1):
             for i in range(0, n_dof_m*total_m):
                 if gbt_con['norm'] == 2:
-                    b_v[:, i] = np.transpose(np.conj(np.linalg.lstsq(
-                        b_v[:, i].conj().T,
-                        np.sqrt(b_v[:, i].conj().T @ k_global @ b_v[:, i]).conj().T
-                    )))
+                    b_v[:, i] = np.transpose(
+                        np.conj(
+                            np.linalg.lstsq(
+                                b_v[:, i].conj().T,
+                                np.sqrt(b_v[:, i].conj().T @ k_global @ b_v[:, i]).conj().T
+                            )
+                        )
+                    )
 
                 if gbt_con['norm'] == 3:
-                    b_v[:, i] = np.transpose(np.conj(np.linalg.lstsq(
-                        b_v[:, i].conj().T,
-                        np.sqrt(b_v[:, i].conj().T @ kg_global @ b_v[:, i]).conj().T
-                    )))
+                    b_v[:, i] = np.transpose(
+                        np.conj(
+                            np.linalg.lstsq(
+                                b_v[:, i].conj().T,
+                                np.sqrt(b_v[:, i].conj().T @ kg_global @ b_v[:, i]).conj().T
+                            )
+                        )
+                    )
 
         # normalization for gbt_con['norm'] 1
         if gbt_con['norm'] == 1:
             for i in range(0, n_dof_m*total_m):
-                b_v[:, i] = np.transpose(np.conj(np.linalg.lstsq(
-                    b_v[:, i].conj().T,
-                    np.sqrt(b_v[:, i].conj().T @ b_v[:, i]).conj().T
-                )))
+                b_v[:, i] = np.transpose(
+                    np.conj(
+                        np.linalg.lstsq(
+                            b_v[:, i].conj().T,
+                            np.sqrt(b_v[:, i].conj().T @ b_v[:, i]).conj().T
+                        )
+                    )
+                )
         #     b_v[n_dof_m*i:n_dof_m*(i+1),n_dof_m*i:n_dof_m*(i+1)] = b_v_m
     return b_v
 
@@ -519,23 +545,22 @@ def mode_select(b_v, ngm, ndm, nlm, gbt_con, n_dof_m, m_a):
     # Z. Li, June 2010
 
     n_m = sum(gbt_con['glob'] + gbt_con['dist'] + gbt_con['local'] + gbt_con['other'])
-    b_v_red = np.zeros((1, (len(m_a)+1) * n_m))
+    b_v_red = np.zeros((1, (len(m_a) + 1)*n_m))
     for i in range(0, len(m_a)):
-    #     b_v_m = b_v[n_dof_m*i:n_dof_m*(i+1),n_dof_m*i:n_dof_m*(i+1)]
-        nom = n_dof_m - ngm - ndm - nlm # nr of other modes
+        #     b_v_m = b_v[n_dof_m*i:n_dof_m*(i+1),n_dof_m*i:n_dof_m*(i+1)]
+        nom = n_dof_m - ngm - ndm - nlm  # nr of other modes
         #
         nmo = 0
         b_v_red_m = np.zeros((1, n_m))
         for j in range(0, ngm):
             if gbt_con['glob'][j] == 1:
-                nmo = nmo+1
-                b_v_red_m[:, nmo] = b_v[:, n_dof_m*i+j]
+                nmo = nmo + 1
+                b_v_red_m[:, nmo] = b_v[:, n_dof_m*i + j]
 
         for j in range(0, ndm):
             if gbt_con['dist'][j] == 1:
-                nmo = nmo+1
-                b_v_red_m[:, nmo] = b_v[:, n_dof_m*i+ngm+j]
-
+                nmo = nmo + 1
+                b_v_red_m[:, nmo] = b_v[:, n_dof_m*i + ngm + j]
 
         # if gbt_con['local'] == 1
         #     b_v_red[:,(nmo+1):(nmo+nlm)] = b_v[:,(ngm+ndm+1):(ngm+ndm+nlm)]
@@ -543,22 +568,20 @@ def mode_select(b_v, ngm, ndm, nlm, gbt_con, n_dof_m, m_a):
         # end
         for j in range(0, nlm):
             if gbt_con['local'][j] == 1:
-                nmo = nmo+1
-                b_v_red_m[:, nmo] = b_v[:, n_dof_m*i+ngm+ndm+j]
-
+                nmo = nmo + 1
+                b_v_red_m[:, nmo] = b_v[:, n_dof_m*i + ngm + ndm + j]
 
         for j in range(0, nom):
             if gbt_con['other'][j] == 1:
-                nmo = nmo+1
-                b_v_red_m[:, nmo] = b_v[:, n_dof_m*i+ngm+ndm+nlm+j]
-
+                nmo = nmo + 1
+                b_v_red_m[:, nmo] = b_v[:, n_dof_m*i + ngm + ndm + nlm + j]
 
         # if gbt_con['other'] == 1
         #     nom = len(b_v[:, 1])-ngm - ndm - nlm # nr of other modes
         #     b_v_red[:,(nmo+1):(nmo+nom)] = b_v[:,(ngm+ndm+nlm+1):(ngm+ndm+nlm+nom)]
         #     # b_v_red[:,(nmo+1)] = b_v[:,(ngm+ndm+nlm+1)]
         # end
-        b_v_red[:, nmo*i:nmo*(i+1)] = b_v_red_m
+        b_v_red[:, nmo*i:nmo*(i + 1)] = b_v_red_m
 
     return b_v_red
 
@@ -582,7 +605,7 @@ def constr_user(nodes, constraints, m_a):
 
     n_nodes = len(nodes[:, 1])
     n_dof_m = 4*n_nodes
-    dof_reg = np.zeros(n_dof_m, 1)+1
+    dof_reg = np.zeros(n_dof_m, 1) + 1
     r_user_matrix = np.eye(n_dof_m*len(m_a))
     for i in range(0, len(m_a)):
         #
@@ -594,11 +617,11 @@ def constr_user(nodes, constraints, m_a):
                     if k == 3:
                         dof_e = j*2 + 1
                     elif k == 5:
-                        dof_e = (j + 1) * 2
+                        dof_e = (j + 1)*2
                     elif k == 4:
                         dof_e = n_nodes*2 + j*2 + 1
                     elif k == 6:
-                        dof_e = n_nodes*2+(j + 1) * 2
+                        dof_e = n_nodes*2 + (j + 1)*2
 
                     dof_reg[dof_e, 1] = 0
 
@@ -610,22 +633,22 @@ def constr_user(nodes, constraints, m_a):
                 if constraints[j, 2] == 0:
                     dof_e = node_e*2 + 1
                 elif constraints[j, 2] == 2:
-                    dof_e = (node_e + 1) * 2
+                    dof_e = (node_e + 1)*2
                 elif constraints[j, 2] == 1:
                     dof_e = n_nodes*2 + node_e*2 + 1
                 elif constraints[j, 2] == 3:
-                    dof_e = n_nodes*2+(node_e + 1) * 2
+                    dof_e = n_nodes*2 + (node_e + 1)*2
 
                 # nr of kept DOF
                 node_k = constraints[j, 4]
                 if constraints[j, 5] == 0:
                     dof_k = node_k*2 + 1
                 elif constraints[j, 5] == 2:
-                    dof_k = (node_k + 1) * 2
+                    dof_k = (node_k + 1)*2
                 elif constraints[j, 5] == 1:
                     dof_k = n_nodes*2 + node_k*2 + 1
                 elif constraints[j, 5] == 3:
-                    dof_k = n_nodes*2+(node_k + 1) * 2
+                    dof_k = n_nodes*2 + (node_k + 1)*2
 
                 # to modify r_user_matrix
                 r_user_m_matrix[:, dof_k] = r_user_m_matrix[:, dof_k] \
@@ -641,7 +664,7 @@ def constr_user(nodes, constraints, m_a):
                 r_u_matrix[:, k_local] = r_user_m_matrix[:, j]
 
         r_user_m_matrix = r_u_matrix[:, 0:k_local]
-        r_user_matrix[i*n_dof_m:(i+1)*n_dof_m, i*k_local:(i+1)*k_local] = r_user_m_matrix
+        r_user_matrix[i*n_dof_m:(i + 1)*n_dof_m, i*k_local:(i + 1)*k_local] = r_user_m_matrix
 
     return r_user_matrix
 
@@ -737,20 +760,20 @@ def y_dofs(nodes, elements, m_node, n_mno, ndm, r_yd, r_ud, sect_props, el_props
                 / el_props[i, 1]
         if w_o[s_n, 0] == 0:
             w_o[s_n, 0] = s_n
-            w_o[s_n, 1] = w_o[f_n, 1] - p_o * el_props[i, 1]
+            w_o[s_n, 1] = w_o[f_n, 1] - p_o*el_props[i, 1]
         elif w_o[elements[i, 2], 1] == 0:
             w_o[f_n, 0] = f_n
-            w_o[f_n, 1] = w_o[s_n, 1] + p_o * el_props[i, 1]
+            w_o[f_n, 1] = w_o[s_n, 1] + p_o*el_props[i, 1]
         w_no = w_no + 1 / (2*sect_props['A']) * (w_o[s_n, 1] + w_o[f_n, 1]) \
             * elements[i, 3] * el_props[i, 1]
     w_n = w_no - w_o[:, 1]
 
     # coord. transform. to the principal axes
     phi = sect_props['phi']
-    rot = np.array(
-        [[np.cos(phi), -np.sin(phi)],
-         [np.sin(phi), np.cos(phi)]]
-    )
+    rot = np.array([
+        [np.cos(phi), -np.sin(phi)],
+        [np.sin(phi), np.cos(phi)],
+    ])
     centre_of_gravity = [sect_props['cx'], sect_props['cy']] @ rot
 
     # CALCULATION FOR GLOBAL AND DISTORTIONAL BUCKLING MODES
@@ -760,8 +783,8 @@ def y_dofs(nodes, elements, m_node, n_mno, ndm, r_yd, r_ud, sect_props, el_props
     for i in range(0, n_mno):
         xz_i = [m_node[i, 1], m_node[i, 2]] @ rot
         d_y[i, 0] = 1
-        d_y[i, 1] = xz_i[1]-centre_of_gravity[1]
-        d_y[i, 2] = xz_i[0]-centre_of_gravity[0]
+        d_y[i, 1] = xz_i[1] - centre_of_gravity[1]
+        d_y[i, 2] = xz_i[0] - centre_of_gravity[0]
         d_y[i, 3] = w_n[m_node[i, 3]]
 
     # for i = 1:4
@@ -797,7 +820,7 @@ def y_dofs(nodes, elements, m_node, n_mno, ndm, r_yd, r_ud, sect_props, el_props
         nj1 = len(j_junk1[0])
         nj2 = len(j_junk2[0])
         j_junk3 = j_junk1
-        j_junk3[:, nj1:nj1+nj2] = j_junk2
+        j_junk3[:, nj1:nj1 + nj2] = j_junk2
         j_junk4 = spla.null_space(j_junk3.conj().T)
 
         # d_y(:,(ngm+2):(ngm+1+ndm)) = j_junk4
@@ -808,14 +831,15 @@ def y_dofs(nodes, elements, m_node, n_mno, ndm, r_yd, r_ud, sect_props, el_props
         # eigenvalues = diag(eigenvalues)
         # [eigenvalues, index] = sort(eigenvalues)
         # eigenvectors = eigenvectors[:, index]
-        d_y[:, ngm:ngm+ndm] = j_junk4 @ eigenvectors
-
+        d_y[:, ngm:ngm + ndm] = j_junk4 @ eigenvectors
 
     return d_y, ngm
 
 
-def base_vectors(d_y, elements, el_props, length, m_i, node_props, n_mno, n_cno,
-                 n_sno, ngm, ndm, nlm, r_x, r_z, r_p, r_ys, dof_perm):
+def base_vectors(
+    d_y, elements, el_props, length, m_i, node_props, n_mno, n_cno, n_sno, ngm, ndm, nlm, r_x, r_z,
+    r_p, r_ys, dof_perm
+):
     #
     # this routine creates the base vectors for global, dist., local and other modes
     #
@@ -855,70 +879,76 @@ def base_vectors(d_y, elements, el_props, length, m_i, node_props, n_mno, n_cno,
     # Z. Li, Dec 22, 2009
 
     # DATA PREPARATION
-    k_m = m_i * np.pi/length
+    k_m = m_i*np.pi/length
     nno = len(node_props)
-    n_dof = 4*nno # nro of DOFs
+    n_dof = 4*nno  # nro of DOFs
     n_eno = n_mno - n_cno
     # zero out
     b_v_m = np.zeros(n_dof)
 
     # CALCULATION FOR GLOBAL AND DISTORTIONAL BUCKLING MODES
     # to add global and dist y DOFs to base vectors
-    b_v_m = d_y[:, 0:ngm+ndm]
+    b_v_m = d_y[:, 0:ngm + ndm]
     #
     # to add x DOFs of corner nodes to the base vectors
     # r_x = r_x/k_m
-    b_v_m[n_mno:n_mno+n_cno, 0:ngm+ndm] = r_x @ b_v_m[0:n_mno, 0:ngm+ndm]
+    b_v_m[n_mno:n_mno + n_cno, 0:ngm + ndm] = r_x @ b_v_m[0:n_mno, 0:ngm + ndm]
     #
     # to add z DOFs of corner nodes to the base vectors
     # r_z = r_z/k_m
-    b_v_m[n_mno+n_cno:n_mno+2*n_cno, 0:ngm+ndm] = r_z @ b_v_m[0:n_mno, 0:ngm+ndm]
+    b_v_m[n_mno + n_cno:n_mno + 2*n_cno, 0:ngm + ndm] = r_z @ b_v_m[0:n_mno, 0:ngm + ndm]
     #
     # to add other planar DOFs to the base vectors
-    b_v_m[n_mno+2*n_cno:n_dof-n_sno, 0:ngm+ndm] = r_p @ b_v_m[n_mno:n_mno+2*n_cno, 0:ngm+ndm]
+    b_v_m[n_mno + 2*n_cno:n_dof - n_sno,
+          0:ngm + ndm] = r_p @ b_v_m[n_mno:n_mno + 2*n_cno, 0:ngm + ndm]
     #
     # to add y DOFs of sub-nodes to the base vector
-    b_v_m[n_dof-n_sno:n_dof, 0:ngm+ndm] = r_ys @ b_v_m[0:n_mno, 0:ngm+ndm]
+    b_v_m[n_dof - n_sno:n_dof, 0:ngm + ndm] = r_ys @ b_v_m[0:n_mno, 0:ngm + ndm]
     #
     # division by k_m
-    b_v_m[n_mno:n_dof-n_sno, 0:ngm+ndm] = b_v_m[n_mno:n_dof-n_sno, 0:ngm+ndm] / k_m
+    b_v_m[n_mno:n_dof - n_sno, 0:ngm + ndm] = b_v_m[n_mno:n_dof - n_sno, 0:ngm + ndm]/k_m
     #
     # norm base vectors
-    for i in range(0, ngm+ndm):
-        b_v_m[:, i] = b_v_m[:, i] / np.linalg.norm(b_v_m[:, i])
+    for i in range(0, ngm + ndm):
+        b_v_m[:, i] = b_v_m[:, i]/np.linalg.norm(b_v_m[:, i])
 
     # CALCULATION FOR LOCAL BUCKLING MODES
-    n_gdm = ngm+ndm # nr of global and dist. modes
+    n_gdm = ngm + ndm  # nr of global and dist. modes
     # np.zeros
-    b_v_m[0:n_dof, n_gdm:n_gdm+nlm] = np.zeros((n_dof, nlm))
+    b_v_m[0:n_dof, n_gdm:n_gdm + nlm] = np.zeros((n_dof, nlm))
 
     # rot DOFs for main nodes
-    b_v_m[3*n_mno:4*n_mno, n_gdm:n_gdm+n_mno] = np.eye(n_mno)
+    b_v_m[3*n_mno:4*n_mno, n_gdm:n_gdm + n_mno] = np.eye(n_mno)
     #
     # rot DOFs for sub nodes
     if n_sno > 0:
-        b_v_m[4*n_mno+2*n_sno:4*n_mno+3*n_sno, n_gdm+n_mno:n_gdm+n_mno+n_sno] = np.eye(n_sno)
+        b_v_m[4*n_mno + 2*n_sno:4*n_mno + 3*n_sno,
+              n_gdm + n_mno:n_gdm + n_mno + n_sno] = np.eye(n_sno)
 
     # x, z DOFs for edge nodes
     k_local = 0
     for i in range(0, nno):
         if node_props[i, 3] == 2:
-            k_local = k_local+1
-            el_i = np.nonzero((elements[:, 2] == i) or (elements[:, 3] == i)) # adjacent element
+            k_local = k_local + 1
+            el_i = np.nonzero((elements[:, 2] == i) or (elements[:, 3] == i))  # adjacent element
             alfa = el_props[el_i, 2]
-            b_v_m[n_mno+2*n_cno+k_local, n_gdm+n_mno+n_sno+k_local] = -np.sin(alfa) # x
-            b_v_m[n_mno+2*n_cno+n_eno+k_local, n_gdm+n_mno+n_sno+k_local] = np.cos(alfa) # z
+            b_v_m[n_mno + 2*n_cno + k_local, n_gdm + n_mno + n_sno + k_local] = -np.sin(alfa)  # x
+            b_v_m[n_mno + 2*n_cno + n_eno + k_local,
+                  n_gdm + n_mno + n_sno + k_local] = np.cos(alfa)  # z
 
     # x, z DOFs for sub-nodes
     if n_sno > 0:
         k_local = 0
         for i in range(0, nno):
             if node_props[i, 3] == 3:
-                k_local = k_local+1
-                el_i = np.nonzero((elements[:, 2] == i) or (elements[:, 3] == i)) # adjacent element
+                k_local = k_local + 1
+                el_i = np.nonzero((elements[:, 2] == i)
+                                  or (elements[:, 3] == i))  # adjacent element
                 alfa = el_props[el_i[0], 3]
-                b_v_m[4*n_mno+k_local, n_gdm+n_mno+n_sno+n_eno+k_local] = -np.sin(alfa) # x
-                b_v_m[4*n_mno+n_sno+k_local, n_gdm+n_mno+n_sno+n_eno+k_local] = np.cos(alfa) # z
+                b_v_m[4*n_mno + k_local,
+                      n_gdm + n_mno + n_sno + n_eno + k_local] = -np.sin(alfa)  # x
+                b_v_m[4*n_mno + n_sno + k_local,
+                      n_gdm + n_mno + n_sno + n_eno + k_local] = np.cos(alfa)  # z
 
     # CALCULATION FOR OTHER BUCKLING MODES
     #
@@ -979,7 +1009,7 @@ def base_vectors(d_y, elements, el_props, length, m_i, node_props, n_mno, n_cno,
     # end
     ## new way
     nel = len(elements)
-    b_v_m[0:n_dof, n_gdm+nlm:n_gdm+nlm+2*nel] = np.zeros((n_dof, 2*nel))
+    b_v_m[0:n_dof, n_gdm + nlm:n_gdm + nlm + 2*nel] = np.zeros((n_dof, 2*nel))
     for i in range(0, nel):
         alfa = el_props[i, 2]
 
@@ -988,19 +1018,20 @@ def base_vectors(d_y, elements, el_props, length, m_i, node_props, n_mno, n_cno,
         n_nod2 = elements[i, 2]
 
         # create the base-vectors for membrane SHEAR modes
-        b_v_m[(n_nod1-1)*2, n_gdm+nlm+i] = 0.5
-        b_v_m[(n_nod2-1)*2, n_gdm+nlm+i] = -0.5
+        b_v_m[(n_nod1 - 1)*2, n_gdm + nlm + i] = 0.5
+        b_v_m[(n_nod2 - 1)*2, n_gdm + nlm + i] = -0.5
 
         # create the base-vectors for membrane TRANSVERSE modes
-        b_v_m[(n_nod1-1)*2, n_gdm+nlm+nel+i] = -0.5*np.cos(alfa)
-        b_v_m[(n_nod2-1)*2, n_gdm+nlm+nel+i] = 0.5*np.cos(alfa)
-        b_v_m[2*nno+(n_nod1-1)*2, n_gdm+nlm+nel+i] = 0.5*np.sin(alfa)
-        b_v_m[2*nno+(n_nod2-1)*2, n_gdm+nlm+nel+i] = -0.5*np.sin(alfa)
+        b_v_m[(n_nod1 - 1)*2, n_gdm + nlm + nel + i] = -0.5*np.cos(alfa)
+        b_v_m[(n_nod2 - 1)*2, n_gdm + nlm + nel + i] = 0.5*np.cos(alfa)
+        b_v_m[2*nno + (n_nod1 - 1)*2, n_gdm + nlm + nel + i] = 0.5*np.sin(alfa)
+        b_v_m[2*nno + (n_nod2 - 1)*2, n_gdm + nlm + nel + i] = -0.5*np.sin(alfa)
 
     # RE_ORDERING DOFS
-    b_v_m[:, 0:n_gdm+nlm] = dof_perm*b_v_m[:, 0:n_gdm+nlm]
+    b_v_m[:, 0:n_gdm + nlm] = dof_perm*b_v_m[:, 0:n_gdm + nlm]
 
     return b_v_m
+
 
 def constr_xz_y(m_node, m_elem):
     # this routine creates the constraint matrix, Rxz, that defines relationship
@@ -1036,15 +1067,15 @@ def constr_xz_y(m_node, m_elem):
         x_2 = m_node[node2, 1]
         z_1 = m_node[node1, 2]
         z_2 = m_node[node2, 2]
-        b_i = np.sqrt((x_2 - x_1)**2+(z_2 - z_1)**2)
+        b_i = np.sqrt((x_2 - x_1)**2 + (z_2 - z_1)**2)
         a_i = np.arctan2(z_2 - z_1, x_2 - x_1)
-        s_i = (z_2 - z_1) / b_i
-        c_i = (x_2 - x_1) / b_i
-        m_el_dat[i, 0] = b_i # elements width, b_strip
-        m_el_dat[i, 1] = 1/m_el_dat[i, 0] # 1/b_strip
-        m_el_dat[i, 2] = a_i # elements inclination
-        m_el_dat[i, 3] = s_i # np.sin
-        m_el_dat[i, 4] = c_i # np.cos
+        s_i = (z_2 - z_1)/b_i
+        c_i = (x_2 - x_1)/b_i
+        m_el_dat[i, 0] = b_i  # elements width, b_strip
+        m_el_dat[i, 1] = 1/m_el_dat[i, 0]  # 1/b_strip
+        m_el_dat[i, 2] = a_i  # elements inclination
+        m_el_dat[i, 3] = s_i  # np.sin
+        m_el_dat[i, 4] = c_i  # np.cos
     #     m_el_dat[i, 5] = s_i/b_i # np.sin/b_strip
     #     m_el_dat[i, 6] = c_i/b_i # np.cos/b_strip
 
@@ -1053,7 +1084,7 @@ def constr_xz_y(m_node, m_elem):
     n_cno = 0
     for i in range(0, len(m_node)):
         if m_node[i, 4] > 1:
-            n_cno = n_cno+1
+            n_cno = n_cno + 1
 
     r_x = np.zeros((n_cno, n_mno))
     r_z = np.zeros((n_cno, n_mno))
@@ -1061,11 +1092,11 @@ def constr_xz_y(m_node, m_elem):
     for i in range(0, n_mno):
         if m_node[i, 4] > 1:
             # to select two non-parallel meta-elements (elem1, elem2)
-            k_local = k_local+1
+            k_local = k_local + 1
             elem1 = m_node[i, 5]
             j = 6
             while np.sin(m_el_dat[abs(m_node[i, j]), 2] - m_el_dat[abs(elem1), 2]) == 0:
-                j = j+1
+                j = j + 1
 
             elem2 = m_node[i, j]
 
@@ -1104,11 +1135,11 @@ def constr_xz_y(m_node, m_elem):
 
             # to form Rxz matrix
             r_x[k_local, m_node1] = sin2*r_1/det
-            r_x[k_local, m_node2] = (-sin1*r_2 - sin2*r_1) / det
+            r_x[k_local, m_node2] = (-sin1*r_2 - sin2*r_1)/det
             r_x[k_local, m_node3] = sin1*r_2/det
 
             r_z[k_local, m_node1] = -cos2*r_1/det
-            r_z[k_local, m_node2] = (cos1*r_2+cos2*r_1) / det
+            r_z[k_local, m_node2] = (cos1*r_2 + cos2*r_1)/det
             r_z[k_local, m_node3] = -cos1*r_2/det
 
     return r_x, r_z
@@ -1146,9 +1177,9 @@ def constr_planar_xz(nodes, elements, props, node_props, dof_perm, m_i, length, 
         if node_props[i, 3] == 3:
             n_sno = n_sno + 1
 
-    n_mno = n_cno + n_eno # nr of main nodes
+    n_mno = n_cno + n_eno  # nr of main nodes
 
-    n_dof = 4*nno # nro of DOFs
+    n_dof = 4*nno  # nro of DOFs
 
     # to create the full global stiffness matrix (for transverse bending)
     k_global = kglobal_transv(nodes, elements, props, m_i, length, b_c)
@@ -1157,8 +1188,8 @@ def constr_planar_xz(nodes, elements, props, node_props, dof_perm, m_i, length, 
     k_global = dof_perm.conj().T @ k_global @ dof_perm
 
     # to have partitions of k_global
-    k_global_pp = k_global[n_mno+2*n_cno:n_dof-n_sno, n_mno+2*n_cno:n_dof-n_sno]
-    k_global_pc = k_global[n_mno+2*n_cno:n_dof-n_sno, n_mno:n_mno+2*n_cno]
+    k_global_pp = k_global[n_mno + 2*n_cno:n_dof - n_sno, n_mno + 2*n_cno:n_dof - n_sno]
+    k_global_pc = k_global[n_mno + 2*n_cno:n_dof - n_sno, n_mno:n_mno + 2*n_cno]
 
     # to form the constraint matrix
     #[r_p]=-inv(k_global_pp) * k_global_pc
@@ -1189,17 +1220,17 @@ def constr_yd_yg(nodes, elements, node_props, r_ys, n_mno):
     for i in range(0, n_elements):
         node1 = elements[i, 1]
         node2 = elements[i, 2]
-        d_x = nodes[node2, 1]-nodes[node1, 1]
-        d_z = nodes[node2, 2]-nodes[node1, 2]
-        d_area = np.sqrt(d_x*d_x + d_z*d_z) * elements[i, 3]
+        d_x = nodes[node2, 1] - nodes[node1, 1]
+        d_z = nodes[node2, 2] - nodes[node1, 2]
+        d_area = np.sqrt(d_x*d_x + d_z*d_z)*elements[i, 3]
         ind = np.nonzero(node_props[:, 0] == node1)
         node1 = node_props[ind, 1]
         ind = np.nonzero(node_props[:, 0] == node2)
         node2 = node_props[ind, 1]
-        a_matrix[node1, node1] = a_matrix[node1, node1]+2*d_area
-        a_matrix[node2, node2] = a_matrix[node2, node2]+2*d_area
-        a_matrix[node1, node2] = a_matrix[node1, node2]+d_area
-        a_matrix[node2, node1] = a_matrix[node2, node1]+d_area
+        a_matrix[node1, node1] = a_matrix[node1, node1] + 2*d_area
+        a_matrix[node2, node2] = a_matrix[node2, node2] + 2*d_area
+        a_matrix[node1, node2] = a_matrix[node1, node2] + d_area
+        a_matrix[node2, node1] = a_matrix[node2, node1] + d_area
 
     r_ysm = np.eye(n_mno)
     r_ysm[n_mno:n_nodes, 0:n_mno] = r_ys
@@ -1242,17 +1273,17 @@ def constr_ys_ym(nodes, m_node, m_elem, node_props):
             x_3 = nodes[nod3, 1]
             z_1 = nodes[nod1, 2]
             z_3 = nodes[nod3, 2]
-            b_m = np.sqrt((x_3 - x_1)**2+(z_3 - z_1)**2)
+            b_m = np.sqrt((x_3 - x_1)**2 + (z_3 - z_1)**2)
             n_new1 = node_props[nod1, 1]
             n_new3 = node_props[nod3, 1]
             for j in range(0, m_elem[i, 3]):
-                nod2 = m_elem[i, j+4]
+                nod2 = m_elem[i, j + 4]
                 x_2 = nodes[nod2, 1]
                 z_2 = nodes[nod2, 2]
-                b_s = np.sqrt((x_2 - x_1)**2+(z_2 - z_1)**2)
+                b_s = np.sqrt((x_2 - x_1)**2 + (z_2 - z_1)**2)
                 n_new2 = node_props[nod2, 1]
-                r_ys[n_new2-n_mno, n_new1] = (b_m - b_s) / b_m
-                r_ys[n_new2-n_mno, n_new3] = b_s/b_m
+                r_ys[n_new2 - n_mno, n_new1] = (b_m - b_s)/b_m
+                r_ys[n_new2 - n_mno, n_new3] = b_s/b_m
 
     return r_ys
 
@@ -1292,15 +1323,15 @@ def constr_yu_yd(m_node, m_elem):
         x_2 = m_node[node2, 1]
         z_1 = m_node[node1, 2]
         z_2 = m_node[node2, 2]
-        b_i = np.sqrt((x_2 - x_1)**2+(z_2 - z_1)**2)
+        b_i = np.sqrt((x_2 - x_1)**2 + (z_2 - z_1)**2)
         a_i = np.arctan2(z_2 - z_1, x_2 - x_1)
-        s_i = (z_2 - z_1) / b_i
-        c_i = (x_2 - x_1) / b_i
-        m_el_dat[i, 0] = b_i # elements width, b_strip
-        m_el_dat[i, 1] = 1/m_el_dat[i, 0] # 1/b_strip
-        m_el_dat[i, 2] = a_i # elements inclination
-        m_el_dat[i, 3] = s_i # np.sin
-        m_el_dat[i, 4] = c_i # np.cos
+        s_i = (z_2 - z_1)/b_i
+        c_i = (x_2 - x_1)/b_i
+        m_el_dat[i, 0] = b_i  # elements width, b_strip
+        m_el_dat[i, 1] = 1/m_el_dat[i, 0]  # 1/b_strip
+        m_el_dat[i, 2] = a_i  # elements inclination
+        m_el_dat[i, 3] = s_i  # np.sin
+        m_el_dat[i, 4] = c_i  # np.cos
     #     m_el_dat[i, 5] = s_i/b_i # np.sin/b_strip
     #     m_el_dat[i, 6] = c_i/b_i # np.cos/b_strip
 
@@ -1325,7 +1356,7 @@ def constr_yu_yd(m_node, m_elem):
 
             # to set far nodes of adjacent unselected elements to indefinite (node_reg == 0)
             for j in range(1, m_node[i, 4]):
-                elem3 = abs(m_node[i, j+5])
+                elem3 = abs(m_node[i, j + 5])
                 if elem3 != abs(elem2):
                     if m_elem[elem3, 1] != i:
                         node_reg[m_elem[elem3, 1]] = 0
@@ -1384,18 +1415,12 @@ def constr_yu_yd(m_node, m_elem):
 
             det = np.sin(alfa2 - alfa1)
 
-            r_mat = np.array(
-                [[r_1, -r_1, 0],
-                 [0, r_2, -r_2]]
-            )
-            c_s = np.array(
-                [[sin2, -sin1],
-                 [-cos2, cos1]]
-            )
-            csr = c_s @ r_mat / det
+            r_mat = np.array([[r_1, -r_1, 0], [0, r_2, -r_2]])
+            c_s = np.array([[sin2, -sin1], [-cos2, cos1]])
+            csr = c_s @ r_mat/det
 
             for j in range(1, m_node[i, 4]):
-                elem3 = m_node[i, j+5]
+                elem3 = m_node[i, j + 5]
                 if abs(elem3) != abs(elem2):
                     if m_elem[abs(elem3), 1] != i:
                         m_node4 = m_elem[abs(elem3), 1]
@@ -1411,7 +1436,7 @@ def constr_yu_yd(m_node, m_elem):
                         sin3 = -sin3
                         cos3 = -cos3
 
-                    rud = -1/r_3 * np.array([cos3, sin3]) @ csr
+                    rud = -1/r_3*np.array([cos3, sin3]) @ csr
                     rud[0, 1] = rud[0, 1] + 1
                     r_ud[m_node4, m_node1] = rud[0, 0]
                     r_ud[m_node4, m_node2] = rud[0, 1]
@@ -1427,7 +1452,7 @@ def constr_yu_yd(m_node, m_elem):
                     k_local = 1
                     indices = np.nonzero(r_ud[:, i])
                     for ind in indices:
-                        r_ud[ind, :] = r_ud[ind, :] + r_ud[i, :] * r_ud[ind, i]
+                        r_ud[ind, :] = r_ud[ind, :] + r_ud[i, :]*r_ud[ind, i]
                         r_ud[ind, i] = 0
 
     return r_ud
@@ -1502,7 +1527,7 @@ def meta_elems(nodes, elements):
         for j in range(0, n_elements):
             if elements[j, 1] == i or elements[j, 2] == i:
                 mel = mel + 1
-                els.append(j) # zli: element no. containing this nodes
+                els.append(j)  # zli: element no. containing this nodes
 
         node_props[i, 2] = mel
         if mel == 1:
@@ -1522,9 +1547,9 @@ def meta_elems(nodes, elements):
             if n_3 == n_1:
                 n_3 = elements[els[1], 2]
 
-            a_1 = np.arctan2(nodes[n_2, 2] - nodes[n_1, 2], nodes[n_2, 1] - nodes[n_1, 1]) #?
+            a_1 = np.arctan2(nodes[n_2, 2] - nodes[n_1, 2], nodes[n_2, 1] - nodes[n_1, 1])  #?
             a_2 = np.arctan2(nodes[n_1, 2] - nodes[n_3, 2], nodes[n_1, 1] - nodes[n_3, 1])
-            if abs(a_1-a_2) < 1E-7:
+            if abs(a_1 - a_2) < 1E-7:
                 node_props[i, 2] = 0
                 node_props[i, 3] = 3
 
@@ -1551,11 +1576,11 @@ def meta_elems(nodes, elements):
             m_el[els[0], 2] = no2
             m_el[els[1], 1] = 0
             m_el[els[1], 2] = 0
-            m_el[els[0], 3] = m_el[els[0], 3]+1 # zli:
-            m_el[els[0], 4+m_el[els[0], 3]] = i # zli:deleted elements no.
+            m_el[els[0], 3] = m_el[els[0], 3] + 1  # zli:
+            m_el[els[0], 4 + m_el[els[0], 3]] = i  # zli:deleted elements no.
 
     # to eliminate disappearing elements (nodes numbers are still the original ones!)
-    n_mel = 0 # nr of meta-elements
+    n_mel = 0  # nr of meta-elements
     m_elem = np.zeros((len(elements), 5))
     for i in range(0, n_elements):
         if m_el[i, 2] != 0 and m_el[i, 3] != 0:
@@ -1566,7 +1591,7 @@ def meta_elems(nodes, elements):
     # to create array of main-nodes
     #(first and fourth columns assign the new vs. original numbering,
     # + node_assign tells the original vs. new numbering)
-    n_mno = 0 # nr of main nodes
+    n_mno = 0  # nr of main nodes
     m_node = np.zeros((len(nodes), 5))
     for i in range(0, n_nodes):
         if node_props[i, 2] != 0:
@@ -1600,7 +1625,7 @@ def meta_elems(nodes, elements):
                 m_node[i, k_local] = -j
 
     # to finish node_assign with the new numbers of subdividing nodes
-    n_sno = 0 # nr of subdividing nodes
+    n_sno = 0  # nr of subdividing nodes
     for i in range(0, n_nodes):
         if node_props[i, 2] == 0:
             n_sno = n_sno + 1
@@ -1634,7 +1659,7 @@ def mode_nr(n_mno, n_cno, n_sno, m_node):
         ndm = 0
 
     # to count the number of local modes
-    n_eno = n_mno - n_cno # nr of edge nodes
+    n_eno = n_mno - n_cno  # nr of edge nodes
     nlm = n_mno + 2*n_sno + n_eno
 
     return ndm, nlm
@@ -1671,7 +1696,7 @@ def dof_ordering(node_props):
         if node_props[i, 3] == 3:
             n_sno = n_sno + 1
 
-    n_mno = n_cno + n_eno # nr of main nodes
+    n_mno = n_cno + n_eno  # nr of main nodes
 
     # to form permutation matrix
     dof_perm = np.zeros(4*nno)
@@ -1681,52 +1706,52 @@ def dof_ordering(node_props):
     i_e = 0
     i_s = 0
     for i in range(0, nno):
-        if node_props[i, 3] == 1: # corner nodes
+        if node_props[i, 3] == 1:  # corner nodes
             i_c = i_c + 1
-            dof_perm[2*i, n_mno+i_c] = 1
-        if node_props[i, 3] == 2: # edge nodes
+            dof_perm[2*i, n_mno + i_c] = 1
+        if node_props[i, 3] == 2:  # edge nodes
             i_e = i_e + 1
-            dof_perm[2*i, n_mno+2*n_cno+i_e] = 1
-        if node_props[i, 3] == 3: # sub nodes
+            dof_perm[2*i, n_mno + 2*n_cno + i_e] = 1
+        if node_props[i, 3] == 3:  # sub nodes
             i_s = i_s + 1
-            dof_perm[2*i, 4*n_mno+i_s] = 1
+            dof_perm[2*i, 4*n_mno + i_s] = 1
 
     # y DOFs
     i_c = 0
     i_s = 0
     for i in range(0, nno):
-        if node_props[i, 3] == 1 or node_props[i, 3] == 2: # corner or edge nodes
+        if node_props[i, 3] == 1 or node_props[i, 3] == 2:  # corner or edge nodes
             i_c = i_c + 1
-            dof_perm[2*i+1, i_c] = 1
-        if node_props[i, 4] == 3: # sub nodes
+            dof_perm[2*i + 1, i_c] = 1
+        if node_props[i, 4] == 3:  # sub nodes
             i_s = i_s + 1
-            dof_perm[2*i+1, 4*n_mno + 3*n_sno + i_s] = 1
+            dof_perm[2*i + 1, 4*n_mno + 3*n_sno + i_s] = 1
 
     # z DOFs
     i_c = 0
     i_e = 0
     i_s = 0
     for i in range(0, nno):
-        if node_props[i, 3] == 1: # corner nodes
+        if node_props[i, 3] == 1:  # corner nodes
             i_c = i_c + 1
-            dof_perm[2*nno+2*i, n_mno+n_cno+i_c] = 1
-        if node_props[i, 3] == 2: # edge nodes
+            dof_perm[2*nno + 2*i, n_mno + n_cno + i_c] = 1
+        if node_props[i, 3] == 2:  # edge nodes
             i_e = i_e + 1
-            dof_perm[2*nno+2*i, n_mno+2*n_cno+n_eno+i_e] = 1
-        if node_props[i, 3] == 3: # sub nodes
+            dof_perm[2*nno + 2*i, n_mno + 2*n_cno + n_eno + i_e] = 1
+        if node_props[i, 3] == 3:  # sub nodes
             i_s = i_s + 1
-            dof_perm[2*nno+2*i, 4*n_mno+n_sno+i_s] = 1
+            dof_perm[2*nno + 2*i, 4*n_mno + n_sno + i_s] = 1
 
     # teta DOFs
     i_c = 0
     i_s = 0
     for i in range(0, nno):
-        if node_props[i, 3] == 1 or node_props[i, 3] == 2: # corner or edge nodes
+        if node_props[i, 3] == 1 or node_props[i, 3] == 2:  # corner or edge nodes
             i_c = i_c + 1
-            dof_perm[2*nno+2*i+1, 3*n_mno+i_c] = 1
-        if node_props[i, 4] == 3: # sub nodes
+            dof_perm[2*nno + 2*i + 1, 3*n_mno + i_c] = 1
+        if node_props[i, 4] == 3:  # sub nodes
             i_s = i_s + 1
-            dof_perm[2*nno+2*i+1, 4*n_mno+2*n_sno+i_s] = 1
+            dof_perm[2*nno + 2*i + 1, 4*n_mno + 2*n_sno + i_s] = 1
 
     return dof_perm
 
@@ -1770,15 +1795,15 @@ def create_k_globals(m_i, nodes, elements, el_props, props, length, b_c):
         # Generate geometric stiffness matrix (kg_local) in local coordinates
         node_i = elem[1]
         node_j = elem[2]
-        ty_1 = nodes[node_i, 7] * thick
-        ty_2 = nodes[node_j, 7] * thick
+        ty_1 = nodes[node_i, 7]*thick
+        ty_2 = nodes[node_j, 7]*thick
         kg_l = kglocal_m(
             length=length,
             b_strip=b_strip,
             ty_1=ty_1,
             ty_2=ty_2,
             b_c=b_c,
-            m_i=m_i
+            m_i=m_i,
         )
         # Transform k_local and kg_local into global coordinates
         alpha = el_props[i, 2]
@@ -1804,11 +1829,11 @@ def klocal_m(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_i, b_
     # created on Jul 10, 2009 by Z. Li
 
     # Generate element stiffness matrix (k_local) in local coordinates
-    e_1 = stiff_x / (1 - nu_x*nu_y)
-    e_2 = stiff_y / (1 - nu_x*nu_y)
-    d_x = stiff_x*thick**3 / (12 * (1 - nu_x*nu_y))
-    d_y = stiff_y*thick**3 / (12 * (1 - nu_x*nu_y))
-    d_1 = nu_x*stiff_y*thick**3 / (12 * (1 - nu_x*nu_y))
+    e_1 = stiff_x/(1 - nu_x*nu_y)
+    e_2 = stiff_y/(1 - nu_x*nu_y)
+    d_x = stiff_x*thick**3/(12*(1 - nu_x*nu_y))
+    d_y = stiff_y*thick**3/(12*(1 - nu_x*nu_y))
+    d_1 = nu_x*stiff_y*thick**3/(12*(1 - nu_x*nu_y))
     d_xy = bulk*thick**3/12
     #
     # k_local = sparse(np.zeros(8*m_i, 8*m_i))
@@ -1826,23 +1851,23 @@ def klocal_m(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_i, b_
     #
     # assemble the matrix of Km_mp
     km_mp[0, 0] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
-    km_mp[0, 1] = e_2*nu_x*(-1/2/c_2) * i_3 - bulk*i_5/2/c_2
+    km_mp[0, 1] = e_2*nu_x*(-1/2/c_2)*i_3 - bulk*i_5/2/c_2
     km_mp[0, 2] = -e_1*i_1/b_strip + bulk*b_strip*i_5/6
-    km_mp[0, 3] = e_2*nu_x*(-1/2/c_2) * i_3 + bulk*i_5/2/c_2
+    km_mp[0, 3] = e_2*nu_x*(-1/2/c_2)*i_3 + bulk*i_5/2/c_2
 
-    km_mp[1, 0] = e_2*nu_x*(-1/2/c_1) * i_2 - bulk*i_5/2/c_1
+    km_mp[1, 0] = e_2*nu_x*(-1/2/c_1)*i_2 - bulk*i_5/2/c_1
     km_mp[1, 1] = e_2*b_strip*i_4/3/c_1/c_2 + bulk*i_5/b_strip/c_1/c_2
-    km_mp[1, 2] = e_2*nu_x * (1/2/c_1) * i_2 - bulk*i_5/2/c_1
+    km_mp[1, 2] = e_2*nu_x*(1/2/c_1)*i_2 - bulk*i_5/2/c_1
     km_mp[1, 3] = e_2*b_strip*i_4/6/c_1/c_2 - bulk*i_5/b_strip/c_1/c_2
 
     km_mp[2, 0] = -e_1*i_1/b_strip + bulk*b_strip*i_5/6
-    km_mp[2, 1] = e_2*nu_x * (1/2/c_2) * i_3 - bulk*i_5/2/c_2
+    km_mp[2, 1] = e_2*nu_x*(1/2/c_2)*i_3 - bulk*i_5/2/c_2
     km_mp[2, 2] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
-    km_mp[2, 3] = e_2*nu_x * (1/2/c_2) * i_3 + bulk*i_5/2/c_2
+    km_mp[2, 3] = e_2*nu_x*(1/2/c_2)*i_3 + bulk*i_5/2/c_2
 
-    km_mp[3, 0] = e_2*nu_x*(-1/2/c_1) * i_2 + bulk*i_5/2/c_1
+    km_mp[3, 0] = e_2*nu_x*(-1/2/c_1)*i_2 + bulk*i_5/2/c_1
     km_mp[3, 1] = e_2*b_strip*i_4/6/c_1/c_2 - bulk*i_5/b_strip/c_1/c_2
-    km_mp[3, 2] = e_2*nu_x * (1/2/c_1) * i_2 + bulk*i_5/2/c_1
+    km_mp[3, 2] = e_2*nu_x*(1/2/c_1)*i_2 + bulk*i_5/2/c_1
     km_mp[3, 3] = e_2*b_strip*i_4/3/c_1/c_2 + bulk*i_5/b_strip/c_1/c_2
     km_mp = km_mp*thick
     #
@@ -1883,12 +1908,13 @@ def klocal_m(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_i, b_
     # assemble the membrane and flexural stiffness matrices
     kmp = np.concatenate((
         np.concatenate((km_mp, z_0), axis=1),
-        np.concatenate((z_0, kf_mp), axis=1)
+        np.concatenate((z_0, kf_mp), axis=1),
     ))
     # add it into local element stiffness matrix by corresponding to m_i
     k_local = kmp
 
     return k_local
+
 
 def kglocal_m(length, b_strip, m_i, ty_1, ty_2, b_c):
     # assemble local geometric stiffness matrix for a single longitudinal term m_i
@@ -1908,37 +1934,36 @@ def kglocal_m(length, b_strip, m_i, ty_1, ty_2, b_c):
     [_, _, _, i_4, i_5] = analysis.bc_i1_5(b_c, i, j, length)
     #
     # assemble the matrix of gm_mp (symmetric membrane stability matrix)
-    gm_mp[0, 0] = b_strip * (3*ty_1 + ty_2) * i_5/12
-    gm_mp[0, 2] = b_strip * (ty_1 + ty_2) * i_5/12
+    gm_mp[0, 0] = b_strip*(3*ty_1 + ty_2)*i_5/12
+    gm_mp[0, 2] = b_strip*(ty_1 + ty_2)*i_5/12
     gm_mp[2, 0] = gm_mp[0, 2]
-    gm_mp[1, 1] = b_strip*length**2 * (3*ty_1 + ty_2) * i_4/12/u_m/u_p
-    gm_mp[1, 3] = b_strip*length**2 * (ty_1 + ty_2) * i_4/12/u_m/u_p
+    gm_mp[1, 1] = b_strip*length**2*(3*ty_1 + ty_2)*i_4/12/u_m/u_p
+    gm_mp[1, 3] = b_strip*length**2*(ty_1 + ty_2)*i_4/12/u_m/u_p
     gm_mp[3, 1] = gm_mp[1, 3]
-    gm_mp[2, 2] = b_strip * (ty_1 + 3*ty_2) * i_5/12
-    gm_mp[3, 3] = b_strip*length**2 * (ty_1 + 3*ty_2) * i_4/12/u_m/u_p
+    gm_mp[2, 2] = b_strip*(ty_1 + 3*ty_2)*i_5/12
+    gm_mp[3, 3] = b_strip*length**2*(ty_1 + 3*ty_2)*i_4/12/u_m/u_p
     #
     # assemble the matrix of gf_mp (symmetric flexural stability matrix)
-    gf_mp[0, 0] = (10*ty_1 + 3*ty_2) * b_strip*i_5/35
-    gf_mp[0, 1] = (15*ty_1 + 7*ty_2) * b_strip**2*i_5/210/2
+    gf_mp[0, 0] = (10*ty_1 + 3*ty_2)*b_strip*i_5/35
+    gf_mp[0, 1] = (15*ty_1 + 7*ty_2)*b_strip**2*i_5/210/2
     gf_mp[1, 0] = gf_mp[0, 1]
-    gf_mp[0, 2] = 9 * (ty_1 + ty_2) * b_strip*i_5/140
+    gf_mp[0, 2] = 9*(ty_1 + ty_2)*b_strip*i_5/140
     gf_mp[2, 0] = gf_mp[0, 2]
-    gf_mp[0, 3] = -(7*ty_1 + 6*ty_2) * b_strip**2*i_5/420
+    gf_mp[0, 3] = -(7*ty_1 + 6*ty_2)*b_strip**2*i_5/420
     gf_mp[3, 0] = gf_mp[0, 3]
-    gf_mp[1, 1] = (5*ty_1 + 3*ty_2) * b_strip**3*i_5/2/420
-    gf_mp[1, 2] = (6*ty_1 + 7*ty_2) * b_strip**2*i_5/420
+    gf_mp[1, 1] = (5*ty_1 + 3*ty_2)*b_strip**3*i_5/2/420
+    gf_mp[1, 2] = (6*ty_1 + 7*ty_2)*b_strip**2*i_5/420
     gf_mp[2, 1] = gf_mp[1, 2]
-    gf_mp[1, 3] = -(ty_1 + ty_2) * b_strip**3*i_5/140/2
+    gf_mp[1, 3] = -(ty_1 + ty_2)*b_strip**3*i_5/140/2
     gf_mp[3, 1] = gf_mp[1, 3]
-    gf_mp[2, 2] = (3*ty_1 + 10*ty_2) * b_strip*i_5/35
-    gf_mp[2, 3] = -(7*ty_1 + 15*ty_2) * b_strip**2*i_5/420
+    gf_mp[2, 2] = (3*ty_1 + 10*ty_2)*b_strip*i_5/35
+    gf_mp[2, 3] = -(7*ty_1 + 15*ty_2)*b_strip**2*i_5/420
     gf_mp[3, 2] = gf_mp[2, 3]
-    gf_mp[3, 3] = (3*ty_1 + 5*ty_2) * b_strip**3*i_5/420/2
+    gf_mp[3, 3] = (3*ty_1 + 5*ty_2)*b_strip**3*i_5/420/2
     # assemble the membrane and flexural stiffness matrices
-    kg_mp = np.concatenate((
-        np.concatenate((gm_mp, z_0), axis=1),
-        np.concatenate((z_0, gf_mp), axis=1)
-    ))
+    kg_mp = np.concatenate(
+        (np.concatenate((gm_mp, z_0), axis=1), np.concatenate((z_0, gf_mp), axis=1))
+    )
     # add it into local geometric stiffness matrix by corresponding to m_i
     kg_local = kg_mp
     return kg_local
@@ -1948,16 +1973,16 @@ def trans_m(alpha, k_local, kg_local):
     # transfer the local stiffness into global stiffness
 
     # created on Jul 10, 2009 by Z. Li
-    gamma = np.array(
-        [[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0],
-         [0, 1, 0, 0, 0, 0, 0, 0],
-         [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0],
-         [0, 0, 0, 1, 0, 0, 0, 0],
-         [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0],
-         [0, 0, 0, 0, 0, 1, 0, 0],
-         [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0],
-         [0, 0, 0, 0, 0, 0, 0, 1]]
-    )
+    gamma = np.array([
+        [np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0],
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0],
+        [0, 0, 0, 0, 0, 0, 0, 1],
+    ])
     # extend to multi-m
     # for i = 1:m_i
     #     gamma(8*(i-1)+1:8*i, 8*(i-1)+1:8*i) = gam
@@ -2023,20 +2048,20 @@ def assemble_m(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes):
     k_2_matrix[node_j*2:node_j*2, node_i*2:node_i*2] = k21
     k_2_matrix[node_j*2:node_j*2, node_j*2:node_j*2] = k22
     #
-    k_2_matrix[skip+node_i*2:skip+node_i*2, skip+node_i*2:skip+node_i*2] = k33
-    k_2_matrix[skip+node_i*2:skip+node_i*2, skip+node_j*2:skip+node_j*2] = k34
-    k_2_matrix[skip+node_j*2:skip+node_j*2, skip+node_i*2:skip+node_i*2] = k43
-    k_2_matrix[skip+node_j*2:skip+node_j*2, skip+node_j*2:skip+node_j*2] = k44
+    k_2_matrix[skip + node_i*2:skip + node_i*2, skip + node_i*2:skip + node_i*2] = k33
+    k_2_matrix[skip + node_i*2:skip + node_i*2, skip + node_j*2:skip + node_j*2] = k34
+    k_2_matrix[skip + node_j*2:skip + node_j*2, skip + node_i*2:skip + node_i*2] = k43
+    k_2_matrix[skip + node_j*2:skip + node_j*2, skip + node_j*2:skip + node_j*2] = k44
     #
-    k_2_matrix[node_i*2:node_i*2, skip+node_i*2:skip+node_i*2] = k13
-    k_2_matrix[node_i*2:node_i*2, skip+node_j*2:skip+node_j*2] = k14
-    k_2_matrix[node_j*2:node_j*2, skip+node_i*2:skip+node_i*2] = k23
-    k_2_matrix[node_j*2:node_j*2, skip+node_j*2:skip+node_j*2] = k24
+    k_2_matrix[node_i*2:node_i*2, skip + node_i*2:skip + node_i*2] = k13
+    k_2_matrix[node_i*2:node_i*2, skip + node_j*2:skip + node_j*2] = k14
+    k_2_matrix[node_j*2:node_j*2, skip + node_i*2:skip + node_i*2] = k23
+    k_2_matrix[node_j*2:node_j*2, skip + node_j*2:skip + node_j*2] = k24
     #
-    k_2_matrix[skip+node_i*2:skip+node_i*2, node_i*2:node_i*2] = k31
-    k_2_matrix[skip+node_i*2:skip+node_i*2, node_j*2:node_j*2] = k32
-    k_2_matrix[skip+node_j*2:skip+node_j*2, node_i*2:node_i*2] = k41
-    k_2_matrix[skip+node_j*2:skip+node_j*2, node_j*2:node_j*2] = k42
+    k_2_matrix[skip + node_i*2:skip + node_i*2, node_i*2:node_i*2] = k31
+    k_2_matrix[skip + node_i*2:skip + node_i*2, node_j*2:node_j*2] = k32
+    k_2_matrix[skip + node_j*2:skip + node_j*2, node_i*2:node_i*2] = k41
+    k_2_matrix[skip + node_j*2:skip + node_j*2, node_j*2:node_j*2] = k42
     k_global = k_global + k_2_matrix
     #
     # The additional terms for kg_global are stored in k_3_matrix
@@ -2045,20 +2070,20 @@ def assemble_m(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes):
     k_3_matrix[node_j*2:node_j*2, node_i*2:node_i*2] = kg21
     k_3_matrix[node_j*2:node_j*2, node_j*2:node_j*2] = kg22
     #
-    k_3_matrix[skip+node_i*2:skip+node_i*2, skip+node_i*2:skip+node_i*2] = kg33
-    k_3_matrix[skip+node_i*2:skip+node_i*2, skip+node_j*2:skip+node_j*2] = kg34
-    k_3_matrix[skip+node_j*2:skip+node_j*2, skip+node_i*2:skip+node_i*2] = kg43
-    k_3_matrix[skip+node_j*2:skip+node_j*2, skip+node_j*2:skip+node_j*2] = kg44
+    k_3_matrix[skip + node_i*2:skip + node_i*2, skip + node_i*2:skip + node_i*2] = kg33
+    k_3_matrix[skip + node_i*2:skip + node_i*2, skip + node_j*2:skip + node_j*2] = kg34
+    k_3_matrix[skip + node_j*2:skip + node_j*2, skip + node_i*2:skip + node_i*2] = kg43
+    k_3_matrix[skip + node_j*2:skip + node_j*2, skip + node_j*2:skip + node_j*2] = kg44
     #
-    k_3_matrix[node_i*2:node_i*2, skip+node_i*2:skip+node_i*2] = kg13
-    k_3_matrix[node_i*2:node_i*2, skip+node_j*2:skip+node_j*2] = kg14
-    k_3_matrix[node_j*2:node_j*2, skip+node_i*2:skip+node_i*2] = kg23
-    k_3_matrix[node_j*2:node_j*2, skip+node_j*2:skip+node_j*2] = kg24
+    k_3_matrix[node_i*2:node_i*2, skip + node_i*2:skip + node_i*2] = kg13
+    k_3_matrix[node_i*2:node_i*2, skip + node_j*2:skip + node_j*2] = kg14
+    k_3_matrix[node_j*2:node_j*2, skip + node_i*2:skip + node_i*2] = kg23
+    k_3_matrix[node_j*2:node_j*2, skip + node_j*2:skip + node_j*2] = kg24
     #
-    k_3_matrix[skip+node_i*2:skip+node_i*2, node_i*2:node_i*2] = kg31
-    k_3_matrix[skip+node_i*2:skip+node_i*2, node_j*2:node_j*2] = kg32
-    k_3_matrix[skip+node_j*2:skip+node_j*2, node_i*2:node_i*2] = kg41
-    k_3_matrix[skip+node_j*2:skip+node_j*2, node_j*2:node_j*2] = kg42
+    k_3_matrix[skip + node_i*2:skip + node_i*2, node_i*2:node_i*2] = kg31
+    k_3_matrix[skip + node_i*2:skip + node_i*2, node_j*2:node_j*2] = kg32
+    k_3_matrix[skip + node_j*2:skip + node_j*2, node_i*2:node_i*2] = kg41
+    k_3_matrix[skip + node_j*2:skip + node_j*2, node_j*2:node_j*2] = kg42
     #
     kg_global = kg_global + k_3_matrix
     return k_global, kg_global
@@ -2145,11 +2170,11 @@ def klocal_transv(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_
     #
     # Z. Li, Jul 10, 2009
 
-    e_1 = stiff_x / (1 - nu_x*nu_y) * 100000000
-    e_2 = stiff_y / (1 - nu_x*nu_y)
-    d_x = stiff_x*thick**3 / (12 * (1 - nu_x*nu_y))
-    d_y = stiff_y*thick**3 / (12 * (1 - nu_x*nu_y))
-    d_1 = nu_x*stiff_y*thick**3 / (12 * (1 - nu_x*nu_y))
+    e_1 = stiff_x/(1 - nu_x*nu_y)*100000000
+    e_2 = stiff_y/(1 - nu_x*nu_y)
+    d_x = stiff_x*thick**3/(12*(1 - nu_x*nu_y))
+    d_y = stiff_y*thick**3/(12*(1 - nu_x*nu_y))
+    d_1 = nu_x*stiff_y*thick**3/(12*(1 - nu_x*nu_y))
     d_xy = bulk*thick**3/12
 
     z_0 = np.zeros((4, 4))
@@ -2170,23 +2195,23 @@ def klocal_transv(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_
 
     # assemble in-plane stiffness matrix of Km_mp
     km_mp[0, 0] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
-    km_mp[0, 1] = e_2*nu_x*(-1/2/c_2) * i_3 - bulk*i_5/2/c_2
+    km_mp[0, 1] = e_2*nu_x*(-1/2/c_2)*i_3 - bulk*i_5/2/c_2
     km_mp[0, 2] = -e_1*i_1/b_strip + bulk*b_strip*i_5/6
-    km_mp[0, 3] = e_2*nu_x*(-1/2/c_2) * i_3 + bulk*i_5/2/c_2
+    km_mp[0, 3] = e_2*nu_x*(-1/2/c_2)*i_3 + bulk*i_5/2/c_2
 
-    km_mp[1, 0] = e_2*nu_x*(-1/2/c_1) * i_2 - bulk*i_5/2/c_1
+    km_mp[1, 0] = e_2*nu_x*(-1/2/c_1)*i_2 - bulk*i_5/2/c_1
     km_mp[1, 1] = e_2*b_strip*i_4/3/c_1/c_2 + bulk*i_5/b_strip/c_1/c_2
-    km_mp[1, 2] = e_2*nu_x * (1/2/c_1) * i_2 - bulk*i_5/2/c_1
+    km_mp[1, 2] = e_2*nu_x*(1/2/c_1)*i_2 - bulk*i_5/2/c_1
     km_mp[1, 3] = e_2*b_strip*i_4/6/c_1/c_2 - bulk*i_5/b_strip/c_1/c_2
 
     km_mp[2, 0] = -e_1*i_1/b_strip + bulk*b_strip*i_5/6
-    km_mp[2, 1] = e_2*nu_x * (1/2/c_2) * i_3 - bulk*i_5/2/c_2
+    km_mp[2, 1] = e_2*nu_x*(1/2/c_2)*i_3 - bulk*i_5/2/c_2
     km_mp[2, 2] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
-    km_mp[2, 3] = e_2*nu_x * (1/2/c_2) * i_3 + bulk*i_5/2/c_2
+    km_mp[2, 3] = e_2*nu_x*(1/2/c_2)*i_3 + bulk*i_5/2/c_2
 
-    km_mp[3, 0] = e_2*nu_x*(-1/2/c_1) * i_2 + bulk*i_5/2/c_1
+    km_mp[3, 0] = e_2*nu_x*(-1/2/c_1)*i_2 + bulk*i_5/2/c_1
     km_mp[3, 1] = e_2*b_strip*i_4/6/c_1/c_2 - bulk*i_5/b_strip/c_1/c_2
-    km_mp[3, 2] = e_2*nu_x * (1/2/c_1) * i_2 + bulk*i_5/2/c_1
+    km_mp[3, 2] = e_2*nu_x*(1/2/c_1)*i_2 + bulk*i_5/2/c_1
     km_mp[3, 3] = e_2*b_strip*i_4/3/c_1/c_2 + bulk*i_5/b_strip/c_1/c_2
     km_mp = km_mp*thick
 
@@ -2226,7 +2251,7 @@ def klocal_transv(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_
     # assemble the membrane and flexural stiffness matrices
     kmp = np.concatenate((
         np.concatenate((km_mp, z_0), axis=1),
-        np.concatenate((z_0, kf_mp), axis=1)
+        np.concatenate((z_0, kf_mp), axis=1),
     ))
 
     # local stiffness matrix:
@@ -2271,20 +2296,20 @@ def assemble_single(k_global, k_local, node_i, node_j, n_nodes):
     k_2_matrix[node_j*2:node_j*2, node_i*2:node_i*2] = k21
     k_2_matrix[node_j*2:node_j*2, node_j*2:node_j*2] = k22
 
-    k_2_matrix[skip+node_i*2:skip+node_i*2, skip+node_i*2:skip+node_i*2] = k33
-    k_2_matrix[skip+node_i*2:skip+node_i*2, skip+node_j*2:skip+node_j*2] = k34
-    k_2_matrix[skip+node_j*2:skip+node_j*2, skip+node_i*2:skip+node_i*2] = k43
-    k_2_matrix[skip+node_j*2:skip+node_j*2, skip+node_j*2:skip+node_j*2] = k44
+    k_2_matrix[skip + node_i*2:skip + node_i*2, skip + node_i*2:skip + node_i*2] = k33
+    k_2_matrix[skip + node_i*2:skip + node_i*2, skip + node_j*2:skip + node_j*2] = k34
+    k_2_matrix[skip + node_j*2:skip + node_j*2, skip + node_i*2:skip + node_i*2] = k43
+    k_2_matrix[skip + node_j*2:skip + node_j*2, skip + node_j*2:skip + node_j*2] = k44
 
-    k_2_matrix[node_i*2:node_i*2, skip+node_i*2:skip+node_i*2] = k13
-    k_2_matrix[node_i*2:node_i*2, skip+node_j*2:skip+node_j*2] = k14
-    k_2_matrix[node_j*2:node_j*2, skip+node_i*2:skip+node_i*2] = k23
-    k_2_matrix[node_j*2:node_j*2, skip+node_j*2:skip+node_j*2] = k24
+    k_2_matrix[node_i*2:node_i*2, skip + node_i*2:skip + node_i*2] = k13
+    k_2_matrix[node_i*2:node_i*2, skip + node_j*2:skip + node_j*2] = k14
+    k_2_matrix[node_j*2:node_j*2, skip + node_i*2:skip + node_i*2] = k23
+    k_2_matrix[node_j*2:node_j*2, skip + node_j*2:skip + node_j*2] = k24
 
-    k_2_matrix[skip+node_i*2:skip+node_i*2, node_i*2:node_i*2] = k31
-    k_2_matrix[skip+node_i*2:skip+node_i*2, node_j*2:node_j*2] = k32
-    k_2_matrix[skip+node_j*2:skip+node_j*2, node_i*2:node_i*2] = k41
-    k_2_matrix[skip+node_j*2:skip+node_j*2, node_j*2:node_j*2] = k42
+    k_2_matrix[skip + node_i*2:skip + node_i*2, node_i*2:node_i*2] = k31
+    k_2_matrix[skip + node_i*2:skip + node_i*2, node_j*2:node_j*2] = k32
+    k_2_matrix[skip + node_j*2:skip + node_j*2, node_i*2:node_i*2] = k41
+    k_2_matrix[skip + node_j*2:skip + node_j*2, node_j*2:node_j*2] = k42
     k_global = k_global + k_2_matrix
 
     return k_global
@@ -2321,10 +2346,10 @@ def classify(props, nodes, elements, lengths, shapes, gbt_con, b_c, m_all, sect_
 
     # loop for the lengths
     n_lengths = len(lengths)
-    l_i = 0 # length_index = one
+    l_i = 0  # length_index = one
     clas = []
     while l_i < n_lengths:
-        l_i = l_i + 1 # length index = length index + one
+        l_i = l_i + 1  # length index = length index + one
         length = lengths(l_i)
         # longitudinal terms included in the analysis for this length
         m_a = m_all[l_i]
@@ -2382,7 +2407,7 @@ def mode_class(b_v, displacements, ngm, ndm, nlm, m_a, n_dof_m, gbt_con):
     # S. Adany, Mar 10, 2004
     # Z. Li, June 2010
 
-    total_m = len(m_a) # Total number of longitudinal terms m_i
+    total_m = len(m_a)  # Total number of longitudinal terms m_i
     # indices
     dof_index = np.zeros((4, 2))
     dof_index[0, 0] = 0
@@ -2397,18 +2422,17 @@ def mode_class(b_v, displacements, ngm, ndm, nlm, m_a, n_dof_m, gbt_con):
     if gbt_con['couple'] == 1:
         # uncoupled basis
         for i in range(0, len(m_a)):
-            b_v_m = b_v[n_dof_m*i:n_dof_m*(i+1), n_dof_m*i:n_dof_m*(i+1)]
+            b_v_m = b_v[n_dof_m*i:n_dof_m*(i + 1), n_dof_m*i:n_dof_m*(i + 1)]
 
             # classification
             clas = np.linalg.lstsq(
-                b_v_m[:, dof_index[0, 0]:dof_index[3, 1]],
-                displacements[n_dof_m*i:n_dof_m*(i+1)]
+                b_v_m[:, dof_index[0, 0]:dof_index[3, 1]], displacements[n_dof_m*i:n_dof_m*(i + 1)]
             )
 
             cl_gdlo = np.zeros((4, 5*n_modes))
             for j in range(0, 4):
                 n_modes = dof_index[j, 1] - dof_index[i, 0]
-                cl_gdlo[i, j*n_modes:j*n_modes+n_modes] = clas[dof_index[j, 0]:dof_index[j, 1]]
+                cl_gdlo[i, j*n_modes:j*n_modes + n_modes] = clas[dof_index[j, 0]:dof_index[j, 1]]
 
     #     # L1 norm
     #     for m_n = 1:4
@@ -2417,17 +2441,17 @@ def mode_class(b_v, displacements, ngm, ndm, nlm, m_a, n_dof_m, gbt_con):
     #     norm_sum = sum(clas_gdlo1)
     #     clas_gdlo1 = clas_gdlo1/norm_sum*100
 
-        # L2 norm
+    # L2 norm
         for m_n in range(0, 4):
             clas_gdlo[m_n] = np.linalg.norm(cl_gdlo[m_n, :])
 
         norm_sum = sum(clas_gdlo)
-        clas_gdlo = clas_gdlo / norm_sum * 100
+        clas_gdlo = clas_gdlo/norm_sum*100
     else:
         # coupled basis
         # classification
         clas = np.linalg.lstsq(b_v, displacements)
-        v_gdlo = np.zeros((4, (total_m+1)*n_modes))
+        v_gdlo = np.zeros((4, (total_m + 1)*n_modes))
         for i in range(0, 4):
             for j in range(0, total_m):
                 n_modes = dof_index[i, 2] - dof_index[i, 1] + 1
@@ -2436,15 +2460,15 @@ def mode_class(b_v, displacements, ngm, ndm, nlm, m_a, n_dof_m, gbt_con):
 
     #         # L1 norm
     #         clas_gdlo1(i) = sum(abs(v_gdlo(i,:)))
-            # L2 norm
+    # L2 norm
             clas_gdlo[i] = np.linalg.norm(v_gdlo[i, :])
 
     #     # L1 norm
     #     NormSum1 = sum(clas_gdlo1)
     #     clas_gdlo1 = clas_gdlo1/NormSum1*100
-        # L2 norm
+    # L2 norm
         norm_sum = sum(clas_gdlo)
-        clas_gdlo = clas_gdlo / norm_sum * 100
+        clas_gdlo = clas_gdlo/norm_sum*100
 
     return clas_gdlo
 
@@ -2459,16 +2483,16 @@ def trans_single(alpha, k_local):
     # S. Adany, Feb 06, 2004
     # Z. Li, Jul 10, 2009
     #
-    gamma = np.array(
-        [[np.cos(alpha), 0, 0, 0  -np.sin(alpha), 0, 0, 0],
-         [0, 1, 0, 0, 0, 0, 0, 0],
-         [0, 0, np.cos(alpha), 0, 0, 0  -np.sin(alpha), 0],
-         [0, 0, 0, 1, 0, 0, 0, 0],
-         [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0],
-         [0, 0, 0, 0, 0, 1, 0, 0],
-         [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0],
-         [0, 0, 0, 0, 0, 0, 0, 1]]
-    )
+    gamma = np.array([
+        [np.cos(alpha), 0, 0, 0 - np.sin(alpha), 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, np.cos(alpha), 0, 0, 0 - np.sin(alpha), 0],
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0],
+        [0, 0, 0, 0, 0, 0, 0, 1],
+    ])
 
     k_global = gamma @ k_local @ gamma.conj().T
 
@@ -2501,6 +2525,6 @@ def node_class(node_props):
         elif node_props[i, 3] == 3:
             n_sno = n_sno + 1
 
-    n_mno = n_cno + n_eno #nr of main nodes
+    n_mno = n_cno + n_eno  #nr of main nodes
 
     return n_mno, n_cno, n_sno

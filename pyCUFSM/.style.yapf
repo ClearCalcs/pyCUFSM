@@ -38,7 +38,7 @@ allow_split_before_dict_value=True
 #     e = 1*2 - 3
 #     f = 1 + 2 + 3 + 4
 #
-arithmetic_precedence_indication=True
+arithmetic_precedence_indication=False
 
 # Number of blank lines surrounding top-level function and class
 # definitions.
@@ -177,7 +177,7 @@ join_multiple_lines=True
 # will be formatted as follows when configured with "*,/":
 #
 #   1 + 2*3 - 4/5
-no_spaces_around_selected_binary_operators=
+no_spaces_around_selected_binary_operators="*,/"
 
 # Use spaces around default or named assigns.
 spaces_around_default_or_named_assign=False

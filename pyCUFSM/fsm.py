@@ -11,8 +11,9 @@ import cfsm
 # change history, have been generally retained unaltered
 
 
-def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
-          b_c, m_all, n_eigs, sect_props):
+def strip(
+    props, nodes, elements, lengths, springs, constraints, gbt_con, b_c, m_all, n_eigs, sect_props
+):
     # INPUTS
     # props: [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
     # nodes: [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
@@ -106,8 +107,8 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
             cfsm_analysis = 0
 
         # ZERO OUT THE GLOBAL MATRICES
-        k_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
-        kg_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
+        k_global = np.zeros((4*n_nodes*total_m, 4*n_nodes*total_m))
+        kg_global = np.zeros((4*n_nodes*total_m, 4*n_nodes*total_m))
 
         # ASSEMBLE THE GLOBAL STIFFNESS MATRICES
         for j, elem in enumerate(elements):
@@ -137,15 +138,15 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
             node_j = elem[2]
 
             # Generate geometric stiffness matrix (kg_local) in local coordinates
-            ty_1 = nodes[node_i][7] * thick
-            ty_2 = nodes[node_j][7] * thick
+            ty_1 = nodes[node_i][7]*thick
+            ty_2 = nodes[node_j][7]*thick
             kg_l = analysis.kglocal(
                 length=length,
                 b_strip=b_strip,
                 ty_1=ty_1,
                 ty_2=ty_2,
                 b_c=b_c,
-                m_a=m_a
+                m_a=m_a,
             )
 
             # Transform k_local and kg_local into global coordinates
@@ -154,7 +155,7 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
                 alpha=alpha,
                 k_local=k_l,
                 kg_local=kg_l,
-                m_a=m_a
+                m_a=m_a,
             )
 
             # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
@@ -166,7 +167,7 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
                 node_i=node_i,
                 node_j=node_j,
                 n_nodes=n_nodes,
-                m_a=m_a
+                m_a=m_a,
             )
 
         # %ADD SPRING CONTRIBUTIONS TO STIFFNESS
@@ -194,7 +195,7 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
                     b_c=b_c,
                     m_a=m_a,
                     discrete=discrete,
-                    y_s=y_s
+                    y_s=y_s,
                 )
                 # Transform k_s into global coordinates
                 node_i = spring[1]
@@ -218,7 +219,7 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
                 k_s = analysis.spring_trans(
                     alpha=alpha,
                     k_s=ks_l,
-                    m_a=m_a
+                    m_a=m_a,
                 )
                 # Add element contribution of k_s to full matrix k_global
                 k_global = analysis.spring_assemble(
@@ -227,7 +228,7 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
                     node_i=node_i,
                     node_j=node_j,
                     n_nodes=n_nodes,
-                    m_a=m_a
+                    m_a=m_a,
                 )
 
         # INTERNAL BOUNDARY CONDITIONS (ON THE NODES) AND USER DEFINED CONSTR.
@@ -241,7 +242,10 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
             # d_constrained=r_user*d_unconstrained, d=nodal DOF vector (note by
             # BWS June 5 2006)
             r_user = cfsm.constr_user(
-                nodes=nodes, constraints=constraints, m_a=m_a)
+                nodes=nodes,
+                constraints=constraints,
+                m_a=m_a,
+            )
             r_u0_matrix = spla.null_space(r_user.conj().T)
             # Number of boundary conditions and user defined constraints = nu0
             nu0 = len(r_u0_matrix[0])
@@ -271,7 +275,7 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
                 nlm=nlm,
                 gbt_con=gbt_con,
                 n_dof_m=4*n_nodes,
-                m_a=m_a
+                m_a=m_a,
             )  # m
             r_mode = b_v
             # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -292,7 +296,7 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
                 nm0 = len(r_m0_matrix[0])
                 r_0_matrix = r_m0_matrix
                 if nu0 > 0:
-                    r_0_matrix[:, nm0:(nm0+nu0)] = r_u0_matrix
+                    r_0_matrix[:, nm0:(nm0 + nu0)] = r_u0_matrix
                 r_matrix = spla.null_space(r_0_matrix.conj().T)
             else:
                 r_matrix = spla.null_space(r_u0_matrix.conj().T)
@@ -338,17 +342,13 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
         #     #         which='SM'
         #     #     )
         # else:
-        [length_factors, modes] = spla.eig(
-            a=k_global_ff,
-            b=kg_global_ff
-        )
+        [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
 
         # CLEAN UP THE EIGEN SOLUTION
         # eigenvalues are along the diagonal of matrix length_factors
         # length_factors = np.diag(length_factors)
         # find all the positive eigenvalues and corresponding vectors, squeeze out the rest
-        index = np.logical_and(length_factors > 0, abs(
-            np.imag(length_factors)) < 0.00001)
+        index = np.logical_and(length_factors > 0, abs(np.imag(length_factors)) < 0.00001)
         length_factors = length_factors[index]
         modes = modes[:, index]
         # sort from small to large
@@ -374,7 +374,7 @@ def strip(props, nodes, elements, lengths, springs, constraints, gbt_con,
         # set max entry (absolute) to +1.0 and scale the rest
         for j in range(0, n_modes):
             maxindex = np.argmax(abs(modes_full[j]))
-            modes_full[j] = modes_full[j] / modes_full[j, maxindex]
+            modes_full[j] = modes_full[j]/modes_full[j, maxindex]
 
         # GENERATE OUTPUT VALUES
         # curve and shapes are changed to cells!!
