@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-disable=R,missing-docstring,too-many-lines
+disable=R,missing-docstring,too-many-lines,bad-continuation
