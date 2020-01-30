@@ -20,8 +20,8 @@ jobs:
     - name: Install dependencies
       run: |
         python3 -m pip install --upgrade pip
-        pip3 install -r ./pyCUFSM/requirements.txt
+        pip3 install -r requirements.txt
     - name: Lint with pylint
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        pylint --rcfile ./pyCUFSM/.pylintrc ./pyCUFSM/*.py
+        pylint --rcfile .pylintrc ./pyCUFSM/*.py
