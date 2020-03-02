@@ -1,6 +1,6 @@
 import numpy as np
-import CUFSM.fsm as fsm
-import CUFSM.cfsm as cfsm
+import fsm
+import cfsm
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
