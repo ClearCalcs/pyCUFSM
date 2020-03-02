@@ -1,7 +1,7 @@
 import numpy as np
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
-# Ported to Python by Brooks Smith MEng, PE
+# Ported to Python by Brooks Smith MEng, PE, CPEng
 #
 # Each function within this file was originally its own separate file.
 # Original MATLAB comments, especially those retaining to authorship or
@@ -100,10 +100,10 @@ def addspring(k_global, springs, n_nodes, length, b_c, m_a):
 
 
 def elem_prop(nodes, elements):
-    el_prop = np.zeros((len(elements), 3))
+    el_props = np.zeros((len(elements), 3))
     for i, elem in enumerate(elements):
-        node_i = elem[1]
-        node_j = elem[2]
+        node_i = int(elem[1])
+        node_j = int(elem[2])
         x_i = nodes[node_i, 1]
         y_i = nodes[node_i, 2]
         x_j = nodes[node_j, 1]
@@ -112,8 +112,8 @@ def elem_prop(nodes, elements):
         d_y = y_j - y_i
         width = np.sqrt(d_x**2 + d_y**2)
         alpha = np.arctan2(d_y, d_x)
-        el_prop[i] = [i, width, alpha]
-    return el_prop
+        el_props[i] = [i, width, alpha]
+    return el_props
 
 
 def klocal(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, b_c, m_a):
@@ -220,8 +220,8 @@ def klocal(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, b_c, m_a)
 
             # assemble the membrane and flexural stiffness matrices
             k_mp = np.concatenate((
-                np.concatenate((km_mp, zero_matrix), axis=1),
-                np.concatenate((zero_matrix, kf_mp), axis=1),
+                np.concatenate((km_mp, zero_matrix),
+                               axis=1), np.concatenate((zero_matrix, kf_mp), axis=1)
             ))
             # add it into local element stiffness matrix by corresponding to i
             k_local[8*i:8*(i + 1), 8*j:8*(j + 1)] = k_mp
@@ -442,8 +442,8 @@ def kglocal(length, b_strip, ty_1, ty_2, b_c, m_a):
 
             # assemble the membrane and flexural stiffness matrices
             kg_mp = np.concatenate((
-                np.concatenate((gm_mp, zero_matrix), axis=1),
-                np.concatenate((zero_matrix, gf_mp), axis=1),
+                np.concatenate((gm_mp, zero_matrix),
+                               axis=1), np.concatenate((zero_matrix, gf_mp), axis=1)
             ))
 
             # add it into local geometric stiffness matrix by corresponding to i
@@ -459,16 +459,10 @@ def trans(alpha, k_local, kg_local, m_a):
     total_m = len(m_a)  # Total number of longitudinal terms m
     gamma = np.zeros((8*total_m, 8*total_m))
 
-    gam = np.array([
-        [np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0],
-        [0, 0, 0, 1, 0, 0, 0, 0],
-        [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0],
-        [0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0],
-        [0, 0, 0, 0, 0, 0, 0, 1],
-    ])
+    gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0], [0, 0, 0, 1, 0, 0, 0, 0],
+                    [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
 
     # extend to multi-m
     for i in range(0, total_m):
@@ -594,18 +588,14 @@ def assemble(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes, m_
                        4*n_nodes*j + skip + (node_j + 1)*2 - 2:4*n_nodes*j + skip
                        + (node_j + 1)*2] = kg44
 
-            k_3_matrix[4*n_nodes*i + (node_i + 1)*2 - 2:4*n_nodes*i + (node_i + 1)*2,
-                       4*n_nodes*j + skip + (node_i + 1)*2 - 2:4*n_nodes*j + skip
-                       + (node_i + 1)*2] = kg13
-            k_3_matrix[4*n_nodes*i + (node_i + 1)*2 - 2:4*n_nodes*i + (node_i + 1)*2,
-                       4*n_nodes*j + skip + (node_j + 1)*2 - 2:4*n_nodes*j + skip
-                       + (node_j + 1)*2] = kg14
-            k_3_matrix[4*n_nodes*i + (node_j + 1)*2 - 2:4*n_nodes*i + (node_j + 1)*2,
-                       4*n_nodes*j + skip + (node_i + 1)*2 - 2:4*n_nodes*j + skip
-                       + (node_i + 1)*2] = kg23
-            k_3_matrix[4*n_nodes*i + (node_j + 1)*2 - 2:4*n_nodes*i + (node_j + 1)*2,
-                       4*n_nodes*j + skip + (node_j + 1)*2 - 2:4*n_nodes*j + skip
-                       + (node_j + 1)*2] = kg24
+            k_3_matrix[4*n_nodes*i + (node_i + 1)*2 - 2:4*n_nodes*i + (node_i + 1)*2, 4*n_nodes*j
+                       + skip + (node_i + 1)*2 - 2:4*n_nodes*j + skip + (node_i + 1)*2] = kg13
+            k_3_matrix[4*n_nodes*i + (node_i + 1)*2 - 2:4*n_nodes*i + (node_i + 1)*2, 4*n_nodes*j
+                       + skip + (node_j + 1)*2 - 2:4*n_nodes*j + skip + (node_j + 1)*2] = kg14
+            k_3_matrix[4*n_nodes*i + (node_j + 1)*2 - 2:4*n_nodes*i + (node_j + 1)*2, 4*n_nodes*j
+                       + skip + (node_i + 1)*2 - 2:4*n_nodes*j + skip + (node_i + 1)*2] = kg23
+            k_3_matrix[4*n_nodes*i + (node_j + 1)*2 - 2:4*n_nodes*i + (node_j + 1)*2, 4*n_nodes*j
+                       + skip + (node_j + 1)*2 - 2:4*n_nodes*j + skip + (node_j + 1)*2] = kg24
 
             k_3_matrix[4*n_nodes*i + skip + (node_i + 1)*2 - 2:4*n_nodes*i + skip + (node_i + 1)*2,
                        4*n_nodes*j + (node_i + 1)*2 - 2:4*n_nodes*j + (node_i + 1)*2] = kg31
@@ -662,24 +652,17 @@ def spring_klocal(k_u, k_v, k_w, k_q, length, b_c, m_a, discrete, y_s):
             else:  # foundation spring
                 [i_1, _, _, _, i_5] = bc_i1_5(b_c=b_c, m_i=m_a[i], m_j=m_a[j], length=length)
             # assemble the matrix of km_mp
-            km_mp = np.array([
-                [k_u*i_1, 0, -k_u*i_1, 0],
-                [0, k_v*i_5*length**2/(u_i*u_j), 0, -k_v*i_5*length**2/(u_i*u_j)],
-                [-k_u*i_1, 0, k_u*i_1, 0],
-                [0, -k_v*i_5*length**2/(u_i*u_j), 0, k_v*i_5*length**2/(u_i*u_j)],
-            ])
+            km_mp = np.array([[k_u*i_1, 0, -k_u*i_1, 0],
+                              [0, k_v*i_5*length**2/(u_i*u_j), 0, -k_v*i_5*length**2/(u_i*u_j)],
+                              [-k_u*i_1, 0, k_u*i_1, 0],
+                              [0, -k_v*i_5*length**2/(u_i*u_j), 0, k_v*i_5*length**2/(u_i*u_j)]])
             # assemble the matrix of kf_mp
-            kf_mp = np.array([
-                [k_w*i_1, 0, -k_w*i_1, 0],
-                [0, k_q*i_1, 0, -k_q*i_1],
-                [-k_w*i_1, 0, k_w*i_1, 0],
-                [0, -k_q*i_1, 0, k_q*i_1],
-            ])
+            kf_mp = np.array([[k_w*i_1, 0, -k_w*i_1, 0], [0, k_q*i_1, 0, -k_q*i_1],
+                              [-k_w*i_1, 0, k_w*i_1, 0], [0, -k_q*i_1, 0, k_q*i_1]])
             # assemble the membrane and flexural stiffness matrices
-            k_mp = np.concatenate((
-                np.concatenate((km_mp, z_0), axis=1),
-                np.concatenate((z_0, kf_mp), axis=1),
-            ))
+            k_mp = np.concatenate(
+                (np.concatenate((km_mp, z_0), axis=1), np.concatenate((z_0, kf_mp), axis=1))
+            )
 
             # add it into local element stiffness matrix by corresponding to m
             k_local[8*i:8*(i + 1), 8*j:8*(j + 1)] = k_mp
@@ -719,16 +702,10 @@ def spring_trans(alpha, k_s, m_a):
     total_m = len(m_a)  # Total number of longitudinal terms m
     gamma = np.zeros(8*total_m, 8*total_m)
 
-    gam = np.array([
-        [np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0],
-        [0, 0, 0, 1, 0, 0, 0, 0],
-        [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0],
-        [0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0],
-        [0, 0, 0, 0, 0, 0, 0, 1],
-    ])
+    gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
+                    [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0], [0, 0, 0, 1, 0, 0, 0, 0],
+                    [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
+                    [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
     # extend to multi-m
     for i in range(0, total_m):
         gamma[8*i:8*(i + 1), 8*i:8*(i + 1)] = gam
@@ -790,21 +767,17 @@ def spring_assemble(k_global, k_local, node_i, node_j, n_nodes, m_a):
                        + (node_i + 1)*2] = k33
             if node_j != 0:
                 k_2_matrix[4*n_nodes*i + skip + (node_i + 1)*2 - 1:4*n_nodes*i + skip
-                           + (node_i + 1)*2,
-                           4*n_nodes*j + skip + (node_j + 1)*2 - 1:4*n_nodes*j + skip
-                           + (node_j + 1)*2] = k34
+                           + (node_i + 1)*2, 4*n_nodes*j + skip + (node_j + 1)*2 - 1:4*n_nodes*j
+                           + skip + (node_j + 1)*2] = k34
                 k_2_matrix[4*n_nodes*i + skip + (node_j + 1)*2 - 1:4*n_nodes*i + skip
-                           + (node_j + 1)*2,
-                           4*n_nodes*j + skip + (node_i + 1)*2 - 1:4*n_nodes*j + skip
-                           + (node_i + 1)*2] = k43
+                           + (node_j + 1)*2, 4*n_nodes*j + skip + (node_i + 1)*2 - 1:4*n_nodes*j
+                           + skip + (node_i + 1)*2] = k43
                 k_2_matrix[4*n_nodes*i + skip + (node_j + 1)*2 - 1:4*n_nodes*i + skip
-                           + (node_j + 1)*2,
-                           4*n_nodes*j + skip + (node_j + 1)*2 - 1:4*n_nodes*j + skip
-                           + (node_j + 1)*2] = k44
+                           + (node_j + 1)*2, 4*n_nodes*j + skip + (node_j + 1)*2 - 1:4*n_nodes*j
+                           + skip + (node_j + 1)*2] = k44
 
-            k_2_matrix[4*n_nodes*i + (node_i + 1)*2 - 1:4*n_nodes*i + (node_i + 1)*2,
-                       4*n_nodes*j + skip + (node_i + 1)*2 - 1:4*n_nodes*j + skip
-                       + (node_i + 1)*2] = k13
+            k_2_matrix[4*n_nodes*i + (node_i + 1)*2 - 1:4*n_nodes*i + (node_i + 1)*2, 4*n_nodes*j
+                       + skip + (node_i + 1)*2 - 1:4*n_nodes*j + skip + (node_i + 1)*2] = k13
             if node_j != 0:
                 k_2_matrix[4*n_nodes*i + (node_i + 1)*2 - 1:4*n_nodes*i + (node_i + 1)*2,
                            4*n_nodes*j + skip + (node_j + 1)*2 - 1:4*n_nodes*j + skip
@@ -865,10 +838,10 @@ def ymprime_at_ys(b_c, m_i, y_s, length):
     if b_c == 'S-S':
         y_m_prime = (np.pi*m_i*np.cos((np.pi*m_i*y_s)/length))/length
     elif b_c == 'C-C':
-        y_m_prime = (np.pi * np.cos((np.pi * y_s) / length) \
-            * np.sin((np.pi * m_i * y_s) / length)) / length \
-                + (np.pi * m_i * np.sin((np.pi * y_s) / length) \
-                    * np.cos((np.pi*m_i*y_s)/length))/length
+        y_m_prime = (np.pi * np.cos((np.pi*y_s) / length) \
+            * np.sin((np.pi*m_i*y_s) / length)) / length \
+            + (np.pi*m_i * np.sin((np.pi*y_s)/length) \
+                * np.cos((np.pi*m_i*y_s)/length)) / length
     elif b_c == 'S-C' or b_c == 'C-S':
         y_m_prime = (np.pi * np.cos((np.pi*y_s * (m_i + 1))/length) * (m_i + 1)) / length \
             + (np.pi * np.cos((np.pi*m_i*y_s)/length)*(m_i + 1)) / length
@@ -877,7 +850,7 @@ def ymprime_at_ys(b_c, m_i, y_s, length):
     elif b_c == 'C-G' or b_c == 'G-C':
         y_m_prime = (np.pi*np.sin((np.pi*y_s * (m_i - 1/2))/length) \
             * np.cos((np.pi*y_s)/(2*length)))/(2*length) \
-                + (np.pi*np.cos((np.pi*y_s*(m_i - 1/2))/length) \
-                    * np.sin((np.pi*y_s)/(2*length))*(m_i - 1/2))/length
+            + (np.pi*np.cos((np.pi*y_s*(m_i - 1/2))/length) \
+            * np.sin((np.pi*y_s)/(2*length))*(m_i - 1/2))/length
 
     return y_m_prime

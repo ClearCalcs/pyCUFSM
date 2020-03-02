@@ -13,8 +13,8 @@ def template_calc(sect):
     n_d = 4
     n_b1 = 4
     n_b2 = 4
-    n_l1 = 2
-    n_l2 = 2
+    n_l1 = 4
+    n_l2 = 4
     n_r = 4
 
     # BWS
@@ -331,15 +331,12 @@ def stress_gen(nodes, forces, sect_props):
     phi = sect_props['phi']['value']*np.pi/180
     transform = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
     cent_coord = np.array([
-        np.transpose(nodes[:, 1] - sect_props['cx']['value']),
-        np.transpose(nodes[:, 2] - sect_props['cy']['value']),
+        nodes[:, 1] - sect_props['cx']['value'], nodes[:, 2] - sect_props['cy']['value']
     ])
-    prin_coord = spla.inv(transform) @ cent_coord
+    prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
     stress = stress - \
-        forces['M11'] * np.transpose(
-            prin_coord[1]) / sect_props['I11']['value']
+        forces['M11'] * prin_coord[:, 1] / sect_props['I11']['value']
     stress = stress - \
-        forces['M22'] * np.transpose(
-            prin_coord[0]) / sect_props['I22']['value']
-    nodes[:, 7] = stress
+        forces['M22'] * prin_coord[:, 0] / sect_props['I22']['value']
+    nodes[:, 7] = stress.flatten()
     return nodes

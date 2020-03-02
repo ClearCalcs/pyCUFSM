@@ -1,10 +1,11 @@
+from copy import deepcopy
 from scipy import linalg as spla
 import numpy as np
-import analysis
-import cfsm
+import CUFSM.analysis as analysis
+import CUFSM.cfsm as cfsm
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
-# Ported to Python by Brooks Smith MEng, PE
+# Ported to Python by Brooks Smith MEng, PE, CPEng
 #
 # Each function within this file was originally its own separate file.
 # Original MATLAB comments, especially those retaining to authorship or
@@ -14,6 +15,7 @@ import cfsm
 def strip(
     props, nodes, elements, lengths, springs, constraints, gbt_con, b_c, m_all, n_eigs, sect_props
 ):
+
     # INPUTS
     # props: [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
     # nodes: [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
@@ -78,7 +80,43 @@ def strip(
     bc_flag = analysis.constr_bc_flag(nodes=nodes, constraints=constraints)
 
     # GENERATE STRIP WIDTH AND DIRECTION ANGLE
-    el_prop = analysis.elem_prop(nodes=nodes, elements=elements)
+    el_props = analysis.elem_prop(nodes=nodes, elements=elements)
+
+    # ENABLE cFSM ANALYSIS IF APPLICABLE, AND FIND BASE PROPERTIES
+    if sum(gbt_con['glob']) + sum(gbt_con['dist']) \
+                + sum(gbt_con['local']) + sum(gbt_con['other']) > 0:
+        # turn on modal classification analysis
+        cfsm_analysis = 1
+        # set u_p stress to 1.0 for finding kg_global and k_global for axial modes
+        nodes_base = deepcopy(nodes)
+        nodes_base[:, 7] = np.ones_like(nodes[:, 7])
+
+        # natural base first
+        # properties all the longitudinal terms share
+        [main_nodes, meta_elements, node_props, n_main_nodes, \
+            n_corner_nodes, n_sub_nodes, n_dist_modes, n_local_modes, dof_perm] \
+            = cfsm.base_properties(nodes=nodes_base, elements=elements)
+        [r_x, r_z, r_yd, r_ys, r_ud] = cfsm.mode_constr(
+            nodes=nodes_base,
+            elements=elements,
+            node_props=node_props,
+            main_nodes=main_nodes,
+            meta_elements=meta_elements
+        )
+        [d_y, n_global_modes] = cfsm.y_dofs(
+            nodes=nodes_base,
+            elements=elements,
+            main_nodes=main_nodes,
+            n_main_nodes=n_main_nodes,
+            n_dist_modes=n_dist_modes,
+            r_yd=r_yd,
+            r_ud=r_ud,
+            sect_props=sect_props,
+            el_props=el_props
+        )
+    else:
+        # no modal classification constraints are engaged
+        cfsm_analysis = 0
 
     # LOOP OVER ALL THE LENGTHS TO BE INVESTIGATED
     for i, length in enumerate(lengths):
@@ -88,23 +126,29 @@ def strip(
         total_m = len(m_a)  # Total number of longitudinal terms
 
         # SET SWITCH AND PREPARE BASE VECTORS (r_matrix) FOR cFSM ANALYSIS
-        if sum(gbt_con['glob']) + sum(gbt_con['dist']) \
-                + sum(gbt_con['local']) + sum(gbt_con['other']) > 0:
-            # turn on modal classification analysis
-            cfsm_analysis = 1
+        if cfsm_analysis == 1:
             # generate natural base vectors for axial compression loading
-            [b_v_l, ngm, ndm, nlm] = cfsm.base_column(
-                nodes=nodes,
+            b_v_l = cfsm.base_column(
+                nodes_base=nodes_base,
                 elements=elements,
                 props=props,
                 length=length,
                 b_c=b_c,
                 m_a=m_a,
-                sect_props=sect_props
+                el_props=el_props,
+                node_props=node_props,
+                n_main_nodes=n_main_nodes,
+                n_corner_nodes=n_corner_nodes,
+                n_sub_nodes=n_sub_nodes,
+                n_global_modes=n_global_modes,
+                n_dist_modes=n_dist_modes,
+                n_local_modes=n_local_modes,
+                dof_perm=dof_perm,
+                r_x=r_x,
+                r_z=r_z,
+                r_ys=r_ys,
+                d_y=d_y
             )
-        else:
-            # no modal classification constraints are engaged
-            cfsm_analysis = 0
 
         # ZERO OUT THE GLOBAL MATRICES
         k_global = np.zeros((4*n_nodes*total_m, 4*n_nodes*total_m))
@@ -114,7 +158,7 @@ def strip(
         for j, elem in enumerate(elements):
             # Generate element stiffness matrix (k_local) in local coordinates
             thick = elem[3]
-            b_strip = el_prop[j, 1]
+            b_strip = el_props[j, 1]
             mat_num = elem[4]
             mat = props[mat_num]
             stiff_x = mat[1]
@@ -141,22 +185,12 @@ def strip(
             ty_1 = nodes[node_i][7]*thick
             ty_2 = nodes[node_j][7]*thick
             kg_l = analysis.kglocal(
-                length=length,
-                b_strip=b_strip,
-                ty_1=ty_1,
-                ty_2=ty_2,
-                b_c=b_c,
-                m_a=m_a,
+                length=length, b_strip=b_strip, ty_1=ty_1, ty_2=ty_2, b_c=b_c, m_a=m_a
             )
 
             # Transform k_local and kg_local into global coordinates
-            alpha = el_prop[j, 2]
-            [k_local, kg_local] = analysis.trans(
-                alpha=alpha,
-                k_local=k_l,
-                kg_local=kg_l,
-                m_a=m_a,
-            )
+            alpha = el_props[j, 2]
+            [k_local, kg_local] = analysis.trans(alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a)
 
             # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
             [k_global, kg_global] = analysis.assemble(
@@ -167,7 +201,7 @@ def strip(
                 node_i=node_i,
                 node_j=node_j,
                 n_nodes=n_nodes,
-                m_a=m_a,
+                m_a=m_a
             )
 
         # %ADD SPRING CONTRIBUTIONS TO STIFFNESS
@@ -195,7 +229,7 @@ def strip(
                     b_c=b_c,
                     m_a=m_a,
                     discrete=discrete,
-                    y_s=y_s,
+                    y_s=y_s
                 )
                 # Transform k_s into global coordinates
                 node_i = spring[1]
@@ -216,11 +250,7 @@ def strip(
                     else:
                         # local orientation for spring
                         alpha = np.arctan2(d_y, d_x)
-                k_s = analysis.spring_trans(
-                    alpha=alpha,
-                    k_s=ks_l,
-                    m_a=m_a,
-                )
+                k_s = analysis.spring_trans(alpha=alpha, k_s=ks_l, m_a=m_a)
                 # Add element contribution of k_s to full matrix k_global
                 k_global = analysis.spring_assemble(
                     k_global=k_global,
@@ -228,7 +258,7 @@ def strip(
                     node_i=node_i,
                     node_j=node_j,
                     n_nodes=n_nodes,
-                    m_a=m_a,
+                    m_a=m_a
                 )
 
         # INTERNAL BOUNDARY CONDITIONS (ON THE NODES) AND USER DEFINED CONSTR.
@@ -241,11 +271,7 @@ def strip(
             # size boundary conditions and user constraints for use in r_matrix format
             # d_constrained=r_user*d_unconstrained, d=nodal DOF vector (note by
             # BWS June 5 2006)
-            r_user = cfsm.constr_user(
-                nodes=nodes,
-                constraints=constraints,
-                m_a=m_a,
-            )
+            r_user = cfsm.constr_user(nodes=nodes, constraints=constraints, m_a=m_a)
             r_u0_matrix = spla.null_space(r_user.conj().T)
             # Number of boundary conditions and user defined constraints = nu0
             nu0 = len(r_u0_matrix[0])
@@ -261,21 +287,22 @@ def strip(
                 nodes=nodes,
                 elements=elements,
                 props=props,
-                ngm=ngm,
-                ndm=ndm,
-                nlm=nlm,
-                b_c=b_c
+                n_global_modes=n_global_modes,
+                n_dist_modes=n_dist_modes,
+                n_local_modes=n_local_modes,
+                b_c=b_c,
+                el_props=el_props
             )
             # no normalization is enforced: 0:  m
             # assign base vectors to constraints
             b_v = cfsm.mode_select(
                 b_v=b_v,
-                ngm=ngm,
-                ndm=ndm,
-                nlm=nlm,
+                n_global_modes=n_global_modes,
+                n_dist_modes=n_dist_modes,
+                n_local_modes=n_local_modes,
                 gbt_con=gbt_con,
                 n_dof_m=4*n_nodes,
-                m_a=m_a,
+                m_a=m_a
             )  # m
             r_mode = b_v
             # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -322,10 +349,6 @@ def strip(
         #     eig_sparse = False
         #     # eig
 
-        # determine if there is a user input n_eigs
-        # otherwise set it to default 10.
-        if n_eigs == 0:
-            n_eigs = 20
         # if eig_sparse:
         #     # k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
         #     # if k_eigs == 1 or k_eigs == len(k_global_ff):
