@@ -31,5 +31,5 @@ setuptools.setup(
         "numpy>=1.17",
         "scipy>=1.4",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.5",
 )
