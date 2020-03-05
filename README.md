@@ -34,7 +34,7 @@ The original MATLAB CUFSM program may be accessed at the following address: http
     -   [ ] Convert some numerical inputs and data to dictionaries with strings
     -   [ ] Eliminate matrix columns which are nothing more than the index number of the row
     -   [ ] Review code for places where matrices can be preallocated rather than concatenated together
-    -   [ ] Review code for function calls that are unnecessarily repeated (a couple of these have already been addressed, e.g. `base_column()` did not need to be re-run for every half wavelength)
+    -   [ ] Review code for function calls that are unnecessarily repeated (a couple of these have already been addressed, e.g. `base_properties()` did not need to be re-run for every half wavelength)
 -   [ ] Write API-style documentation (for now, generally refer to MATLAB CUFSM documentation and/or comments)
 
 ## Disclaimer
