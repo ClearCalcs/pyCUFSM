@@ -1,8 +1,8 @@
 from copy import deepcopy
 from scipy import linalg as spla
 import numpy as np
-import analysis
-import cfsm
+import pycufsm.analysis
+import pycufsm.cfsm
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
