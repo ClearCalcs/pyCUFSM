@@ -74,13 +74,13 @@ def strip(
 
     # CLEAN UP INPUT
     # clean u_j 0's, multiple terms. or out-of-order terms in m_all
-    m_all = analysis.m_sort(m_all)
+    m_all = pycufsm.analysis.m_sort(m_all)
 
     # DETERMINE FLAGS FOR USER CONSTRAINTS AND INTERNAL (AT NODE) B.C.'s
-    bc_flag = analysis.constr_bc_flag(nodes=nodes, constraints=constraints)
+    bc_flag = pycufsm.analysis.constr_bc_flag(nodes=nodes, constraints=constraints)
 
     # GENERATE STRIP WIDTH AND DIRECTION ANGLE
-    el_props = analysis.elem_prop(nodes=nodes, elements=elements)
+    el_props = pycufsm.analysis.elem_prop(nodes=nodes, elements=elements)
 
     # ENABLE cFSM ANALYSIS IF APPLICABLE, AND FIND BASE PROPERTIES
     if sum(gbt_con['glob']) + sum(gbt_con['dist']) \
@@ -95,15 +95,15 @@ def strip(
         # properties all the longitudinal terms share
         [main_nodes, meta_elements, node_props, n_main_nodes, \
             n_corner_nodes, n_sub_nodes, n_dist_modes, n_local_modes, dof_perm] \
-            = cfsm.base_properties(nodes=nodes_base, elements=elements)
-        [r_x, r_z, r_yd, r_ys, r_ud] = cfsm.mode_constr(
+            = pycufsm.cfsm.base_properties(nodes=nodes_base, elements=elements)
+        [r_x, r_z, r_yd, r_ys, r_ud] = pycufsm.cfsm.mode_constr(
             nodes=nodes_base,
             elements=elements,
             node_props=node_props,
             main_nodes=main_nodes,
             meta_elements=meta_elements
         )
-        [d_y, n_global_modes] = cfsm.y_dofs(
+        [d_y, n_global_modes] = pycufsm.cfsm.y_dofs(
             nodes=nodes_base,
             elements=elements,
             main_nodes=main_nodes,
@@ -128,7 +128,7 @@ def strip(
         # SET SWITCH AND PREPARE BASE VECTORS (r_matrix) FOR cFSM ANALYSIS
         if cfsm_analysis == 1:
             # generate natural base vectors for axial compression loading
-            b_v_l = cfsm.base_column(
+            b_v_l = pycufsm.cfsm.base_column(
                 nodes_base=nodes_base,
                 elements=elements,
                 props=props,
@@ -166,7 +166,7 @@ def strip(
             nu_x = mat[3]
             nu_y = mat[4]
             bulk = mat[5]
-            k_l = analysis.klocal(
+            k_l = pycufsm.analysis.klocal(
                 stiff_x=stiff_x,
                 stiff_y=stiff_y,
                 nu_x=nu_x,
@@ -184,16 +184,18 @@ def strip(
             # Generate geometric stiffness matrix (kg_local) in local coordinates
             ty_1 = nodes[node_i][7]*thick
             ty_2 = nodes[node_j][7]*thick
-            kg_l = analysis.kglocal(
+            kg_l = pycufsm.analysis.kglocal(
                 length=length, b_strip=b_strip, ty_1=ty_1, ty_2=ty_2, b_c=b_c, m_a=m_a
             )
 
             # Transform k_local and kg_local into global coordinates
             alpha = el_props[j, 2]
-            [k_local, kg_local] = analysis.trans(alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a)
+            [k_local, kg_local] = pycufsm.analysis.trans(
+                alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a
+            )
 
             # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
-            [k_global, kg_global] = analysis.assemble(
+            [k_global, kg_global] = pycufsm.analysis.assemble(
                 k_global=k_global,
                 kg_global=kg_global,
                 k_local=k_local,
@@ -220,7 +222,7 @@ def strip(
                 k_q = spring[6]
                 discrete = spring[8]
                 y_s = spring[9]
-                ks_l = analysis.spring_klocal(
+                ks_l = pycufsm.analysis.spring_klocal(
                     k_u=k_u,
                     k_v=k_v,
                     k_w=k_w,
@@ -250,9 +252,9 @@ def strip(
                     else:
                         # local orientation for spring
                         alpha = np.arctan2(d_y, d_x)
-                k_s = analysis.spring_trans(alpha=alpha, k_s=ks_l, m_a=m_a)
+                k_s = pycufsm.analysis.spring_trans(alpha=alpha, k_s=ks_l, m_a=m_a)
                 # Add element contribution of k_s to full matrix k_global
-                k_global = analysis.spring_assemble(
+                k_global = pycufsm.analysis.spring_assemble(
                     k_global=k_global,
                     k_local=k_s,
                     node_i=node_i,
@@ -271,7 +273,7 @@ def strip(
             # size boundary conditions and user constraints for use in r_matrix format
             # d_constrained=r_user*d_unconstrained, d=nodal DOF vector (note by
             # BWS June 5 2006)
-            r_user = cfsm.constr_user(nodes=nodes, constraints=constraints, m_a=m_a)
+            r_user = pycufsm.cfsm.constr_user(nodes=nodes, constraints=constraints, m_a=m_a)
             r_u0_matrix = spla.null_space(r_user.conj().T)
             # Number of boundary conditions and user defined constraints = nu0
             nu0 = len(r_u0_matrix[0])
@@ -279,7 +281,7 @@ def strip(
         # %GENERATION OF cFSM CONSTRAINT MATRIX
         if cfsm_analysis == 1:
             # PERFORM ORTHOGONALIZATION IF GBT-LIKE MODES ARE ENFORCED
-            b_v = cfsm.base_update(
+            b_v = pycufsm.cfsm.base_update(
                 gbt_con=gbt_con,
                 b_v_l=b_v_l,
                 length=length,
@@ -295,7 +297,7 @@ def strip(
             )
             # no normalization is enforced: 0:  m
             # assign base vectors to constraints
-            b_v = cfsm.mode_select(
+            b_v = pycufsm.cfsm.mode_select(
                 b_v=b_v,
                 n_global_modes=n_global_modes,
                 n_dist_modes=n_dist_modes,

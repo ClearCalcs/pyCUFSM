@@ -44,7 +44,7 @@ def signature_ss(props, nodes, elements, i_gbt_con, sect_props, lengths):
     i_b_c = 'S-S'
     i_m_all = np.ones((len(lengths), 1))
 
-    isignature, icurve, ishapes = fsm.strip(
+    isignature, icurve, ishapes = pycufsm.fsm.strip(
         props=props,
         nodes=nodes,
         elements=elements,
@@ -102,7 +102,7 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None):
         if load2 < load1 and load2 <= load3:
             local_minima.append(curve_signature[i + 1, 0])
 
-    _, _, _, _, _, _, n_dist_modes, n_local_modes, _ = cfsm.base_properties(
+    _, _, _, _, _, _, n_dist_modes, n_local_modes, _ = pycufsm.cfsm.base_properties(
         nodes=nodes, elements=elements
     )
 
