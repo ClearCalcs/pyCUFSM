@@ -1393,9 +1393,9 @@ def constr_yu_yd(main_nodes, meta_elements):
                 elem3 = int(np.real(m_node[j + 5]))
                 if elem3 != elem2:
                     if meta_elements[elem3, 1] != i:
-                        node_reg[meta_elements[elem3, 1]] = 0
+                        node_reg[int(meta_elements[elem3, 1])] = 0
                     else:
-                        node_reg[meta_elements[elem3, 2]] = 0
+                        node_reg[int(meta_elements[elem3, 2])] = 0
 
     # to create r_ud matrix
     r_ud = np.zeros((n_main_nodes, n_main_nodes))
@@ -1575,14 +1575,14 @@ def meta_elems(nodes, elements):
 
         if len(els) == 2:
             n_1 = i
-            n_2 = elements[els[0], 1]
+            n_2 = int(elements[els[0], 1])
             # zli: the first nodes of the first elements containing this nodes
             if n_2 == n_1:
-                n_2 = elements[els[0], 2]
+                n_2 = int(elements[els[0], 2])
 
-            n_3 = elements[els[1], 1]
+            n_3 = int(elements[els[1], 1])
             if n_3 == n_1:
-                n_3 = elements[els[1], 2]
+                n_3 = int(elements[els[1], 2])
 
             a_1 = np.arctan2(nodes[n_2, 2] - nodes[n_1, 2], nodes[n_2, 1] - nodes[n_1, 1])  #?
             a_2 = np.arctan2(nodes[n_1, 2] - nodes[n_3, 2], nodes[n_1, 1] - nodes[n_3, 1])
@@ -1600,13 +1600,13 @@ def meta_elems(nodes, elements):
                 if m_elem[1] == i or m_elem[2] == i:
                     els.append(j)
 
-            node1 = meta_elements_temp[els[0], 1]
+            node1 = int(meta_elements_temp[els[0], 1])
             if node1 == i:
-                node1 = meta_elements_temp[els[0], 2]
+                node1 = int(meta_elements_temp[els[0], 2])
 
-            node2 = meta_elements_temp[els[1], 1]
+            node2 = int(meta_elements_temp[els[1], 1])
             if node2 == i:
-                node2 = meta_elements_temp[els[1], 2]
+                node2 = int(meta_elements_temp[els[1], 2])
 
             meta_elements_temp[els[0], 1] = node1
             meta_elements_temp[els[0], 2] = node2
