@@ -20,8 +20,8 @@ def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
     max_el_length = 0  #Maximum element length
     for elem in elements:
         hh1 = abs(
-            np.sqrt((nodes[elem[1], 1] - nodes[elem[2], 1])**2
-                    + (nodes[elem[1], 2] - nodes[elem[2], 2])**2)
+            np.sqrt((nodes[int(elem[1]), 1] - nodes[int(elem[2]), 1])**2
+                    + (nodes[int(elem[1]), 2] - nodes[int(elem[2]), 2])**2)
         )
         min_el_length = min(hh1, min_el_length)
         max_el_length = max(hh1, max_el_length)
