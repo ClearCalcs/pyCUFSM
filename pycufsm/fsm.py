@@ -159,7 +159,7 @@ def strip(
             # Generate element stiffness matrix (k_local) in local coordinates
             thick = elem[3]
             b_strip = el_props[j, 1]
-            mat_num = elem[4]
+            mat_num = int(elem[4])
             mat = props[mat_num]
             stiff_x = mat[1]
             stiff_y = mat[2]
@@ -178,8 +178,8 @@ def strip(
                 b_c=b_c,
                 m_a=m_a
             )
-            node_i = elem[1]
-            node_j = elem[2]
+            node_i = int(elem[1])
+            node_j = int(elem[2])
 
             # Generate geometric stiffness matrix (kg_local) in local coordinates
             ty_1 = nodes[node_i][7]*thick

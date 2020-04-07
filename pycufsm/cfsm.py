@@ -294,7 +294,7 @@ def base_update(
                 # Generate element stiffness matrix (k_local) in local coordinates
                 thick = elem[3]
                 b_strip = el_props[i, 1]
-                mat_num = elem[4]
+                mat_num = int(elem[4])
                 mat = props[mat_num]
                 stiff_x = mat[1]
                 stiff_y = mat[2]
@@ -314,8 +314,8 @@ def base_update(
                     m_a=m_a
                 )
                 # Generate geometric stiffness matrix (kg_local) in local coordinates
-                node_i = elem[1]
-                node_j = elem[2]
+                node_i = int(elem[1])
+                node_j = int(elem[2])
                 ty_1 = nodes_base[node_i][7]*thick
                 ty_2 = nodes_base[node_j][7]*thick
                 kg_l = pycufsm.analysis.kglocal(
@@ -1816,7 +1816,7 @@ def create_k_globals(m_i, nodes, elements, el_props, props, length, b_c):
     for i, elem in enumerate(elements):
         thick = elem[3]
         b_strip = el_props[i, 1]
-        mat_num = elem[4]
+        mat_num = int(elem[4])
         mat = props[mat_num]
         stiff_x = mat[1]
         stiff_y = mat[2]
@@ -1836,8 +1836,8 @@ def create_k_globals(m_i, nodes, elements, el_props, props, length, b_c):
             m_i=m_i
         )
         # Generate geometric stiffness matrix (kg_local) in local coordinates
-        node_i = elem[1]
-        node_j = elem[2]
+        node_i = int(elem[1])
+        node_j = int(elem[2])
         ty_1 = nodes[node_i, 7]*thick
         ty_2 = nodes[node_j, 7]*thick
         kg_l = kglocal_m(length=length, b_strip=b_strip, ty_1=ty_1, ty_2=ty_2, b_c=b_c, m_i=m_i)
@@ -2143,7 +2143,7 @@ def kglobal_transv(nodes, elements, props, m_i, length, b_c, el_props):
     for i, elem in enumerate(elements):
         thick = elem[3]
         b_strip = el_props[i, 1]
-        mat_num = elem[4]
+        mat_num = int(elem[4])
         mat = props[mat_num]
         stiff_x = mat[1]
         stiff_y = mat[2]
@@ -2168,8 +2168,8 @@ def kglobal_transv(nodes, elements, props, m_i, length, b_c, el_props):
         k_local = trans_single(alpha, k_l)
 
         # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
-        node_i = elem[1]
-        node_j = elem[2]
+        node_i = int(elem[1])
+        node_j = int(elem[2])
         k_global_transv = assemble_single(
             k_global=k_global_transv,
             k_local=k_local,
