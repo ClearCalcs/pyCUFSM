@@ -3,8 +3,9 @@
 # in the Metric unit system
 
 import numpy as np
-from pyCUFSM.fsm import strip
-from pyCUFSM.preprocess import stress_gen
+import matplotlib.pyplot as plt
+from pycufsm.fsm import strip
+from pycufsm.preprocess import stress_gen
 
 
 def __main__():
@@ -14,11 +15,11 @@ def __main__():
     # Define a lightly-meshed Zed shape
     # (1 element per lip, 2 elements per flange, 3 elements on the web)
     # Nodal location units are millimetres
-    nodes = [[0, 100, 25, 1, 1, 1, 1, 0], [1, 100, 0, 1, 1, 1, 1, 0],
+    nodes = np.array([[0, 100, 25, 1, 1, 1, 1, 0], [1, 100, 0, 1, 1, 1, 1, 0],
              [2, 50, 0, 1, 1, 1, 1, 0], [3, 0, 0, 1, 1, 1, 1, 0],
              [4, 0, 100, 1, 1, 1, 1, 0], [5, 0, 200, 1, 1, 1, 1, 0],
              [6, 0, 300, 1, 1, 1, 1, 0], [7, -50, 300, 1, 1, 1, 1, 0],
-             [8, -100, 300, 1, 1, 1, 1, 0], [9, -100, 275, 1, 1, 1, 1, 0]]
+             [8, -100, 300, 1, 1, 1, 1, 0], [9, -100, 275, 1, 1, 1, 1, 0]])
     elements = [[0, 0, 1, 2, 0], [1, 1, 2, 2, 0], [2, 2, 3, 2, 0],
                 [3, 3, 4, 2, 0], [4, 4, 5, 2, 0], [5, 5, 6, 2, 0],
                 [6, 6, 7, 2, 0], [7, 7, 8, 2, 0], [8, 8, 9, 2, 0]]
@@ -109,3 +110,7 @@ def __main__():
         'Orig_coords': nodes,
         'Deformations': shapes
     }
+if __name__ == '__main__':
+    values = __main__()
+    plt.plot(values['X_values'], values['Y_values'])
+    plt.show()

@@ -320,23 +320,23 @@ def stress_gen(nodes, forces, sect_props):
     # BWS
     # 1998
     stress = np.zeros((1, len(nodes)))
-    stress = stress + forces['P']/sect_props['A']['value']
-    stress = stress - ((forces['Myy']*sect_props['Ixx']['value']
-                        + forces['Mxx']*sect_props['Ixy']['value'])
-                       * (nodes[:, 1] - sect_props['cx']['value']-3)
-                       - (forces['Myy']*sect_props['Ixy']['value']
-                          + forces['Mxx']*sect_props['Iyy']['value'])
-                       * (nodes[:, 2] - sect_props['cy']['value']-3)) \
-        / (sect_props['Iyy']['value']*sect_props['Ixx']['value'] - sect_props['Ixy']['value']**2)
-    phi = sect_props['phi']['value']*np.pi/180
+    stress = stress + forces['P']/sect_props['A']
+    stress = stress - ((forces['Myy']*sect_props['Ixx']
+                        + forces['Mxx']*sect_props['Ixy'])
+                       * (nodes[:, 1] - sect_props['cx']-3)
+                       - (forces['Myy']*sect_props['Ixy']
+                          + forces['Mxx']*sect_props['Iyy'])
+                       * (nodes[:, 2] - sect_props['cy']-3)) \
+        / (sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
+    phi = sect_props['phi']*np.pi/180
     transform = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
     cent_coord = np.array([
-        nodes[:, 1] - sect_props['cx']['value'], nodes[:, 2] - sect_props['cy']['value']
+        nodes[:, 1] - sect_props['cx'], nodes[:, 2] - sect_props['cy']
     ])
     prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
     stress = stress - \
-        forces['M11'] * prin_coord[:, 1] / sect_props['I11']['value']
+        forces['M11'] * prin_coord[:, 1] / sect_props['I11']
     stress = stress - \
-        forces['M22'] * prin_coord[:, 0] / sect_props['I22']['value']
+        forces['M22'] * prin_coord[:, 0] / sect_props['I22']
     nodes[:, 7] = stress.flatten()
     return nodes

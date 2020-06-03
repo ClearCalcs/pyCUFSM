@@ -3,8 +3,9 @@
 # in the Imperial unit system
 
 import numpy as np
-from pyCUFSM.fsm import strip
-from pyCUFSM.preprocess import stress_gen
+from pycufsm.fsm import strip
+from pycufsm.preprocess import stress_gen
+import matplotlib.pyplot as plt
 
 
 def __main__():
@@ -14,11 +15,11 @@ def __main__():
     # Define a lightly-meshed Cee shape
     # (1 element per lip, 2 elements per flange, 3 elements on the web)
     # Nodal location units are inches
-    nodes = [[0, 5, 1, 1, 1, 1, 1, 0], [1, 5, 0, 1, 1, 1, 1, 0],
+    nodes = np.array([[0, 5, 1, 1, 1, 1, 1, 0], [1, 5, 0, 1, 1, 1, 1, 0],
              [2, 2.5, 0, 1, 1, 1, 1, 0], [3, 0, 0, 1, 1, 1, 1, 0],
              [4, 0, 3, 1, 1, 1, 1, 0], [5, 0, 6, 1, 1, 1, 1, 0],
              [6, 0, 9, 1, 1, 1, 1, 0], [7, 2.5, 9, 1, 1, 1, 1, 0],
-             [8, 5, 9, 1, 1, 1, 1, 0], [9, 5, 8, 1, 1, 1, 1, 0]]
+             [8, 5, 9, 1, 1, 1, 1, 0], [9, 5, 8, 1, 1, 1, 1, 0]])
     elements = [[0, 0, 1, 0.1, 0], [1, 1, 2, 0.1, 0], [2, 2, 3, 0.1, 0],
                 [3, 3, 4, 0.1, 0], [4, 4, 5, 0.1, 0], [5, 5, 6, 0.1, 0],
                 [6, 6, 7, 0.1, 0], [7, 7, 8, 0.1, 0], [8, 8, 9, 0.1, 0]]
@@ -103,6 +104,7 @@ def __main__():
     # The signature curve is simply a matter of plotting the
     # 'signature' values against the lengths
     # (usually on a logarithmic axis)
+
     return {
         'X_values': lengths,
         'Y_values': signature,
@@ -110,3 +112,8 @@ def __main__():
         'Orig_coords': nodes,
         'Deformations': shapes
     }
+
+if __name__ == '__main__':
+    values = __main__()
+    plt.plot(values['X_values'], values['Y_values'])
+    plt.show()
