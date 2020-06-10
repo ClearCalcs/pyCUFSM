@@ -115,5 +115,6 @@ def __main__():
 
 if __name__ == '__main__':
     values = __main__()
-    plt.plot(values['X_values'], values['Y_values'])
+    plt.semilogx(values['X_values'], values['Y_values'])
     plt.show()
+    
