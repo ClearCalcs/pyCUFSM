@@ -144,7 +144,7 @@ if __name__ == '__main__':
     curve_sign = np.zeros((len(lengths),2))
     #####CALL CROSS SECTION
     #Flag = {node, elem, mat, stress, stresspic, coord, constraints, springs, origin, propaxis}
-    flag = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    flag = np.array([0, 1, 1, 0, 0, 0, 0, 0, 1, 0])
     crossect.crossect(node, element, springs, constraints,flag)
     ###Buckling halfwavelenth plot from a signature analysis
     ###CHOOSE MODE 
