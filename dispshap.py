@@ -100,8 +100,6 @@ def dispshap(
         xj = node[nodej, 1]
         zi = node[nodei, 2]
         zj = node[nodej, 2]
-        print(xi,zi)
-        print(xj,zj)
         #Determine the global element displacements
         #dbar is the nodal displacements for the element in global 
         #coordinates dbar=[u1 v1 u2 v2 w1 o1 w2 o2]
@@ -153,9 +151,7 @@ def dispshap(
         disp[1, 1:links] = undisp[1, 1:links] + scale*dlbarm[2, :]
         #The angle of each link
         thetalinks = np.arctan2(disp[1, 1:links+1]-disp[1, 0:links] , disp[0, 1:links+1]-disp[0, 0:links])
-        print(np.array(thetalinks).shape)
         thetalinks = np.append(thetalinks, thetalinks[links-1])
-        print(np.array(thetalinks).shape)
         #Plot the deformed geometry
         theta = np.arctan2((zj-zi),(xj-xi))
         t = elem[i,3]
@@ -164,19 +160,13 @@ def dispshap(
         dispin = np.array([[disp[0, :] - np.sin(thetalinks)*t/2], [disp[1, :] + np.cos(thetalinks)*t/2]]).T
         dispout = dispout.reshape((11,2))
         dispin = dispin.reshape((11,2))
-        count = 0
-        #print(dispout)
-        print(dispout.shape, dispin.shape)
         for j in range(links):
-            count= count+1
-            print(count)
             defpoints = np.array([[dispout[j, 0], dispout[j, 1]],
             [dispin[j, 0], dispin[j, 1]],
             [dispin[j+1, 0], dispin[j+1, 1]], 
             [dispout[j+1, 0], dispout[j+1,1]]])
             defpolygon = Polygon(defpoints, True)
             defpatches.append(defpolygon)
-        #defpoints = np.append(dispout, dispin, axis=0)
     dp = PatchCollection(defpatches, cmap=jet, alpha=0.4)
     dcolors = 100*np.random.rand(len(patches))
     dp.set_array(np.array(dcolors))
