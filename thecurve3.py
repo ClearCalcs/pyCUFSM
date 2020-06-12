@@ -11,22 +11,23 @@ from matplotlib.cm import jet
 
 def thecurve3(curvecell, clas, filedisplay, minopt, logopt, clasopt, xmin, xmax,
     ymin, ymax, modedisplay, fileindex, modeindex, picpoint):
-    marker = ['.x+*sdv^<']
+    marker = '.x+*sdv^<'
     ###If clasopt == 1
     ##...
     ###
     fig, ax2 =plt.subplots()
     hndlmark = []
+    hndl = []
+    hnd12 = []
     for i in range(len(filedisplay)):
         curve = []
-        curvecell.reshape(1,(len(curvecell)), 10)
-        curve = curvecell[filedisplay[i],:,:]
+        curve = curvecell
         mark = ['b', marker[(filedisplay[i])%10]]
         mark2 = [marker[(filedisplay[i]%10)],':']
-
+        curve_sign = np.zeros((len(curve),2))
         for j in range(len(curve)):
             curve_sign[j,0] = curve[j, modedisplay[0], 0]
-            curve_sign[j,2] = curve[j, modedisplay[0], 1]
+            curve_sign[j,1] = curve[j, modedisplay[0], 1]
             if len(modedisplay)>1:
                 for mn in range(len(modedisplay)):
                     templ[j, modedisplay[mn]] = curve[j, modedisplay[mn],0]
@@ -49,7 +50,7 @@ def thecurve3(curvecell, clas, filedisplay, minopt, logopt, clasopt, xmin, xmax,
         cr = 0
         handl = []
         if minopt == 1:
-            for i in range(len(curve_sign[:, 1])-2):
+            for m in range(len(curve_sign[:, 1])-2):
                 load1 = curve_sign[m, 1]
                 load2 = curve_sign[m+1, 1]
                 load3 = curve_sign[m+2, 1]

@@ -27,11 +27,7 @@ def crossect(node,elem,springs,constraint,flag):
     if stresspicflag==1:
         scale = 1
         maxstress = max(np.abs(node[:, 7]))
-        print('stress')
-        print((node[:,7]/maxstress).shape)
         stress = np.append(node[:, 0].reshape((len(node), 1)), (node[:, 7]/maxstress).reshape((len(node), 1)), axis = 1)
-        #print('stress')
-        #print(stress)
         maxi = np.max(np.abs(node[:, 1:3]))
         maxoffset = scale*np.max(maxi)/10
         stresscord=np.zeros((len(node),3))
@@ -100,7 +96,6 @@ def crossect(node,elem,springs,constraint,flag):
     if stressflag==1 and stresspicflag==0:
         for z in range(len(node)):
             plt.text(node[z,1],node[z,2], str(node[z,7]))
-            #print(node)
     #Plot the origin point
     if originflag==1:
         plt.plot(0, 0, 'ko',)
@@ -130,4 +125,5 @@ def crossect(node,elem,springs,constraint,flag):
     #Plot the springs if wanted
     ####SPRINGS AND CONSTRAINTS REMAINING
     springsscale = 0.05*np.max(np.max(np.abs(node[:,1:3])))
+    plt.gca().set_aspect('equal', adjustable = 'box')
     plt.show()
