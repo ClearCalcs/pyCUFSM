@@ -11,7 +11,8 @@ import thecurve3
 #import example4
 
 
-
+import window
+window.window()
 # Define an isotropic material with E = 203,000 MPa and nu = 0.3
 props = [[0, 203000, 203000, 0.30, 0.30, 78077]]
 # Define a lightly-meshed C shape
