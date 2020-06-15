@@ -127,5 +127,5 @@ def crossect(node,elem,springs,constraint,flag):
     ####SPRINGS AND CONSTRAINTS REMAINING
     springsscale = 0.05*np.max(np.max(np.abs(node[:,1:3])))
     plt.gca().set_aspect('equal', adjustable = 'box')
-    plt.axis(off)
+    plt.axis('off')
     plt.show()
