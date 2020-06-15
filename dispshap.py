@@ -78,17 +78,19 @@ def dispshap(
             [xj-np.sin(theta)*t/2, zj+np.cos(theta)*t/2],
             [xj+np.sin(theta)*t/2, zj-np.cos(theta)*t/2],
             [xi+np.sin(theta)*t/2, zi-np.cos(theta)*t/2]])
+            #Plot axis limits
             x_max = max(x_max, np.max(points[:,0]))
             y_max = max(y_max, np.max(points[:,1]))
             x_min = min(x_min, np.min(points[:,0]))
             y_min = min(y_min, np.min(points[:,1]))
             #points = np.random.rand(5 ,2)
-            polygon = Polygon(points, True)
-            patches.append(polygon)
-    p = PatchCollection(patches, cmap =jet, alpha=0.4)
-    colors = np.zeros(len(patches))
-    p.set_array(np.array(colors))
-    ax.add_collection(p)
+            polygon = Polygon(points, True, ec = 'b', fc = 'y', lw=0.5)
+            ax.add_artist(polygon)
+            plt.plot([xi, xj], [zi, zj], 'bo', markersize = 2)
+    #p = PatchCollection(patches, cmap =jet, alpha=0.4)
+    # colors = np.zeros(len(patches))
+    # p.set_array(np.array(colors))
+    #ax.add_collection(p)
     plt.xlim((x_min - 25, x_max + 25))
     plt.ylim((y_min - 25, y_max + 25))
     nnodes = len(node)
@@ -139,9 +141,9 @@ def dispshap(
                 dlbarm = dlbar*(sin((m_a[z]-1/2)*pi/cutloc)*sin(pi/cutloc/2))+dlbarm
         #Create a vertor of undisplaced coordinates "undisp"
         undisp = np.zeros((2, links+1))
-        undisp[:, 0] = np.transpose([xi, zi])
-        undisp[:, links] = np.transpose([xj, zj])
-        for j in range(1, links):
+        # undisp[:, 0] = np.transpose([xi, zi])
+        # undisp[:, links] = np.transpose([xj, zj])
+        for j in range(0, links+1):
             undisp[:, j] = np.transpose([xi+(xj-xi)*(j)/links, zi+(zj-zi)*(j)/links])
         #create a vector of displaced coordinated "disp"
         disp = np.zeros((2, links+1))
@@ -165,10 +167,13 @@ def dispshap(
             [dispin[j, 0], dispin[j, 1]],
             [dispin[j+1, 0], dispin[j+1, 1]], 
             [dispout[j+1, 0], dispout[j+1,1]]])
-            defpolygon = Polygon(defpoints, True)
-            defpatches.append(defpolygon)
+            polygon = Polygon(defpoints, True, ec = 'r', fc = 'r', lw=0.5)
+            #defpatches = defpatches.append(polygon)
+            ax.add_artist(polygon)
+        plt.plot([disp[0,0], disp[0,links]], [disp[1,0], disp[1,links]], 'bo', markersize = 2)
     dp = PatchCollection(defpatches, cmap=jet, alpha=0.4)
-    dcolors = 100*np.random.rand(len(patches))
-    dp.set_array(np.array(dcolors))
-    ax.add_collection(dp)
+    # dcolors = 100*np.random.rand(len(patches))
+    # dp.set_array(np.array(dcolors))
+    #ax.add_collection(dp)
+    plt.gca().set_aspect('equal', adjustable = 'box')
     plt.show()

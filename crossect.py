@@ -46,14 +46,15 @@ def crossect(node,elem,springs,constraint,flag):
         xj = node[nodej, 1]
         zj = node[nodej, 2]
         theta = np.arctan2((zj-zi), (xj-xi))
-        t = elem[i, 3]
+        t = elem[i, 3]*3
         points = np.array([[xi-np.sin(theta)*t/2, zi+np.cos(theta)*t/2],
             [xj-np.sin(theta)*t/2, zj+np.cos(theta)*t/2],
             [xj+np.sin(theta)*t/2, zj-np.cos(theta)*t/2],
             [xi+np.sin(theta)*t/2, zi-np.cos(theta)*t/2]])
         plt.plot([xi, xj], [zi, zj], 'bo')
-        polygon = Polygon(points, True)
-        patches.append(polygon)
+        polygon = Polygon(points, True, ec = 'b', fc = (1,1,0,1), lw=0.5)
+        ax1.add_artist(polygon)
+        #patches.append(polygon)
         if stresspicflag==1:
             #get the stresses
             sxi = stresscord[nodei, 1]
@@ -83,9 +84,9 @@ def crossect(node,elem,springs,constraint,flag):
         #####___#####
     ####Patches of cross section
     p = PatchCollection(patches, cmap =jet, alpha=0.4)
-    colors = np.zeros(len(patches))
-    p.set_array(np.array(colors))
-    ax1.add_collection(p)
+    #colors = np.zeros(len(patches))
+    #p.set_array(np.array(colors))
+    #ax1.add_collection(p)
     #plt.xlim((x_min - 25, x_max + 25))
     #plt.ylim((y_min - 25, y_max + 25))
     #Plot the node labels if wanted

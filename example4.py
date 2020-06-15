@@ -13,7 +13,7 @@ import thecurve3
 
 def __main__():
     # Define an isotropic material with E = 203,000 MPa and nu = 0.3
-    props = [[0, 29500.00, 29500.00, 0.30, 0.30, 11346.15]]
+    props = [[0, 203000, 203000, 0.30, 0.30, 203000 / (2 * (1 + 0.3))]]
 
     # Define a lightly-meshed C shape
     # Nodal location units are inches
@@ -80,8 +80,8 @@ def __main__():
     # Generate the stress points assuming 500 MPa yield and X-axis bending
     nodes_p = stress_gen(nodes=nodes,
                          forces={
-                             'P': 0,
-                             'Mxx': 500 * sect_props['Ixx'] / sect_props['cy'],
+                             'P': sect_props['A'] * 50,
+                             'Mxx': 0,
                              'Myy': 0,
                              'M11': 0,
                              'M22': 0
@@ -141,7 +141,12 @@ if __name__ == '__main__':
     xmax = np.max(lengths)*11/10
     ymin = 0
     print(np.array(curve).shape)
-    curve_sign = np.zeros((len(lengths),2))
+    curve_sign = np.zeros((len(lengths),))
+    curve = np.zeros(((len(lengths),n_eigs,2)))
+    for j in range(len(lengths)):
+        for in range(n_eigs):
+            curve[j, i, 0] = length[j]
+            curve[j, i, 1] = curves[j, i]
     #####CALL CROSS SECTION
     #Flag = {node, elem, mat, stress, stresspic, coord, constraints, springs, origin, propaxis}
     flag = np.array([0, 1, 1, 0, 0, 0, 0, 0, 1, 0])

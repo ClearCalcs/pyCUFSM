@@ -18,10 +18,13 @@ def thecurve3(curvecell, clas, filedisplay, minopt, logopt, clasopt, xmin, xmax,
     fig, ax2 =plt.subplots()
     hndlmark = []
     hndl = []
+    hnd2 = []
     hnd12 = []
     for i in range(len(filedisplay)):
         curve = []
         curve = curvecell
+        templ = np.zeros((len(curve), len(modedisplay)))
+        templf = np.zeros((len(curve), len(modedisplay)))
         mark = ['b', marker[(filedisplay[i])%10]]
         mark2 = [marker[(filedisplay[i]%10)],':']
         curve_sign = np.zeros((len(curve),2))
@@ -30,8 +33,8 @@ def thecurve3(curvecell, clas, filedisplay, minopt, logopt, clasopt, xmin, xmax,
             curve_sign[j,1] = curve[j, modedisplay[0], 1]
             if len(modedisplay)>1:
                 for mn in range(len(modedisplay)):
-                    templ[j, modedisplay[mn]] = curve[j, modedisplay[mn],0]
-                    templf[j, modedisplay[mn]] = curve[j, modedisplay[mn],1]
+                    templ[j, modedisplay[mn]] = curve[j, modedisplay[mn], 0]
+                    templf[j, modedisplay[mn]] = curve[j, modedisplay[mn], 1]
         if logopt == 1:
             hndlmark.append(plt.semilogx(curve_sign[:, 0], curve_sign[:,1], mark, markersize = 5))
             hndl.append(plt.semilogx(curve_sign[:,0],curve_sign[:,1], 'k'))
@@ -57,9 +60,11 @@ def thecurve3(curvecell, clas, filedisplay, minopt, logopt, clasopt, xmin, xmax,
                 if load2<load1 and load2<=load3:
                     cr = cr+1
                     hnd12.append(plt.plot(curve_sign[m+1, 0], curve_sign[m+1, 1], 'o'))
-                    mstring = ['{},{}'.format(curve_sign[m+1, 0], curve_sign[m+2, 0])]
+                    mstring = ['{0:.2f},{0:.2f}'.format(curve_sign[m+1, 0], curve_sign[m+1, 1])]
                     plt.text(curve_sign[m+1, 0], curve_sign[m+1, 1]-(ymax-ymin)/20, mstring)
-        plt.show()
+    plt.xlim((xmin, xmax))
+    plt.ylim((ymin, ymax))    
+    plt.show()
         #set the callback of curve
 
 

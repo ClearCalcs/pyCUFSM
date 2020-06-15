@@ -8,12 +8,12 @@ from pycufsm.preprocess import stress_gen
 import dispshap
 import crossect
 import thecurve3
-import example4
+#import example4
 
 
 
 # Define an isotropic material with E = 203,000 MPa and nu = 0.3
-props = [[0, 29500.00, 29500.00, 0.30, 0.30, 11346.15]]
+props = [[0, 203000, 203000, 0.30, 0.30, 78077]]
 # Define a lightly-meshed C shape
 # Nodal location units are inches
 nodes = np.array([[0, 100, 25, 1, 1, 1, 1, 1], 
@@ -30,24 +30,24 @@ elements = np.array([[0, 0, 1, 2, 0],
                      [1, 1, 2, 2, 0],
                      [2, 2, 3, 2, 0],
                      [3, 3, 4, 2, 0],
-                     [4, 4, 5, 10, 0],
+                     [4, 4, 5, 2, 0],
                      [5, 5, 6, 2, 0],
-                     [6, 6, 7, 20, 0],
+                     [6, 6, 7, 2, 0],
                      [7, 7, 8, 2, 0],
                      [8, 8, 9, 2, 0]])
 # These lengths will generally provide sufficient accuracy for
 # local, distortional, and global buckling modes
 # Length units are millimetres
-lengths = [
-    10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160,
-    170, 180, 190, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900,
-    1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500, 3000, 3500, 4000, 4500,
-    5000, 6000, 7000, 8000, 9000, 10000
-]
+# lengths = [
+#     10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160,
+#     170, 180, 190, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900,
+#     1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500, 3000, 3500, 4000, 4500,
+#     5000, 6000, 7000, 8000, 9000, 10000
+# ]
 ###Start at a, End at b, n equal spaced intervals
 #length=np.linspace(a,b,n)
 ###Start
-#lengths = np.logspace(a,b,n)
+lengths = np.logspace(0,4,100)
 
 # No special springs or constraints
 springs = []
@@ -91,14 +91,14 @@ sect_props = {
 # Generate the stress points assuming 500 MPa yield and X-axis bending
 nodes_p = stress_gen(nodes=nodes,
                      forces={
-                         'P': 0,
-                         'Mxx': 500 * sect_props['Ixx'] / sect_props['cy'],
-                         'Myy': 0,
-                         'M11': 0,
-                         'M22': 0
+                         'P': sect_props['A'] * 50,
+                         'Mxx': 0,
+                             'Myy': 0,
+                             'M11': 0,
+                             'M22': 0
                      },
                      sect_props=sect_props)
-
+print(nodes_p)
 #####CALL CROSS SECTION
 #Flag = {node, elem, mat, stress, stresspic, coord, constraints, springs, origin, propaxis}
 flag = np.array([1, 0, 0, 1, 1, 0, 0, 0, 0, 0])
@@ -145,12 +145,13 @@ scalem = 1
 m_a = [1]
 SurfPos = 1/2
 mode = shapes[length_index-1, :, modeindex-1]
+print(mode)
 ####CALL DISPLACED SHAPE
-#x = dispshap.dispshap(undef, node, element, mode, scalem, springs, m_a, b_c ,SurfPos)
+x = dispshap.dispshap(undef, node, element, mode, scalem, springs, m_a, b_c ,SurfPos)
 ####SIGNATURE CURVE####
 ###Buckling halfwavelenth plot from a signature analysis
-# plt.semilogx(lengths, signature)
-# plt.show()
+plt.semilogx(lengths, signature)
+plt.show()
 clas = 0
 minopt = 1
 logopt = 1
