@@ -316,7 +316,7 @@ def template_out_to_in(sect):
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 
-def stress_gen(nodes, forces, sect_props, offset_basis=0):
+def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
     # BWS
     # 1998
     # offset_basis compensates for section properties that are based upon coordinate
@@ -325,15 +325,21 @@ def stress_gen(nodes, forces, sect_props, offset_basis=0):
     # offset_basis=[-thickness/2, -thickness/2]
     if isinstance(offset_basis, float) or isinstance(offset_basis, int):
         offset_basis = [offset_basis, offset_basis]
+
     stress = np.zeros((1, len(nodes)))
     stress = stress + forces['P']/sect_props['A']
-    stress = stress - ((forces['Myy']*sect_props['Ixx']
-                        + forces['Mxx']*sect_props['Ixy'])
-                       * (nodes[:, 1] - sect_props['cx'] - offset_basis[0])
-                       - (forces['Myy']*sect_props['Ixy']
-                          + forces['Mxx']*sect_props['Iyy'])
-                       * (nodes[:, 2] - sect_props['cy'] - offset_basis[1])) \
-        / (sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
+    if restrained:
+        stress = stress - ((forces['Myy']*sect_props['Ixx'])*
+                           (nodes[:, 1] - sect_props['cx'] - offset_basis[0]) -
+                           (forces['Mxx']*sect_props['Iyy'])*
+                           (nodes[:, 2] - sect_props['cy'] - offset_basis[1])
+                           )/(sect_props['Iyy']*sect_props['Ixx'])
+    else:
+        stress = stress - ((forces['Myy']*sect_props['Ixx'] + forces['Mxx']*sect_props['Ixy'])*
+                           (nodes[:, 1] - sect_props['cx'] - offset_basis[0]) -
+                           (forces['Myy']*sect_props['Ixy'] + forces['Mxx']*sect_props['Iyy'])*
+                           (nodes[:, 2] - sect_props['cy'] - offset_basis[1])
+                           )/(sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
     phi = sect_props['phi']*np.pi/180
     transform = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
     cent_coord = np.array([
