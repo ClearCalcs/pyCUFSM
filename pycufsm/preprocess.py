@@ -316,21 +316,28 @@ def template_out_to_in(sect):
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 
-def stress_gen(nodes, forces, sect_props):
+def stress_gen(nodes, forces, sect_props, offset_basis=[0, 0]):
     # BWS
     # 1998
+    # offset_basis compensates for section properties that are based upon
+    # [0, 0] being something other than the centreline of elements. For example,
+    # if section properties are based upon the outer perimeter, then
+    # offset_basis=[-thickness/2, -thickness/2]
     stress = np.zeros((1, len(nodes)))
     stress = stress + forces['P']/sect_props['A']
     stress = stress - ((forces['Myy']*sect_props['Ixx']
                         + forces['Mxx']*sect_props['Ixy'])
-                       * (nodes[:, 1] - sect_props['cx']-3)
+                       * (nodes[:, 1] - sect_props['cx'] - offset_basis[0])
                        - (forces['Myy']*sect_props['Ixy']
                           + forces['Mxx']*sect_props['Iyy'])
-                       * (nodes[:, 2] - sect_props['cy']-3)) \
+                       * (nodes[:, 2] - sect_props['cy'] - offset_basis[1])) \
         / (sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
     phi = sect_props['phi']*np.pi/180
     transform = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
-    cent_coord = np.array([nodes[:, 1] - sect_props['cx'], nodes[:, 2] - sect_props['cy']])
+    cent_coord = np.array([
+        nodes[:, 1] - sect_props['cx'] - offset_basis[0],
+        nodes[:, 2] - sect_props['cy'] - offset_basis[1]
+    ])
     prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
     stress = stress - \
         forces['M11'] * prin_coord[:, 1] / sect_props['I11']
