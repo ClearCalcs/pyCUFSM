@@ -316,13 +316,15 @@ def template_out_to_in(sect):
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 
-def stress_gen(nodes, forces, sect_props, offset_basis=[0, 0]):
+def stress_gen(nodes, forces, sect_props, offset_basis=0):
     # BWS
     # 1998
-    # offset_basis compensates for section properties that are based upon
+    # offset_basis compensates for section properties that are based upon coordinate
     # [0, 0] being something other than the centreline of elements. For example,
     # if section properties are based upon the outer perimeter, then
     # offset_basis=[-thickness/2, -thickness/2]
+    if isinstance(offset_basis, float) or isinstance(offset_basis, int):
+        offset_basis = [offset_basis, offset_basis]
     stress = np.zeros((1, len(nodes)))
     stress = stress + forces['P']/sect_props['A']
     stress = stress - ((forces['Myy']*sect_props['Ixx']
