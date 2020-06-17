@@ -9,6 +9,69 @@ from scipy import linalg as spla
 # change history, have been generally retained unaltered
 
 
+def template_path(draw_table, thick, n_r=4):
+    # Brooks H. Smith
+    # 17 June 2020
+    # Assuming a uniform thickness, draws a section according to a path definition
+    # draw_table = matrix of the form [[theta, dist, rad, n_s]], where:
+    #              theta = starting angle, dist = length of straight segment,
+    #              rad = radius of curved segment, n_s = number of mesh elements in straight
+    # thick = thickness
+    # n_r = number of mesh elements in curved segments
+
+    nodes = []
+    elements = []
+
+    # Set initial point
+    if draw_table[0][1] != 0:
+        nodes.append(np.array([len(nodes), 0, 0, 1, 1, 1, 1, 1.0]))
+
+    # Progress through drawing the section
+    for i, row in enumerate(draw_table[:-1]):
+        theta = row[0]
+        dist = row[1]
+        rad = row[2]
+        n_s = row[3]
+        next_theta = draw_table[i + 1][0]
+        phi = np.mod(next_theta - theta, 2*np.pi)
+        if phi > np.pi:
+            phi = phi - 2*np.pi
+
+        # Add elements in straight segment (if n_s > 1)
+        for i in range(1, int(n_s)):
+            x_loc = nodes[-1][1] + dist/n_s*i*np.cos(theta)
+            y_loc = nodes[-1][2] + dist/n_s*i*np.sin(theta)
+            nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
+
+        # Add elements in curved segment
+        centre = [
+            nodes[-1][1] + dist*np.cos(theta) - np.sign(phi)*rad*np.sin(theta),
+            nodes[-1][2] + dist*np.sin(theta) + np.sign(phi)*rad*np.cos(theta),
+        ]
+        if rad == 0:
+            nodes.append(np.array([len(nodes), centre[0], centre[1], 1, 1, 1, 1, 1.0]))
+        else:
+            for i in range(int(n_r)):
+                theta_i = theta + i*1.0/max(1, n_r - 1)*phi
+                x_loc = centre[0] + rad*np.cos(theta_i)
+                y_loc = centre[1] + rad*np.sin(theta_i)
+                nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
+
+    # Draw the last straight line
+    theta = draw_table[-1][0]
+    dist = draw_table[-1][1]
+    if dist > 0:
+        x_loc = nodes[-1][1] + dist*np.cos(theta)
+        y_loc = nodes[-1][2] + dist*np.sin(theta)
+        nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
+
+    # build the elements list
+    for i in range(len(nodes)):
+        elements.append(np.array([i, i, i + 1, thick, 0]))
+
+    return [np.array(nodes), np.array(elements)]
+
+
 def template_calc(sect):
     n_d = 4
     n_b1 = 4
