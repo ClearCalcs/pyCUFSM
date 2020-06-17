@@ -38,9 +38,9 @@ def template_path(draw_table, thick, n_r=4):
             phi = phi - 2*np.pi
 
         # Add elements in straight segment (if n_s > 1)
-        for i in range(1, int(n_s)):
-            x_loc = nodes[-1][1] + dist/n_s*i*np.cos(theta)
-            y_loc = nodes[-1][2] + dist/n_s*i*np.sin(theta)
+        for j in range(1, int(n_s)):
+            x_loc = nodes[-1][1] + dist/n_s*j*np.cos(theta)
+            y_loc = nodes[-1][2] + dist/n_s*j*np.sin(theta)
             nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
 
         # Add elements in curved segment
@@ -51,10 +51,10 @@ def template_path(draw_table, thick, n_r=4):
         if rad == 0:
             nodes.append(np.array([len(nodes), centre[0], centre[1], 1, 1, 1, 1, 1.0]))
         else:
-            for i in range(int(n_r)):
-                theta_i = theta + i*1.0/max(1, n_r - 1)*phi
-                x_loc = centre[0] + rad*np.cos(theta_i)
-                y_loc = centre[1] + rad*np.sin(theta_i)
+            for j in range(int(n_r)):
+                theta_j = theta + j*1.0/max(1, n_r - 1)*phi
+                x_loc = centre[0] + rad*np.cos(theta_j)
+                y_loc = centre[1] + rad*np.sin(theta_j)
                 nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
 
     # Draw the last straight line
