@@ -66,7 +66,7 @@ def template_path(draw_table, thick, n_r=4):
         nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
 
     # build the elements list
-    for i in range(len(nodes)):
+    for i in range(0, len(nodes) - 1):
         elements.append(np.array([i, i, i + 1, thick, 0]))
 
     return [np.array(nodes), np.array(elements)]
