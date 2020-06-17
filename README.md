@@ -17,6 +17,7 @@ The original MATLAB CUFSM program may be accessed at the following address: http
 
 -   [x] Unconstrained FSM (signature curve generation)
 -   [x] Constrained FSM
+-   [x] Added template_path() function to define a complete arbitrary cross-section by simple paths
 
 #### Complete But Untested
 
@@ -28,7 +29,6 @@ The original MATLAB CUFSM program may be accessed at the following address: http
 
 -   [ ] Add automated testing of calculations (probably via pytest)
 -   [ ] Handle holes in cross-sections in some meaningful way
--   [ ] Expand templatecalc to handle more shapes other than just Cees and Zeds
 -   [ ] Various efficiency and readability improvements:
     -   [ ] Make use of scipy.sparse for sparse matrices where possible
     -   [ ] Convert some numerical inputs and data to dictionaries with strings
