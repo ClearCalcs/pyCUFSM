@@ -390,8 +390,6 @@ def strip(
         n_modes = min([n_eigs, num_pos_modes])
         length_factors = length_factors[:n_modes]
         modes = modes[:, :n_modes]
-        print('r_matrix')
-        print(r_matrix)
 
         # FORM THE FULL MODE SHAPE BY BRINGING BACK ELIMINATED DOF
         modes_full = r_matrix @ modes
