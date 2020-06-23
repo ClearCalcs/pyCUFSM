@@ -52,7 +52,7 @@ def template_path(draw_table, thick, n_r=4):
             nodes.append(np.array([len(nodes), centre[0], centre[1], 1, 1, 1, 1, 1.0]))
         else:
             for j in range(int(n_r)):
-                theta_j = theta + j*1.0/max(1, n_r - 1)*phi
+                theta_j = theta - np.sign(phi)*np.pi/2 + j*1.0/max(1, n_r - 1)*phi
                 x_loc = centre[0] + rad*np.cos(theta_j)
                 y_loc = centre[1] + rad*np.sin(theta_j)
                 nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
