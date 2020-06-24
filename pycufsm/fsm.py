@@ -399,7 +399,7 @@ def strip(
         # set max entry (absolute) to +1.0 and scale the rest
         for j in range(0, n_modes):
             maxindex = np.argmax(abs(modes_full[j]))
-            modes_full[j] = modes_full[j]/modes_full[j, maxindex]
+            modes_full[:, j] = modes_full[:, j]/modes_full[maxindex, j]
 
         # GENERATE OUTPUT VALUES
         # curve and shapes are changed to cells!!
