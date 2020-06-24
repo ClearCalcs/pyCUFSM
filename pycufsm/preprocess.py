@@ -39,8 +39,8 @@ def template_path(draw_table, thick, n_r=4):
 
         # Add elements in straight segment (if n_s > 1)
         for j in range(1, int(n_s)):
-            x_loc = nodes[-1][1] + dist/n_s*j*np.cos(theta)
-            y_loc = nodes[-1][2] + dist/n_s*j*np.sin(theta)
+            x_loc = nodes[-1][1] + dist/n_s*np.cos(theta)
+            y_loc = nodes[-1][2] + dist/n_s*np.sin(theta)
             nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
 
         # Add elements in curved segment
@@ -61,9 +61,10 @@ def template_path(draw_table, thick, n_r=4):
     theta = draw_table[-1][0]
     dist = draw_table[-1][1]
     if dist > 0:
-        x_loc = nodes[-1][1] + dist*np.cos(theta)
-        y_loc = nodes[-1][2] + dist*np.sin(theta)
-        nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
+        for j in range(1, int(n_s) + 1):
+            x_loc = nodes[-1][1] + dist/n_s*np.cos(theta)
+            y_loc = nodes[-1][2] + dist/n_s*np.sin(theta)
+            nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
 
     # build the elements list
     for i in range(0, len(nodes) - 1):
