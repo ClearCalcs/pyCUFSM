@@ -61,7 +61,7 @@ def signature_ss(props, nodes, elements, i_gbt_con, sect_props, lengths):
     return isignature, icurve, ishapes
 
 
-def m_recommend(props, nodes, elements, sect_props, length_append=None):
+def m_recommend(props, nodes, elements, sect_props, length_append=None, n_lengths=50):
     # Z. Li, Oct. 2010
     #Suggested longitudinal terms are calculated based on the characteristic
     #half-wave lengths of local, distortional, and global buckling from the
@@ -78,7 +78,9 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None):
         "orth": 1,
         "norm": 1,
     }
-    lengths = lengths_recommend(nodes=nodes, elements=elements, length_append=length_append)
+    lengths = lengths_recommend(
+        nodes=nodes, elements=elements, length_append=length_append, n_lengths=n_lengths
+    )
 
     print("Running initial pyCUFSM signature curve")
     isignature, icurve, ishapes = signature_ss(
@@ -209,6 +211,18 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None):
     #m_a_recommend = analysis.m_sort(im_pm_all)
     m_a_recommend = im_pm_all
 
-    return m_a_recommend, lengths, isignature, icurve, ishapes, length_crl, length_crd, \
-        isignature_local, icurve_local, ishapes_local, \
-            isignature_dist, icurve_dist, ishapes_dist
+    return (
+        m_a_recommend,
+        lengths,
+        isignature,
+        icurve,
+        ishapes,
+        length_crl,
+        length_crd,
+        isignature_local,
+        icurve_local,
+        ishapes_local,
+        isignature_dist,
+        icurve_dist,
+        ishapes_dist,
+    )
