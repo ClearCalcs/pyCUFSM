@@ -60,6 +60,7 @@ def template_path(draw_table, thick, n_r=4):
     # Draw the last straight line
     theta = draw_table[-1][0]
     dist = draw_table[-1][1]
+    n_s = draw_table[-1][1]
     if dist > 0:
         for j in range(1, int(n_s) + 1):
             x_loc = nodes[-1][1] + dist/n_s*np.cos(theta)
