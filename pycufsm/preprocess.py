@@ -45,8 +45,8 @@ def template_path(draw_table, thick, n_r=4):
 
         # Add elements in curved segment
         centre = [
-            nodes[-1][1] + dist*np.cos(theta) - np.sign(phi)*rad*np.sin(theta),
-            nodes[-1][2] + dist*np.sin(theta) + np.sign(phi)*rad*np.cos(theta),
+            nodes[-1][1] + dist/n_s*np.cos(theta) - np.sign(phi)*rad*np.sin(theta),
+            nodes[-1][2] + dist/n_s*np.sin(theta) + np.sign(phi)*rad*np.cos(theta),
         ]
         if rad == 0:
             nodes.append(np.array([len(nodes), centre[0], centre[1], 1, 1, 1, 1, 1.0]))
