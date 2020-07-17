@@ -41,7 +41,6 @@ def crossect(node,elem,springs,constraint,flag):
     for i in range((len(elem))):
         nodei = int(elem[i, 1])
         nodej = int(elem[i, 2])
-        print(nodei)
         xi = node[nodei, 1]
         zi = node[nodei, 2]
         xj = node[nodej, 1]
