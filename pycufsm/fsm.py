@@ -3,7 +3,6 @@ from scipy import linalg as spla
 import numpy as np
 import pycufsm.analysis
 import pycufsm.cfsm
-import xlsxwriter
 from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
