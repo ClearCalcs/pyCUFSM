@@ -3,7 +3,8 @@ from scipy import linalg as spla
 import numpy as np
 import pycufsm.analysis
 import pycufsm.cfsm
-
+import xlsxwriter
+from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
 #
@@ -333,45 +334,43 @@ def strip(
         # INTRODUCE CONSTRAINTS AND REDUCE k_global MATRICES TO FREE PARTS ONLY
         k_global_ff = r_matrix.transpose() @ k_global @ r_matrix
         kg_global_ff = r_matrix.transpose() @ kg_global @ r_matrix
-
         # SOLVE THE EIGENVALUE PROBLEM
         # Determine which solver to use
         # small problems usually use eig (dense matrix),
         # and large problems use eigs (sparse matrix).
         # the eigs solver is not as stable as the full eig solver...
         # LAPACK reciprocal condition estimator
-        # rcond_num = 1 / np.linalg.cond(np.linalg.pinv(kg_global_ff) @ k_global_ff)
+        rcond_num = 1 / np.linalg.cond(np.linalg.pinv(kg_global_ff) @ k_global_ff)
 
         # Here, assume when rcond_num is bigger than half of the eps, eigs can provide
         # reliable solution. Otherwise, eig, the robust solver should be used.
-        # if rcond_num >= np.spacing(1.0) / 2:
-        #     eig_sparse = True
-        #     # eigs
-        # else:
-        #     eig_sparse = False
-        #     # eig
+        if rcond_num >= np.spacing(1.0) / 2:
+            eig_sparse = True
+            # eigs
+        else:
+            eig_sparse = False
+            # eig
 
         # if eig_sparse:
-        #     # k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
-        #     # if k_eigs == 1 or k_eigs == len(k_global_ff):
-        #     [length_factors, modes] = spla.eig(
-        #         a=k_global_ff,
-        #         b=kg_global_ff
-        #     )
-        #     # else:
-        #     #     # pull out 10 eigenvalues
-        #     #     [length_factors, modes] = sparse.linalg.eigs(
-        #     #         A=k_global_ff,
-        #     #         k=k_eigs,
-        #     #         M=kg_global_ff,
-        #     #         which='SM'
-        #     #     )
+        #     k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
+        #     if k_eigs == 1 or k_eigs == len(k_global_ff):
+        #         [length_factors, modes] = spla.eig(
+        #             a=k_global_ff,
+        #             b=kg_global_ff
+        #         )
+        #     else:
+        #         # pull out 10 eigenvalues
+        #         [length_factors, modes] = eigs(
+        #             A=k_global_ff,
+        #             k=k_eigs,
+        #             M=kg_global_ff,
+        #             which='SM'
+        #         )
         # else:
         [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
-
         # CLEAN UP THE EIGEN SOLUTION
         # eigenvalues are along the diagonal of matrix length_factors
-        # length_factors = np.diag(length_factors)
+        #length_factors = np.diag(length_factors)
         # find all the positive eigenvalues and corresponding vectors, squeeze out the rest
         index = np.logical_and(length_factors > 0, abs(np.imag(length_factors)) < 0.00001)
         length_factors = length_factors[index]
@@ -400,7 +399,6 @@ def strip(
         for j in range(0, n_modes):
             maxindex = np.argmax(abs(modes_full[:, j]))
             modes_full[:, j] = modes_full[:, j]/modes_full[maxindex, j]
-
         # GENERATE OUTPUT VALUES
         # curve and shapes are changed to cells!!
         # curve: buckling curve (load factor)
