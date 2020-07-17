@@ -8,6 +8,7 @@ import matplotlib
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 from matplotlib.cm import jet
+
 #Helper Function
 def gammait(phi, dbar):
     p = phi
@@ -65,8 +66,8 @@ def dispshap(
     defpoints =[]
     if undef == 1:
         for i in range(len(elem)):
-            nodei = elem[i, 1]
-            nodej = elem[i, 2]
+            nodei = int(elem[i, 1])
+            nodej = int(elem[i, 2])
             xi = node[nodei, 1]
             xj = node[nodej, 1]
             zi = node[nodei, 2]
@@ -91,13 +92,13 @@ def dispshap(
     # colors = np.zeros(len(patches))
     # p.set_array(np.array(colors))
     #ax.add_collection(p)
-    plt.xlim((x_min - 25, x_max + 25))
-    plt.ylim((y_min - 25, y_max + 25))
+    #plt.xlim((x_min - 25, x_max + 25))
+    #plt.ylim((y_min - 25, y_max + 25))
     nnodes = len(node)
     for i in range(len(elem)):
         #Get Element Geometry
-        nodei = elem[i, 1]
-        nodej = elem[i, 2]
+        nodei = int(elem[i, 1])
+        nodej = int(elem[i, 2])
         xi = node[nodei, 1]
         xj = node[nodej, 1]
         zi = node[nodei, 2]
@@ -176,4 +177,13 @@ def dispshap(
     # dp.set_array(np.array(dcolors))
     #ax.add_collection(dp)
     plt.gca().set_aspect('equal', adjustable = 'box')
+    plt.axis('off')
+    # if(figure == 1):
+    #     plt.savefig('Validation/'+address+'/local.png')
+    # if(figure == 2):
+    #     plt.savefig('Validation/'+address+'/distortional.png')
+    # if(figure == 3):
+    #     plt.savefig('Validation/'+address+'/global.png')
+    # if(figure == 4):
+    #     plt.savefig('Validation/'+address+'/global1.png')
     plt.show()
