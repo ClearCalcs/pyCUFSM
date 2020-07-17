@@ -36,22 +36,22 @@ def crossect(node,elem,springs,constraint,flag):
             node[i,2] - maxoffset*stress[i,1]]
     #Plot the nodes
     fig, ax1 = plt.subplots()
-    plt.plot(node[:,1], node[:,2],'bo')
+    plt.plot(node[:,1], node[:,2],'bo', markersize = 2)
     #Plot the elements
     for i in range((len(elem))):
-        nodei = elem[i, 1]
-        nodej = elem[i, 2]
+        nodei = int(elem[i, 1])
+        nodej = int(elem[i, 2])
         xi = node[nodei, 1]
         zi = node[nodei, 2]
         xj = node[nodej, 1]
         zj = node[nodej, 2]
         theta = np.arctan2((zj-zi), (xj-xi))
-        t = elem[i, 3]*3
+        t = elem[i, 3]*1
         points = np.array([[xi-np.sin(theta)*t/2, zi+np.cos(theta)*t/2],
             [xj-np.sin(theta)*t/2, zj+np.cos(theta)*t/2],
             [xj+np.sin(theta)*t/2, zj-np.cos(theta)*t/2],
             [xi+np.sin(theta)*t/2, zi-np.cos(theta)*t/2]])
-        plt.plot([xi, xj], [zi, zj], 'bo')
+        plt.plot([xi, xj], [zi, zj], 'bo', markersize = 0.5 )
         polygon = Polygon(points, True, ec = 'b', fc = (1,1,0,1), lw=0.5)
         ax1.add_artist(polygon)
         #patches.append(polygon)
@@ -86,7 +86,7 @@ def crossect(node,elem,springs,constraint,flag):
     p = PatchCollection(patches, cmap =jet, alpha=0.4)
     #colors = np.zeros(len(patches))
     #p.set_array(np.array(colors))
-    #ax1.add_collection(p)
+    #plt.add_collection(p)
     #plt.xlim((x_min - 25, x_max + 25))
     #plt.ylim((y_min - 25, y_max + 25))
     #Plot the node labels if wanted
@@ -128,4 +128,5 @@ def crossect(node,elem,springs,constraint,flag):
     springsscale = 0.05*np.max(np.max(np.abs(node[:,1:3])))
     plt.gca().set_aspect('equal', adjustable = 'box')
     plt.axis('off')
+    # plt.savefig('Validation/'+address+'/CS.png')
     plt.show()
