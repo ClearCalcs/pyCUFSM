@@ -45,4 +45,4 @@ row1 = widgets.VBox([noder, ADDNODE])
 row2 = widgets.VBox([elemr, ADDELEM])
 row = widgets.HBox([row1, row2])
 page = widgets.VBox([row0, row])
-display(page)
+return page, mitems, nitems, eitems
