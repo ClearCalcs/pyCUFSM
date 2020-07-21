@@ -35,7 +35,7 @@ def crossect(node,elem,springs,constraint,flag):
             stresscord[i,0:3] = [node[i,0], node[i,1] + maxoffset*stress[i,1],
             node[i,2] - maxoffset*stress[i,1]]
     #Plot the nodes
-    fig, ax1 = plt.subplots()
+    fig, ax1 = plt.subplots(constrained_layout=True, figsize=(6, 6))
     plt.plot(node[:,1], node[:,2],'bo', markersize = 2)
     #Plot the elements
     for i in range((len(elem))):
