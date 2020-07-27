@@ -56,16 +56,16 @@ class Preprocess:
         self.nitems = [[] for i in range(self.n)]
         self.ADDNODE = widgets.Button(description="Add Node", layout= widgets.Layout(border = 'solid 1px black'))
         self.DELNODE = widgets.Button(description="Remove Node", layout= widgets.Layout(border = 'solid 1px black'))
-        nlabel= widgets.GridBox([widgets.Label(value=nodetext[j]) for j in range(8)], layout=widgets.Layout(grid_template_columns="repeat(8, 50px[col-start])"))
+        nlabel= widgets.HBox([widgets.Label(value=nodetext[j], layout = widgets.Layout(width='55px')) for j in range(8)])
         for i in range(self.n):
             if(i<len(self.nodes)):
                 for j in range(8):
-                    self.nitems[i].append(widgets.FloatText(value=self.nodes[i, j], layout = widgets.Layout(width='48px', font=("Helvetica", 8))))        
-                node[i] = widgets.GridBox(self.nitems[i], layout=widgets.Layout(grid_template_columns="repeat(8, 50px[col-start])"), width = '70%')
+                    self.nitems[i].append(widgets.FloatText(value=self.nodes[i, j], layout = widgets.Layout(width='57px', height = '22px', font=("Helvetica", 8))))        
+                node[i] = widgets.HBox(self.nitems[i], layout=widgets.Layout(width = '490px', height = '30px'))
             if(i>=len(self.nodes)):
                 for j in range(8):
-                    self.nitems[i].append(widgets.FloatText(value=self.nodes[i-1, j], layout = widgets.Layout(width='48px',  font=("Helvetica", 8)))) 
-                node[i] = widgets.GridBox(self.nitems[i], layout=widgets.Layout(grid_template_columns="repeat(8, 50px[col-start])"), width = '70%')
+                    self.nitems[i].append(widgets.FloatText(value=self.nodes[i-1, j], layout = widgets.Layout(width='57px', height = '22px', font=("Helvetica", 8)))) 
+                node[i] = widgets.HBox(self.nitems[i], layout=widgets.Layout(width = '490px', height = '30px'))
         noder0 = widgets.VBox([node[j] for j in range(n)])
         brow = widgets.HBox([self.ADDNODE, self.DELNODE])
         self.rnode = widgets.VBox([nodTitle, nlabel, noder0, brow], layout= widgets.Layout(border = 'solid 1px black'))
@@ -82,15 +82,15 @@ class Preprocess:
         for i in range(self.e):
             if(i<len(self.elements)):
                 for j in range(5):
-                    self.eitems[i].append(widgets.FloatText(value=self.elements[i, j], layout = widgets.Layout(width='50px')))
-                elem[i] = widgets.GridBox(self.eitems[i], layout=widgets.Layout(grid_template_columns="repeat(5, 50px[col-start])"), width = '30%')
+                    self.eitems[i].append(widgets.FloatText(value=self.elements[i, j], layout = widgets.Layout(width='50px', height = '22px')))
+                elem[i] = widgets.HBox(self.eitems[i], layout = widgets.Layout(height = '30px'))
             if(i>=len(self.elements)):
                 for j in range(5):
                     if(j<3):
-                        self.eitems[i].append(widgets.FloatText(value=self.elements[i-1, j]+1, layout = widgets.Layout(width='50px')))
+                        self.eitems[i].append(widgets.FloatText(value=self.elements[i-1, j]+1, layout = widgets.Layout(width='50px', height = '22px')))
                     if(j>=3):
-                        self.eitems[i].append(widgets.FloatText(value=self.elements[i-1, j], layout = widgets.Layout(width='50px')))
-                elem[i] = widgets.GridBox(self.eitems[i], layout=widgets.Layout(grid_template_columns="repeat(5, 50px[col-start])"), width = '30%')                    
+                        self.eitems[i].append(widgets.FloatText(value=self.elements[i-1, j], layout = widgets.Layout(width='50px', height = '22px')))
+                elem[i] = widgets.GridBox(self.eitems[i], layout=widgets.Layout(height = '30px'))                  
         elemr = widgets.VBox([elem[j] for j in range(e)])
         brow = widgets.HBox([self.ADDELEM, self.DELELEM], layout = widgets.Layout(width ='30%'))
         self.relem = widgets.VBox([elTitle, elabel, elemr, brow], layout= widgets.Layout(border = 'solid 1px black'))
@@ -105,9 +105,9 @@ class Preprocess:
                 flagv = True
             else:
                 flagv = False
-            self.flags.append(widgets.Checkbox(description = Flagtext[i], value = flagv, indent = False))
+            self.flags.append(widgets.Checkbox(description = Flagtext[i], value = flagv, indent = False, layout=widgets.Layout(width = '150px')))
         flag0 = widgets.VBox([self.flags[j] for j in range(10)])
-        self.Submit = widgets.Button(description="Plot", layout= widgets.Layout(border = 'solid 1px black'))
+        self.Submit = widgets.Button(description="Plot", layout= widgets.Layout(border = 'solid 1px black', width = '150px'))
         self.rflag = widgets.VBox([FlagTitle, flag0, self.Submit])
         return self.rflag, self.Submit, self.flags
 
@@ -120,12 +120,9 @@ class Preprocess:
         return self.rBC, self.bc_widget, self.neigs
 
     def Assemble(self, page, rowm, rnode, relem, rflag, cs, rBC):
-        self.page.close()
-        del self.page
         self.row1 = widgets.HBox([self.cs, self.rflag])
         self.row = widgets.HBox([self.rnode, self.row1])
         self.row0 = widgets.HBox([self.rowm, self.rBC], layout = widgets.Layout(width ='100%'))
-        self.page = widgets.VBox([self.row0, self.row, self.relem])
         self.ADDMAT.on_click(self.add_material)
         self.ADDNODE.on_click(self.add_node)
         self.ADDELEM.on_click(self.add_elem)
@@ -133,6 +130,9 @@ class Preprocess:
         self.DELMAT.on_click(self.del_material)
         self.DELNODE.on_click(self.del_node)
         self.DELELEM.on_click(self.del_elem)
+        self.page.close()
+        del self.page
+        self.page = widgets.VBox([self.row0, self.row, self.relem])
         display(self.page)
 
     def add_material(self, b):
@@ -154,7 +154,7 @@ class Preprocess:
     def del_material(self, b):
         self.m = self.m-1
         self.props = [[] for i in range(self.m)]
-        for i in range(len(self.m)):
+        for i in range(self.m):
             for j in range(6):
                 self.props[i].append(self.mitems[i][j].value)
         self.props = np.array(self.props)
@@ -225,6 +225,21 @@ class Preprocess:
         self.Assemble(self.page, self.rowm, self.rnode, self.relem, self.rflag, self.cs, self.rBC)
 
     def submit(self, b):
+        self.props = [[] for i in range(self.m)]
+        for i in range(self.m):
+            for j in range(6):
+                self.props[i].append(self.mitems[i][j].value)
+        self.props = np.array(self.props)
+        self.nodes = [[] for i in range(self.n)]
+        for i in range(self.n):
+            for j in range(8):
+                self.nodes[i].append(self.nitems[i][j].value)
+        self.nodes = np.array(self.nodes)
+        self.elements = [[] for i in range(self.e)]
+        for i in range(self.e):
+            for j in range(5):
+                self.elements[i].append(self.eitems[i][j].value)
+        self.elements = np.array(self.elements)
         for i in range(len(self.flags)):
             if(self.flags[i].value == True):
                 self.flag[i] = 1
