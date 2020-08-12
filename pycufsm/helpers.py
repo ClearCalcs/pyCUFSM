@@ -9,6 +9,42 @@ import pycufsm.cfsm
 # Original MATLAB comments, especially those retaining to authorship or
 # change history, have been generally retained unaltered
 
+#Helper Function
+def gammait(phi, dbar):
+    p = phi
+    gamma = np.array([[np.cos(p), 0, 0, 0, -np.sin(p), 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, np.cos(p), 0, 0, 0, -np.sin(p), 0],
+    [0, 0, 0, 1, 0, 0, 0, 0],
+            [np.sin(p),	0,	0,	0,	np.cos(p),	0,	0,	0],
+            [0,	0,	0,	0,	0,	1,	0,	0],
+            [0,	0,	np.sin(p),	0,	0,	0, np.cos(p),	0],
+            [0,	0,	0,	0,	0,	0,	0,	1]]) 
+    d = np.dot(gamma,dbar)
+    return d
+#Helper Fucntion
+def gammait2(phi, dl):
+    p = phi
+    gamma = np.array([[np.cos(p),	0,	-np.sin(p)],
+    [0,	1,	0],
+    [np.sin(p),	0,	np.cos(p)]])
+    dlbar = np.dot(np.linalg.inv(gamma),dl)
+    return dlbar
+#Helper function
+def shapef(links,d,b):
+    inc = 1/(links)
+    xb = np.linspace(inc, 1-inc, links-1)
+    dl = np.zeros((3,len(xb)))
+    for i in range(len(xb)):
+        N1 = 1-3*xb[i]*xb[i]+2*xb[i]*xb[i]*xb[i]
+        N2 = xb[i]*b*(1-2*xb[i]+xb[i]**2)
+        N3 = 3*xb[i]**2-2*xb[i]**3
+        N4 = xb[i]*b*(xb[i]**2-xb[i])
+        N = np.array([[(1-xb[i]), 0, xb[i], 0, 0, 0, 0, 0],
+        [0,	(1-xb[i]),	0,	xb[i],	0,	0,	0,	0],
+        [0,	0,	0,	0,	N1,	N2,	N3,	N4]])
+        dl[:, i] = np.dot(N, d).reshape(3)
+    return dl
 
 def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
     #
@@ -212,3 +248,30 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None):
     return m_a_recommend, lengths, isignature, icurve, ishapes, length_crl, length_crd, \
         isignature_local, icurve_local, ishapes_local, \
             isignature_dist, icurve_dist, ishapes_dist
+def load_mat(mat):
+    nodes = np.array(mat['node'], dtype = np.dtype(np.double))
+    for i in range(len(nodes)):
+        nodes[i, 0] = int(np.double(nodes[i,0]))-1
+        nodes[i, 3] = int(np.double(nodes[i,3]))
+        nodes[i, 4] = int(np.double(nodes[i,4]))
+        nodes[i, 5] = int(np.double(nodes[i,5]))
+        nodes[i, 6] = int(np.double(nodes[i,6]))
+        #nodes[i, 7] = 0
+    elements = np.array(mat['elem'])
+    for i in range(len(elements)):
+        elements[i, 0] = int(np.double(elements[i,0]))-1
+        elements[i, 1] = int(np.double(elements[i,1]))-1
+        elements[i, 2] = int(np.double(elements[i,2]))-1
+        elements[i, 4] = 0
+    lengths = np.array(mat['lengths']).T
+    props = np.array(mat['prop'])
+    constraints = np.array(mat['constraints'])
+    if(len(constraints[0])>5):
+        for i in range(len(constraints)):
+            for j in range(len(constraints[i])):
+                if j<5 and j!=2:
+                    constraints[i, j] = int(constraints[i, j])-1
+    if(len(constraints[0])<5):
+        constraints = []
+    springs = np.array(mat['springs'])
+    return nodes, elements, lengths, props, constraints, springs
