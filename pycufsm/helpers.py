@@ -262,7 +262,6 @@ def load_mat(mat):
         elements[i, 0] = int(np.double(elements[i,0]))-1
         elements[i, 1] = int(np.double(elements[i,1]))-1
         elements[i, 2] = int(np.double(elements[i,2]))-1
-        elements[i, 4] = 0
     lengths = np.array(mat['lengths']).T
     props = np.array(mat['prop'])
     constraints = np.array(mat['constraints'])
