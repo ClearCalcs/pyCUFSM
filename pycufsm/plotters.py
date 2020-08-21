@@ -273,57 +273,37 @@ def dispshap(
     #     plt.savefig('Validation/'+address+'/global.png')
     # if(figure == 4):
     #     plt.savefig('Validation/'+address+'/global1.png')
-    plt.show()
+    # plt.show()
 def thecurve3(curvecell, clas, filedisplay, minopt, logopt, clasopt, xmin, xmax,
     ymin, ymax, modedisplay, fileindex, modeindex):
+    curve = curvecell
     marker = '.x+*sdv^<'
-    ###If clasopt == 1
-    ##...
-    ###
     fig, ax2 =plt.subplots()
-    hndlmark = []
-    hndl = []
-    hnd2 = []
-    hnd12 = []
     for i in range(len(filedisplay)):
-        curve = []
-        curve = curvecell
-        templ = np.zeros((len(curve), len(modedisplay)))
-        templf = np.zeros((len(curve), len(modedisplay)))
         mark = ['b', marker[(filedisplay[i])%10]]
         mark2 = [marker[(filedisplay[i]%10)],':']
-        curve_sign = np.zeros((len(curve),2))
-        for j in range(len(curve)):
-            curve_sign[j,0] = curve[j, modedisplay[0], 0]
-            curve_sign[j,1] = curve[j, modedisplay[0], 1]
-            if len(modedisplay)>1:
-                for mn in range(len(modedisplay)):
-                    templ[j, modedisplay[mn]] = curve[j, modedisplay[mn], 0]
-                    templf[j, modedisplay[mn]] = curve[j, modedisplay[mn], 1]
         if logopt == 1:
-            #####RECHECK
             for j in range(len(modedisplay)):
-                ax2.semilogx(curve[:, modedisplay[j], 0], curve[:, modedisplay[j], 1], color = mark[0], marker = mark[1])
+                ax2.semilogx(curve[:, modedisplay[j]-1, 0], curve[:, modedisplay[j]-1, 1], color = mark[0], marker = mark[1])
                 # ax2.semilogx(curve_sign[:,0], curve_sign[:,1], 'k')
         else:
-            #####RECHECK
             for j in range(len(modedisplay)):
-                ax2.plot(curve[:,modedisplay[j], 0], curve[:,modedisplay[j], 1], color = mark[0], marker = mark[1])
+                ax2.plot(curve[:,modedisplay[j]-1, 0], curve[:,modedisplay[j]-1, 1], color = mark[0], marker = mark[1])
                 # ax2.plot(curve_sign[:,0], curve_sign[:,1], 'k')
         
         cr = 0
         handl = []
         if minopt == 1:
-            for m in range(len(curve_sign[:, 1])-2):
-                load1 = curve_sign[m, 1]
-                load2 = curve_sign[m+1, 1]
-                load3 = curve_sign[m+2, 1]
-                if load2<load1 and load2<=load3:
-                    cr = cr+1
-                    hnd12.append(plt.plot(curve_sign[m+1, 0], curve_sign[m+1, 1], 'o'))
-                    mstring = ['{0:.2f},{0:.2f}'.format(curve_sign[m+1, 0], curve_sign[m+1, 1])]
-                    plt.text(curve_sign[m+1, 0], curve_sign[m+1, 1]-(ymax-ymin)/20, mstring)
-    #plt.xlim((xmin, xmax))
-    #plt.ylim((ymin, ymax))    
+            for j in range(len(modedisplay)):
+                for m in range(len(curve[:, 1, 1])-2):
+                    load1 = curve[m, j, 1]
+                    load2 = curve[m+1, j, 1]
+                    load3 = curve[m+2, j, 1]
+                    if load2<load1 and load2<=load3:
+                        cr = cr+1
+                        mstring = ["{0:.2f}, {0:.2f}".format(curve[m+1, j, 0], curve[m+1, j, 1])]
+                        ax2.text(curve[m+1, j, 0], curve[m+1, j, 1]-(ymax-ymin)/20, "{}, {}".format(curve[m+1, j, 0], curve[m+1, j, 1]))
+    plt.xlim((xmin, xmax))
+    plt.ylim((ymin, ymax))    
     plt.show()
         #set the callback of curve
