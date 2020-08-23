@@ -160,7 +160,8 @@ def strip(
             thick = elem[3]
             b_strip = el_props[j, 1]
             mat_num = int(elem[4])
-            mat = props[mat_num]
+            row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
+            mat = props[row]
             stiff_x = mat[1]
             stiff_y = mat[2]
             nu_x = mat[3]
@@ -221,7 +222,7 @@ def strip(
                 k_w = spring[5]
                 k_q = spring[6]
                 discrete = spring[8]
-                y_s = spring[9]
+                y_s = spring[9]*length
                 ks_l = pycufsm.analysis.spring_klocal(
                     k_u=k_u,
                     k_v=k_v,
@@ -350,23 +351,23 @@ def strip(
             eig_sparse = False
             # eig
 
-        # if eig_sparse:
-        #     k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
-        #     if k_eigs == 1 or k_eigs == len(k_global_ff):
-        #         [length_factors, modes] = spla.eig(
-        #             a=k_global_ff,
-        #             b=kg_global_ff
-        #         )
-        #     else:
-        #         # pull out 10 eigenvalues
-        #         [length_factors, modes] = eigs(
-        #             A=k_global_ff,
-        #             k=k_eigs,
-        #             M=kg_global_ff,
-        #             which='SM'
-        #         )
-        # else:
-        [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
+        if eig_sparse:
+            k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
+            if k_eigs == 1 or k_eigs == len(k_global_ff):
+                [length_factors, modes] = spla.eig(
+                    a=k_global_ff,
+                    b=kg_global_ff
+                )
+            else:
+                # pull out 10 eigenvalues
+                [length_factors, modes] = eigs(
+                    A=k_global_ff,
+                    k=k_eigs,
+                    M=kg_global_ff,
+                    which='SM'
+                )
+        else:
+            [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
         # CLEAN UP THE EIGEN SOLUTION
         # eigenvalues are along the diagonal of matrix length_factors
         #length_factors = np.diag(length_factors)
@@ -405,7 +406,7 @@ def strip(
         # shapes = mode shapes
         # shapes{i} = mode, each column corresponds to a mode.
         if len(length_factors) > 0:
-            signature[i] = length_factors[0]
+            signature[i] = length_factors[1]
         curve.append(length_factors)
         # shapes(:,i,1:min([n_modes,num_pos_modes]))=modes
         shapes.append(modes_full)

@@ -295,7 +295,8 @@ def base_update(
                 thick = elem[3]
                 b_strip = el_props[i, 1]
                 mat_num = int(elem[4])
-                mat = props[mat_num]
+                row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
+                mat = props[row]
                 stiff_x = mat[1]
                 stiff_y = mat[2]
                 nu_x = mat[3]
@@ -619,51 +620,51 @@ def constr_user(nodes, constraints, m_a):
             for k in range(3, 7):
                 if nodes[j, k] == 0:
                     if k == 3:
-                        dof_e = j*2 + 1
+                        dof_e = j*2 + 1 - 1
                     elif k == 5:
-                        dof_e = (j + 1)*2
+                        dof_e = (j + 1)*2 - 1
                     elif k == 4:
-                        dof_e = n_nodes*2 + j*2 + 1
+                        dof_e = n_nodes*2 + j*2 + 1 - 1
                     elif k == 6:
-                        dof_e = n_nodes*2 + (j + 1)*2
+                        dof_e = n_nodes*2 + (j + 1)*2 - 1
 
-                    dof_reg[dof_e, 1] = 0
+                    dof_reg[dof_e, 0] = 0
 
         # to consider master-slave constraints
         for j in range(0, len(constraints)):
             if len(constraints[j, :]) >= 5:
                 # nr of eliminated DOF
-                node_e = constraints[j, 1]
-                if constraints[j, 2] == 0:
-                    dof_e = node_e*2 + 1
-                elif constraints[j, 2] == 2:
-                    dof_e = (node_e + 1)*2
-                elif constraints[j, 2] == 1:
-                    dof_e = n_nodes*2 + node_e*2 + 1
-                elif constraints[j, 2] == 3:
-                    dof_e = n_nodes*2 + (node_e + 1)*2
+                node_e = constraints[j, 0]
+                if constraints[j, 1] == 0:
+                    dof_e = node_e*2 + 1 - 1
+                elif constraints[j, 1] == 2:
+                    dof_e = (node_e + 1)*2 - 1
+                elif constraints[j, 1] == 1:
+                    dof_e = n_nodes*2 + node_e*2 + 1 - 1
+                elif constraints[j, 1] == 3:
+                    dof_e = n_nodes*2 + (node_e + 1)*2 - 1
 
                 # nr of kept DOF
-                node_k = constraints[j, 4]
-                if constraints[j, 5] == 0:
-                    dof_k = node_k*2 + 1
-                elif constraints[j, 5] == 2:
-                    dof_k = (node_k + 1)*2
-                elif constraints[j, 5] == 1:
-                    dof_k = n_nodes*2 + node_k*2 + 1
-                elif constraints[j, 5] == 3:
-                    dof_k = n_nodes*2 + (node_k + 1)*2
+                node_k = constraints[j, 3]
+                if constraints[j, 4] == 0:
+                    dof_k = node_k*2 + 1 - 1
+                elif constraints[j, 4] == 2:
+                    dof_k = (node_k + 1)*2 - 1
+                elif constraints[j, 4] == 1:
+                    dof_k = n_nodes*2 + node_k*2 + 1 - 1
+                elif constraints[j, 4] == 3:
+                    dof_k = n_nodes*2 + (node_k + 1)*2 - 1
 
                 # to modify r_user_matrix
                 r_user_m_matrix[:, dof_k] = r_user_m_matrix[:, dof_k] \
-                    + constraints[j, 3]*r_user_m_matrix[:, dof_e]
-                dof_reg[dof_e, 1] = 0
+                    + constraints[j, 2]*r_user_m_matrix[:, dof_e]
+                dof_reg[dof_e, 0] = 0
 
         # to eliminate columns from r_user_matrix
         k = -1
         r_u_matrix = np.zeros_like(r_user_m_matrix)
         for j in range(0, n_dof_m):
-            if dof_reg[j, 1] == 1:
+            if dof_reg[j, 0] == 1:
                 k = k + 1
                 r_u_matrix[:, k] = r_user_m_matrix[:, j]
 
@@ -1817,7 +1818,8 @@ def create_k_globals(m_i, nodes, elements, el_props, props, length, b_c):
         thick = elem[3]
         b_strip = el_props[i, 1]
         mat_num = int(elem[4])
-        mat = props[mat_num]
+        row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
+        mat = props[row]
         stiff_x = mat[1]
         stiff_y = mat[2]
         nu_x = mat[3]
@@ -2144,7 +2146,8 @@ def kglobal_transv(nodes, elements, props, m_i, length, b_c, el_props):
         thick = elem[3]
         b_strip = el_props[i, 1]
         mat_num = int(elem[4])
-        mat = props[mat_num]
+        row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
+        mat = props[row]
         stiff_x = mat[1]
         stiff_y = mat[2]
         nu_x = mat[3]
