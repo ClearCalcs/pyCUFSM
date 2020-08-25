@@ -1,6 +1,6 @@
 import ipywidgets as widgets
 import numpy as np
-import crossect
+import pycufsm.plotters as crossect
 def prevals():
     springs = []
     constraints = []
