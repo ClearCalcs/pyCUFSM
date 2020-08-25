@@ -250,28 +250,46 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None):
 
 
 def load_mat(mat):
-    nodes = np.array(mat['node'], dtype=np.dtype(np.double))
-    for i in range(len(nodes)):
-        nodes[i, 0] = int(np.double(nodes[i, 0])) - 1
-        nodes[i, 3] = int(np.double(nodes[i, 3]))
-        nodes[i, 4] = int(np.double(nodes[i, 4]))
-        nodes[i, 5] = int(np.double(nodes[i, 5]))
-        nodes[i, 6] = int(np.double(nodes[i, 6]))
-        #nodes[i, 7] = 0
-    elements = np.array(mat['elem'])
-    for i in range(len(elements)):
-        elements[i, 0] = int(np.double(elements[i, 0])) - 1
-        elements[i, 1] = int(np.double(elements[i, 1])) - 1
-        elements[i, 2] = int(np.double(elements[i, 2])) - 1
-    lengths = np.array(mat['lengths']).T
-    props = np.array(mat['prop'])
-    constraints = np.array(mat['constraints'])
-    if (len(constraints[0]) > 5):
-        for i in range(len(constraints)):
-            for j in range(len(constraints[i])):
-                if j < 5 and j != 2:
-                    constraints[i, j] = int(constraints[i, j]) - 1
-    if (len(constraints[0]) < 5):
-        constraints = []
-    springs = np.array(mat['springs'])
-    return nodes, elements, lengths, props, constraints, springs
+    cufsm_input = {}
+    if(mat.has_key('node')):
+        nodes = np.array(mat['node'], dtype=np.dtype(np.double))
+        for i in range(len(nodes)):
+            nodes[i, 0] = int(np.double(nodes[i, 0])) - 1
+            nodes[i, 3] = int(np.double(nodes[i, 3]))
+            nodes[i, 4] = int(np.double(nodes[i, 4]))
+            nodes[i, 5] = int(np.double(nodes[i, 5]))
+            nodes[i, 6] = int(np.double(nodes[i, 6]))
+            #nodes[i, 7] = 0
+            cufsm_input['nodes'] = np.array(nodes)
+    if(mat.has_key('elem')):
+        elements = np.array(mat['elem'])
+        for i in range(len(elements)):
+            elements[i, 0] = int(np.double(elements[i, 0])) - 1
+            elements[i, 1] = int(np.double(elements[i, 1])) - 1
+            elements[i, 2] = int(np.double(elements[i, 2])) - 1
+            cufsm_input['elements'] = np.array(elements)
+    if(mat.has_key('lengths')):
+        cufsm_input['lengths'] = np.array(mat['lengths']).T
+    if(mat.has_key('prop')):
+        cufsm_input['props'] = np.array(mat['prop'])
+    if(mat.has_key('constraints')):
+        constraints = np.array(mat['constraints'])
+        if (len(constraints[0]) > 5):
+            for i in range(len(constraints)):
+                for j in range(len(constraints[i])):
+                    if j < 5 and j != 2:
+                        constraints[i, j] = int(constraints[i, j]) - 1
+        if (len(constraints[0]) < 5):
+            constraints = []
+        cufsm_input['constraints'] = constraints
+    if(mat.has_key('springs')):
+        cufsm_input['springs'] = np.array(mat['springs'])
+    if(mat.has_key('curve')):
+        cufsm_input['curve'] = np.array(mat['curve'])
+    if(mat.has_key('GBTcon')):
+        cufsm_input['GBTcon'] = mat['GBTcon']
+    if(mat.has_key('shapes')):
+        cufsm_input['shapes'] = np.array(mat['shapes'])
+    if(mat.has_key('clas')):
+        cufsm_input['clas'] = mat['clas']
+    return cufsm_input
