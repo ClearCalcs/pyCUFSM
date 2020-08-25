@@ -775,7 +775,7 @@ def y_dofs(
         w_no = w_no + 1 / (2*sect_props['A']) * (w_o[s_n, 1] + w_o[f_n, 1]) \
             * elements[i, 3] * el_props[i, 1]
     w_n = w_no - w_o[:, 1]
-
+    print(w_n)
     # coord. transform. to the principal axes
     phi = sect_props['phi']
     rot = np.array([
@@ -806,6 +806,7 @@ def y_dofs(
     ind = np.ones(4)
     for i in range(0, 4):
         if np.nonzero(d_y[:, i]) == []:
+            print('in')
             ind[i] = 0
             n_global_modes = n_global_modes - 1
 
