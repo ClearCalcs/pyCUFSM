@@ -406,7 +406,7 @@ def strip(
         # shapes = mode shapes
         # shapes{i} = mode, each column corresponds to a mode.
         if len(length_factors) > 0:
-            signature[i] = length_factors[1]
+            signature[i] = length_factors[0]
         curve.append(length_factors)
         # shapes(:,i,1:min([n_modes,num_pos_modes]))=modes
         shapes.append(modes_full)
