@@ -351,23 +351,23 @@ def strip(
             eig_sparse = False
             # eig
 
-        if eig_sparse:
-            k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
-            if k_eigs == 1 or k_eigs == len(k_global_ff):
-                [length_factors, modes] = spla.eig(
-                    a=k_global_ff,
-                    b=kg_global_ff
-                )
-            else:
-                # pull out 10 eigenvalues
-                [length_factors, modes] = eigs(
-                    A=k_global_ff,
-                    k=k_eigs,
-                    M=kg_global_ff,
-                    which='SM'
-                )
-        else:
-            [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
+        # if eig_sparse:
+        #     k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
+        #     if k_eigs == 1 or k_eigs == len(k_global_ff):
+        #         [length_factors, modes] = spla.eig(
+        #             a=k_global_ff,
+        #             b=kg_global_ff
+        #         )
+        #     else:
+        #         # pull out 10 eigenvalues
+        #         [length_factors, modes] = eigs(
+        #             A=k_global_ff,
+        #             k=k_eigs,
+        #             M=kg_global_ff,
+        #             which='SM'
+        #         )
+        # else:
+        [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
         # CLEAN UP THE EIGEN SOLUTION
         # eigenvalues are along the diagonal of matrix length_factors
         #length_factors = np.diag(length_factors)
