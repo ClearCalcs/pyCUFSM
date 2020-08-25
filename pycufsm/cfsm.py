@@ -805,7 +805,7 @@ def y_dofs(
     n_global_modes = 4
     ind = np.ones(4)
     for i in range(0, 4):
-        if np.nonzero(d_y[:, i]) == []:
+        if np.argwhere(d_y[:, i]) == []:
             ind[i] = 0
             n_global_modes = n_global_modes - 1
 
