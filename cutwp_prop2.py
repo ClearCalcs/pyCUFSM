@@ -50,9 +50,9 @@ def cutwp_prop2(coord, ends):
     xc = np.sum(L*t*xm)/A
     yc = np.sum(L*t*ym)/A
 
-    if np.abs(xc/np.sqrt(A)<1e-12):
+    if np.abs(xc/np.sqrt(A))<1e-12:
         xc = 0
-    if np.abs(yc/np.sqrt(A)<1e-12):
+    if np.abs(yc/np.sqrt(A))<1e-12:
         yc = 0
 
     #Compute moment of inertia
@@ -172,4 +172,22 @@ def cutwp_prop2(coord, ends):
         if np.abs(B2/np.sqrt(A)<1e-12):
             B2 = 0  
     ends[:,0:2] = (ends[:, 0:2]) - 1
-    return A, xc, yc, Ix, Iy, Ixy, theta, I1, I2, Ja, xs, ys, Cw, B1, B2, wn
+    sect_props = {
+        'A' : A,
+        'cx' : xc,
+        'cy' : yc,
+        'Ixx' : Ix,
+        'Iyy' : Iy,
+        'Ixy' : Ixy,
+        'phi' : theta,
+        'I1' : I1,
+        'I2' : I2,
+        'J' : Ja,
+        'xs' : xs,
+        'ys' : ys,
+        'Cw' : Cw,
+        'B1' : B1,
+        'B2' : B2,
+        'wn' : wn
+    }
+    return sect_props
