@@ -761,10 +761,10 @@ def y_dofs(
             i = i + 1
         s_n = int(elements[i, 1])
         f_n = int(elements[i, 2])
-        p_o = ((nodes[s_n, 1] - sect_props['x0']['value']) \
-            * (nodes[f_n, 2] - sect_props['y0']['value']) \
-            - (nodes[f_n, 1] - sect_props['x0']['value']) \
-                * (nodes[s_n, 2] - sect_props['y0']['value'])) \
+        p_o = ((nodes[s_n, 1] - sect_props['x0']) \
+            * (nodes[f_n, 2] - sect_props['y0']) \
+            - (nodes[f_n, 1] - sect_props['x0']) \
+                * (nodes[s_n, 2] - sect_props['y0'])) \
                 / el_props[i, 1]
         if w_o[s_n, 0] == 0:
             w_o[s_n, 0] = s_n
@@ -772,19 +772,19 @@ def y_dofs(
         elif w_o[int(elements[i, 2]), 1] == 0:
             w_o[f_n, 0] = f_n
             w_o[f_n, 1] = w_o[s_n, 1] + p_o*el_props[i, 1]
-        w_no = w_no + 1 / (2*sect_props['A']['value']) * (w_o[s_n, 1] + w_o[f_n, 1]) \
+        w_no = w_no + 1 / (2*sect_props['A']) * (w_o[s_n, 1] + w_o[f_n, 1]) \
             * elements[i, 3] * el_props[i, 1]
     w_n = w_no - w_o[:, 1]
 
     # coord. transform. to the principal axes
-    phi = sect_props['phi']['value']
+    phi = sect_props['phi']
     rot = np.array([
         [np.cos(phi), -np.sin(phi)],
         [np.sin(phi), np.cos(phi)],
     ])
     centre_of_gravity = [
-        sect_props['cx']['value'],
-        sect_props['cy']['value'],
+        sect_props['cx'],
+        sect_props['cy'],
     ] @ rot
 
     # CALCULATION FOR GLOBAL AND DISTORTIONAL BUCKLING MODES
