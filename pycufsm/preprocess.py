@@ -9,6 +9,71 @@ from scipy import linalg as spla
 # change history, have been generally retained unaltered
 
 
+def template_path(draw_table, thick, n_r=4):
+    # Brooks H. Smith
+    # 17 June 2020
+    # Assuming a uniform thickness, draws a section according to a path definition
+    # draw_table = matrix of the form [[theta, dist, rad, n_s]], where:
+    #              theta = starting angle, dist = length of straight segment,
+    #              rad = radius of curved segment, n_s = number of mesh elements in straight
+    # thick = thickness
+    # n_r = number of mesh elements in curved segments
+
+    nodes = []
+    elements = []
+
+    # Set initial point
+    if draw_table[0][1] != 0:
+        nodes.append(np.array([len(nodes), 0, 0, 1, 1, 1, 1, 1.0]))
+
+    # Progress through drawing the section
+    for i, row in enumerate(draw_table[:-1]):
+        theta = row[0]
+        dist = row[1]
+        rad = row[2]
+        n_s = row[3]
+        next_theta = draw_table[i + 1][0]
+        phi = np.mod(next_theta - theta, 2*np.pi)
+        if phi > np.pi:
+            phi = phi - 2*np.pi
+
+        # Add elements in straight segment (if n_s > 1)
+        for j in range(1, int(n_s)):
+            x_loc = nodes[-1][1] + dist/n_s*np.cos(theta)
+            y_loc = nodes[-1][2] + dist/n_s*np.sin(theta)
+            nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
+
+        # Add elements in curved segment
+        centre = [
+            nodes[-1][1] + dist/n_s*np.cos(theta) - np.sign(phi)*rad*np.sin(theta),
+            nodes[-1][2] + dist/n_s*np.sin(theta) + np.sign(phi)*rad*np.cos(theta),
+        ]
+        if rad == 0:
+            nodes.append(np.array([len(nodes), centre[0], centre[1], 1, 1, 1, 1, 1.0]))
+        else:
+            for j in range(int(n_r)):
+                theta_j = theta - np.sign(phi)*np.pi/2 + j*1.0/max(1, n_r - 1)*phi
+                x_loc = centre[0] + rad*np.cos(theta_j)
+                y_loc = centre[1] + rad*np.sin(theta_j)
+                nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
+
+    # Draw the last straight line
+    theta = draw_table[-1][0]
+    dist = draw_table[-1][1]
+    n_s = draw_table[-1][3]
+    if dist > 0:
+        for j in range(1, int(n_s) + 1):
+            x_loc = nodes[-1][1] + dist/n_s*np.cos(theta)
+            y_loc = nodes[-1][2] + dist/n_s*np.sin(theta)
+            nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
+
+    # build the elements list
+    for i in range(0, len(nodes) - 1):
+        elements.append(np.array([i, i, i + 1, thick, 0]))
+
+    return [np.array(nodes), np.array(elements)]
+
+
 def template_calc(sect):
     n_d = 4
     n_b1 = 4
@@ -385,27 +450,36 @@ def yieldMP(nodes, fy, sect_props, unsymm):
     else:
         Fyield['M22'] = fy/np.max(abs(stress1))*Fyield['M22']
     return Fyield
-    
-def stress_gen(nodes, forces, sect_props, unsymm, fy):
+
+def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
     # BWS
     # 1998
-    if unsymm ==0:
-        sect_props['Ixy'] = 0 
-    
+    # offset_basis compensates for section properties that are based upon coordinate
+    # [0, 0] being something other than the centreline of elements. For example,
+    # if section properties are based upon the outer perimeter, then
+    # offset_basis=[-thickness/2, -thickness/2]
+    if isinstance(offset_basis, float) or isinstance(offset_basis, int):
+        offset_basis = [offset_basis, offset_basis]
+
     stress = np.zeros((1, len(nodes)))
     stress = stress + forces['P']/sect_props['A']
-    stress = stress - ((forces['Myy']*sect_props['Ixx']
-                        + forces['Mxx']*sect_props['Ixy'])
-                       * (nodes[:, 1] - sect_props['cx'])
-                       - (forces['Myy']*sect_props['Ixy']
-                          + forces['Mxx']*sect_props['Iyy'])
-                       * (nodes[:, 2] - sect_props['cy'])) \
-        / (sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
-    phi = sect_props['phi']
-    print(phi)
+    if restrained:
+        stress = stress - ((forces['Myy']*sect_props['Ixx'])*
+                           (nodes[:, 1] - sect_props['cx'] - offset_basis[0]) -
+                           (forces['Mxx']*sect_props['Iyy'])*
+                           (nodes[:, 2] - sect_props['cy'] - offset_basis[1])
+                           )/(sect_props['Iyy']*sect_props['Ixx'])
+    else:
+        stress = stress - ((forces['Myy']*sect_props['Ixx'] + forces['Mxx']*sect_props['Ixy'])*
+                           (nodes[:, 1] - sect_props['cx'] - offset_basis[0]) -
+                           (forces['Myy']*sect_props['Ixy'] + forces['Mxx']*sect_props['Iyy'])*
+                           (nodes[:, 2] - sect_props['cy'] - offset_basis[1])
+                           )/(sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
+    phi = sect_props['phi']*np.pi/180
     transform = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
     cent_coord = np.array([
-        nodes[:, 1] - sect_props['cx'], nodes[:, 2] - sect_props['cy']
+        nodes[:, 1] - sect_props['cx'] - offset_basis[0],
+        nodes[:, 2] - sect_props['cy'] - offset_basis[1]
     ])
     prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
     stress = stress - \
@@ -413,8 +487,7 @@ def stress_gen(nodes, forces, sect_props, unsymm, fy):
 
     stress = stress - \
         forces['M22'] * prin_coord[:, 0] / sect_props['I22']
-    nodes[:, 7] = stress
-
+    nodes[:, 7] = stress.flatten()
     return nodes
 
 def doubler(node, elem):

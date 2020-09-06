@@ -10,28 +10,28 @@ from pycufsm.preprocess import stress_gen
 
 def __main__():
     # Define an isotropic material with E = 203,000 MPa and nu = 0.3
-    props = [[0, 203000, 203000, 0.3, 0.3, 203000 / (2 * (1 + 0.3))]]
+    props = [[0, 203000, 203000, 0.3, 0.3, 203000/(2*(1 + 0.3))]]
 
     # Define a lightly-meshed Zed shape
     # (1 element per lip, 2 elements per flange, 3 elements on the web)
     # Nodal location units are millimetres
     nodes = np.array([[0, 100, 25, 1, 1, 1, 1, 0], [1, 100, 0, 1, 1, 1, 1, 0],
-             [2, 50, 0, 1, 1, 1, 1, 0], [3, 0, 0, 1, 1, 1, 1, 0],
-             [4, 0, 100, 1, 1, 1, 1, 0], [5, 0, 200, 1, 1, 1, 1, 0],
-             [6, 0, 300, 1, 1, 1, 1, 0], [7, -50, 300, 1, 1, 1, 1, 0],
-             [8, -100, 300, 1, 1, 1, 1, 0], [9, -100, 275, 1, 1, 1, 1, 0]])
-    elements = [[0, 0, 1, 2, 0], [1, 1, 2, 2, 0], [2, 2, 3, 2, 0],
-                [3, 3, 4, 2, 0], [4, 4, 5, 2, 0], [5, 5, 6, 2, 0],
-                [6, 6, 7, 2, 0], [7, 7, 8, 2, 0], [8, 8, 9, 2, 0]]
+                      [2, 50, 0, 1, 1, 1, 1, 0], [3, 0, 0, 1, 1, 1, 1, 0],
+                      [4, 0, 100, 1, 1, 1, 1, 0], [5, 0, 200, 1, 1, 1, 1, 0],
+                      [6, 0, 300, 1, 1, 1, 1, 0], [7, -50, 300, 1, 1, 1, 1, 0],
+                      [8, -100, 300, 1, 1, 1, 1, 0], [9, -100, 275, 1, 1, 1, 1, 0]])
+    thickness = 2
+    elements = [[0, 0, 1, thickness, 0], [1, 1, 2, thickness, 0], [2, 2, 3, thickness, 0],
+                [3, 3, 4, thickness, 0], [4, 4, 5, thickness, 0], [5, 5, 6, thickness, 0],
+                [6, 6, 7, thickness, 0], [7, 7, 8, thickness, 0], [8, 8, 9, thickness, 0]]
 
     # These lengths will generally provide sufficient accuracy for
     # local, distortional, and global buckling modes
     # Length units are millimetres
     lengths = [
-        10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160,
-        170, 180, 190, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900,
-        1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500, 3000, 3500, 4000, 4500,
-        5000, 6000, 7000, 8000, 9000, 10000
+        10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
+        250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000,
+        2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 9000, 10000
     ]
 
     # No special springs or constraints
@@ -76,28 +76,33 @@ def __main__():
     }
 
     # Generate the stress points assuming 500 MPa yield and X-axis bending
-    nodes_p = stress_gen(nodes=nodes,
-                         forces={
-                             'P': 0,
-                             'Mxx': 500 * sect_props['Ixx'] / sect_props['cy'],
-                             'Myy': 0,
-                             'M11': 0,
-                             'M22': 0
-                         },
-                         sect_props=sect_props)
+    nodes_p = stress_gen(
+        nodes=nodes,
+        forces={
+            'P': 0,
+            'Mxx': 500*sect_props['Ixx']/sect_props['cy'],
+            'Myy': 0,
+            'M11': 0,
+            'M22': 0
+        },
+        sect_props=sect_props,
+        offset_basis=[-thickness/2, -thickness/2]
+    )
 
     # Perform the Finite Strip Method analysis
-    signature, curve, shapes = strip(props=props,
-                                     nodes=nodes_p,
-                                     elements=elements,
-                                     lengths=lengths,
-                                     springs=springs,
-                                     constraints=constraints,
-                                     gbt_con=gbt_con,
-                                     b_c=b_c,
-                                     m_all=m_all,
-                                     n_eigs=n_eigs,
-                                     sect_props=sect_props)
+    signature, curve, shapes = strip(
+        props=props,
+        nodes=nodes_p,
+        elements=elements,
+        lengths=lengths,
+        springs=springs,
+        constraints=constraints,
+        gbt_con=gbt_con,
+        b_c=b_c,
+        m_all=m_all,
+        n_eigs=n_eigs,
+        sect_props=sect_props
+    )
 
     # Return the important example results
     # The signature curve is simply a matter of plotting the

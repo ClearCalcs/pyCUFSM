@@ -396,9 +396,10 @@ def strip(
         # CLEAN UP NORMALIZATION OF MODE SHAPE
         # eig and eigs solver use different normalization
         # set max entry (absolute) to +1.0 and scale the rest
+        max_vals = np.amax(abs(modes_full), axis=0)
         for j in range(0, n_modes):
-            maxindex = np.argmax(abs(modes_full[:, j]))
-            modes_full[:, j] = modes_full[:, j]/modes_full[maxindex, j]
+            modes_full[:, j] = modes_full[:, j]/max_vals[j]
+
         # GENERATE OUTPUT VALUES
         # curve and shapes are changed to cells!!
         # curve: buckling curve (load factor)
