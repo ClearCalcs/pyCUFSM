@@ -353,8 +353,8 @@ def template_out_to_in(sect):
     # dimensions throughout
     # convert the inner radii to centerline if nonzero
     if sect['type'] == 'C':
-        b_1 = sect['b']
-        b_2 = sect['b']
+        b_1 = sect['b_l']
+        b_2 = sect['b_r']
     else:
         b_1 = sect['b_l']
         b_2 = sect['b_r']
@@ -364,20 +364,20 @@ def template_out_to_in(sect):
         rad = 0
     else:
         rad = sect['r_out'] - thick/2
-    depth = sect['d'] - thick/2 - rad - rad - thick/2
+    depth = sect['h'] - thick/2 - rad - rad - thick/2
 
-    if sect['l'] == 0:
+    if sect['d'] == 0:
         b_1 = b_1 - rad - thick/2
         l_1 = 0
     else:
         b_1 = b_1 - rad - thick/2 - (rad + thick/2)*np.tan(np.pi/4)
-        l_1 = sect['l'] - (rad + thick/2)*np.tan(np.pi/4)
-    if sect['l'] == 0:
+        l_1 = sect['d'] - (rad + thick/2)*np.tan(np.pi/4)
+    if sect['d'] == 0:
         b_2 = b_2 - rad - thick/2
         l_2 = 0
     else:
         b_2 = b_2 - rad - thick/2 - (rad + thick/2)*np.tan(np.pi/4)
-        l_2 = sect['l'] - (rad + thick/2)*np.tan(np.pi/4)
+        l_2 = sect['d'] - (rad + thick/2)*np.tan(np.pi/4)
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 def yieldMP(nodes, fy, sect_props, unsymm):
