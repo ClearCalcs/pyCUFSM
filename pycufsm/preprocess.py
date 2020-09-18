@@ -371,13 +371,13 @@ def template_out_to_in(sect):
         l_1 = 0
     else:
         b_1 = b_1 - rad - thick/2 - (rad + thick/2)*np.tan(np.pi/4)
-        l_1 = sect['d'] - (rad + thick/2)*np.tan(np.pi/4)
+        l_1 = sect['d_1'] - (rad + thick/2)*np.tan(np.pi/4)
     if sect['d'] == 0:
         b_2 = b_2 - rad - thick/2
         l_2 = 0
     else:
         b_2 = b_2 - rad - thick/2 - (rad + thick/2)*np.tan(np.pi/4)
-        l_2 = sect['d'] - (rad + thick/2)*np.tan(np.pi/4)
+        l_2 = sect['d_2'] - (rad + thick/2)*np.tan(np.pi/4)
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 def yieldMP(nodes, fy, sect_props, unsymm):
