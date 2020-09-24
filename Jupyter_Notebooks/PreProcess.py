@@ -1,5 +1,8 @@
 import ipywidgets as widgets
 import numpy as np
+import sys
+import scipy.io
+sys.path.insert(1, 'C:/Users/joelb/pyCUFSM')
 import pycufsm.plotters as crossect
 def prevals():
     springs = []

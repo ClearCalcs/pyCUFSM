@@ -75,12 +75,12 @@ def template_path(draw_table, thick, n_r=4):
 
 
 def template_calc(sect):
-    n_d = 4
-    n_b1 = 4
-    n_b2 = 4
-    n_l1 = 4
-    n_l2 = 4
-    n_r = 4
+    n_d = sect['n_d']
+    n_b1 = sect['n_b1']
+    n_b2 = sect['n_b2']
+    n_l1 = sect['n_l1']
+    n_l2 = sect['n_l2']
+    n_r = sect['n_r']
 
     # BWS
     # August 23, 2000
