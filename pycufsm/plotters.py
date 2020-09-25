@@ -296,10 +296,11 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, BC, SurfPos):
     # plt.show()
 def thecurve3(
     curvecell, clas, filedisplay, minopt, logopt, clasopt, xmin, xmax, ymin, ymax, modedisplay,
-    fileindex, modeindex
+    fileindex, modeindex, picpoint
 ):
     curve = curvecell
     marker = '.x+*sdv^<'
+    color1 = 'bgky'
     fig, ax2 = plt.subplots()
     for i in range(len(filedisplay)):
         mark = ['b', marker[(filedisplay[i]) % 10]]
@@ -309,7 +310,7 @@ def thecurve3(
                 ax2.semilogx(
                     curve[:, modedisplay[j] - 1, 0],
                     curve[:, modedisplay[j] - 1, 1],
-                    color=mark[0],
+                    color=color1[(j%4)],
                     marker=mark[1]
                 )
                 # ax2.semilogx(curve_sign[:,0], curve_sign[:,1], 'k')
@@ -338,9 +339,12 @@ def thecurve3(
                         ]
                         ax2.text(
                             curve[m + 1, j, 0], curve[m + 1, j, 1] - (ymax - ymin)/20,
-                            "{}, {}".format(curve[m + 1, j, 0], curve[m + 1, j, 1])
+                            "{0:.2f}, {0:.2f}".format(curve[m + 1, j, 0], curve[m + 1, j, 1], color = 'r')
                         )
     plt.xlim((xmin, xmax))
     plt.ylim((ymin, ymax))
+    plt.xlabel('length')
+    plt.ylabel('load factor')
+    plt.title('Buckling curve')
     plt.show()
     #set the callback of curve
