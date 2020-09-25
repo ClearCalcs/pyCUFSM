@@ -341,6 +341,9 @@ def thecurve3(
                             curve[m + 1, j, 0], curve[m + 1, j, 1] - (ymax - ymin)/20,
                             "{0:.2f}, {0:.2f}".format(curve[m + 1, j, 0], curve[m + 1, j, 1], color = 'r')
                         )
+    ax2.text(picpoint[0], picpoint[1],
+     "{0:.2f}, {0:.2f}".format(curve[m + 1, j, 0], curve[m + 1, j, 1], color = 'r' )
+    )
     plt.xlim((xmin, xmax))
     plt.ylim((ymin, ymax))
     plt.xlabel('length')
