@@ -9,7 +9,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 from matplotlib.cm import jet
 import pycufsm.helpers as helpers
-
+import math
 
 ##Cross section
 def crossect(node, elem, springs, constraint, flag):
@@ -79,8 +79,8 @@ def crossect(node, elem, springs, constraint, flag):
                 plt.plot([xj, sxj], [zj, szj], 'b')
             plt.plot([sxi, sxj], [szi, szj], 'k')
             if stressflag == 1:
-                plt.text(sxi, szi, str(node[nodei, 7]))
-                plt.text(sxj, szj, str(node[nodej, 7]))
+                plt.text(sxi, szi, str(round(node[nodei, 7], 2)))
+                plt.text(sxj, szj, str(round(node[nodej, 7], 2)))
         #plot the element labels if wanted
         if elemflag == 1:
             plt.text((xi + xj)/2, (zi + zj)/2, str(elem[i, 0] + 1), fontsize=8)
@@ -103,7 +103,7 @@ def crossect(node, elem, springs, constraint, flag):
     #Plot the stress at the node if wanted
     if stressflag == 1 and stresspicflag == 0:
         for z in range(len(node)):
-            plt.text(node[z, 1], node[z, 2], str(node[z, 7]))
+            plt.text(node[z, 1], node[z, 2], str(round(node[z, 7], 2)))
     #Plot the origin point
     if originflag == 1:
         plt.plot(
@@ -151,7 +151,7 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, BC, SurfPos):
     membersize = np.max(np.max(node[:, 1:2])) - np.min(np.min(node[:, 1:2]))
     scale = scalem*membersize/dispmax/10
     #Generate and Plot
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(constrained_layout=True, figsize=(6, 6))
     nnnodes = len(node)
     patches = []
     defpatches = []
@@ -301,7 +301,7 @@ def thecurve3(
     curve = curvecell
     marker = '.x+*sdv^<'
     color1 = 'bgky'
-    fig, ax2 = plt.subplots()
+    fig, ax2 = plt.subplots(constrained_layout=True, figsize=(6, 6))
     for i in range(len(filedisplay)):
         mark = ['b', marker[(filedisplay[i]) % 10]]
         mark2 = [marker[(filedisplay[i] % 10)], ':']
@@ -341,9 +341,9 @@ def thecurve3(
                             curve[m + 1, j, 0], curve[m + 1, j, 1] - (ymax - ymin)/20,
                             "{0:.2f}, {0:.2f}".format(curve[m + 1, j, 0], curve[m + 1, j, 1], color = 'r')
                         )
-    ax2.text(picpoint[0], picpoint[1],
-     "{0:.2f}, {0:.2f}".format(curve[m + 1, j, 0], curve[m + 1, j, 1], color = 'r' )
-    )
+    # ax2.text(picpoint[0], picpoint[1],
+    #  "{0:.2f}, {0:.2f}".format(curve[m + 1, j, 0], curve[m + 1, j, 1], color = 'r' )
+    # )
     plt.xlim((xmin, xmax))
     plt.ylim((ymin, ymax))
     plt.xlabel('length')

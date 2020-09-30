@@ -380,7 +380,7 @@ def template_out_to_in(sect):
         l_2 = sect['d_2'] - (rad + thick/2)*np.tan(np.pi/4)
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
-def yieldMP(nodes, fy, sect_props, unsymm):
+def yieldMP(nodes, fy, sect_props, restrained=False):
     # %BWS
     # %August 2000
     Fyield={
@@ -393,7 +393,7 @@ def yieldMP(nodes, fy, sect_props, unsymm):
 
     Fyield['P'] = fy*sect_props['A']
     #account for the possibility of restrained bending vs. unrestrained bending
-    if unsymm == 0:
+    if restrained == False:
         sect_props['Ixy'] = 0
     #Calculate stress at every point based on Mxx=1
     Mxx = 1
@@ -433,7 +433,6 @@ def yieldMP(nodes, fy, sect_props, unsymm):
         nodes[:, 1] - sect_props['cx'], nodes[:, 2] - sect_props['cy']
     ])
     prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
-
     Fyield['M11'] = 1
     stress1 = np.zeros((1, len(nodes)))
     stress1 = stress1 - Fyield['M11'] * prin_coord[:, 1] / sect_props['I11']
