@@ -3,7 +3,7 @@ from scipy import linalg as spla
 import numpy as np
 import pycufsm.analysis
 import pycufsm.cfsm
-from scipy.sparse.linalg import eigs
+# from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
 #
@@ -81,7 +81,7 @@ def strip(
 
     # GENERATE STRIP WIDTH AND DIRECTION ANGLE
     el_props = pycufsm.analysis.elem_prop(nodes=nodes, elements=elements)
-
+    
     # ENABLE cFSM ANALYSIS IF APPLICABLE, AND FIND BASE PROPERTIES
     if sum(gbt_con['glob']) + sum(gbt_con['dist']) \
                 + sum(gbt_con['local']) + sum(gbt_con['other']) > 0:
@@ -340,16 +340,16 @@ def strip(
         # and large problems use eigs (sparse matrix).
         # the eigs solver is not as stable as the full eig solver...
         # LAPACK reciprocal condition estimator
-        rcond_num = 1 / np.linalg.cond(np.linalg.pinv(kg_global_ff) @ k_global_ff)
+        # rcond_num = 1 / np.linalg.cond(np.linalg.pinv(kg_global_ff) @ k_global_ff)
 
         # Here, assume when rcond_num is bigger than half of the eps, eigs can provide
         # reliable solution. Otherwise, eig, the robust solver should be used.
-        if rcond_num >= np.spacing(1.0) / 2:
-            eig_sparse = True
-            # eigs
-        else:
-            eig_sparse = False
-            # eig
+        # if rcond_num >= np.spacing(1.0) / 2:
+        #     eig_sparse = True
+        #     # eigs
+        # else:
+        #     eig_sparse = False
+        #     # eig
 
         # if eig_sparse:
         #     k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
@@ -396,10 +396,10 @@ def strip(
         # CLEAN UP NORMALIZATION OF MODE SHAPE
         # eig and eigs solver use different normalization
         # set max entry (absolute) to +1.0 and scale the rest
+
         max_vals = np.amax(abs(modes_full), axis=0)
         for j in range(0, n_modes):
             modes_full[:, j] = modes_full[:, j]/max_vals[j]
-
         # GENERATE OUTPUT VALUES
         # curve and shapes are changed to cells!!
         # curve: buckling curve (load factor)
