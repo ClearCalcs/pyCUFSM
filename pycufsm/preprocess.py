@@ -75,12 +75,12 @@ def template_path(draw_table, thick, n_r=4):
 
 
 def template_calc(sect):
-    n_d = 4
-    n_b1 = 4
-    n_b2 = 4
-    n_l1 = 4
-    n_l2 = 4
-    n_r = 4
+    n_d = sect['n_d']
+    n_b1 = sect['n_b1']
+    n_b2 = sect['n_b2']
+    n_l1 = sect['n_l1']
+    n_l2 = sect['n_l2']
+    n_r = sect['n_r']
 
     # BWS
     # August 23, 2000
@@ -353,8 +353,8 @@ def template_out_to_in(sect):
     # dimensions throughout
     # convert the inner radii to centerline if nonzero
     if sect['type'] == 'C':
-        b_1 = sect['b']
-        b_2 = sect['b']
+        b_1 = sect['b_l']
+        b_2 = sect['b_r']
     else:
         b_1 = sect['b_l']
         b_2 = sect['b_r']
@@ -366,20 +366,89 @@ def template_out_to_in(sect):
         rad = sect['r_out'] - thick/2
     depth = sect['d'] - thick/2 - rad - rad - thick/2
 
-    if sect['l'] == 0:
+    if sect['l_1'] == 0:
         b_1 = b_1 - rad - thick/2
         l_1 = 0
     else:
         b_1 = b_1 - rad - thick/2 - (rad + thick/2)*np.tan(np.pi/4)
-        l_1 = sect['l'] - (rad + thick/2)*np.tan(np.pi/4)
-    if sect['l'] == 0:
+        l_1 = sect['l_1'] - (rad + thick/2)*np.tan(np.pi/4)
+    if sect['l_2'] == 0:
         b_2 = b_2 - rad - thick/2
         l_2 = 0
     else:
         b_2 = b_2 - rad - thick/2 - (rad + thick/2)*np.tan(np.pi/4)
-        l_2 = sect['l'] - (rad + thick/2)*np.tan(np.pi/4)
+        l_2 = sect['l_2'] - (rad + thick/2)*np.tan(np.pi/4)
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
+def yieldMP(nodes, fy, sect_props, restrained=False):
+    # %BWS
+    # %August 2000
+    Fyield={
+    'P': 0,
+    'Mxx': 0,
+    'Myy': 0,
+    'M11': 0,
+    'M22': 0
+    }
+
+    Fyield['P'] = fy*sect_props['A']
+    #account for the possibility of restrained bending vs. unrestrained bending
+    if restrained == False:
+        sect_props['Ixy'] = 0
+    #Calculate stress at every point based on Mxx=1
+    Mxx = 1
+    Myy = 0
+    stress1 = np.zeros((1, len(nodes)))
+    stress1 = stress1 - ((Myy*sect_props['Ixx']
+                        + Mxx*sect_props['Ixy'])
+                       * (nodes[:, 1] - sect_props['cx'])
+                       - (Myy*sect_props['Ixy']
+                          + Mxx*sect_props['Iyy'])
+                       * (nodes[:, 2] - sect_props['cy'])) \
+        / (sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
+    if np.max(abs(stress1)) == 0:
+        Fyield['Mxx'] = 0
+    else:
+        Fyield['Mxx'] = fy/np.max(abs(stress1))
+    #Calculate stress at every point based on Myy=1
+    Mxx = 0
+    Myy = 1
+    stress1 = np.zeros((1, len(nodes)))
+    stress1 = stress1 - ((Myy*sect_props['Ixx']
+                        + Mxx*sect_props['Ixy'])
+                       * (nodes[:, 1] - sect_props['cx'])
+                       - (Myy*sect_props['Ixy']
+                          + Mxx*sect_props['Iyy'])
+                       * (nodes[:, 2] - sect_props['cy'])) \
+        / (sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
+    if np.max(abs(stress1)) == 0:
+        Fyield['Myy'] = 0
+    else:
+        Fyield['Myy'] = fy/np.max(abs(stress1))
+    # %M11_y, M22_y
+    # %transform coordinates of nodes into principal coordinates
+    phi = sect_props['phi']
+    transform = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
+    cent_coord = np.array([
+        nodes[:, 1] - sect_props['cx'], nodes[:, 2] - sect_props['cy']
+    ])
+    prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
+    Fyield['M11'] = 1
+    stress1 = np.zeros((1, len(nodes)))
+    stress1 = stress1 - Fyield['M11'] * prin_coord[:, 1] / sect_props['I11']
+    if np.max(abs(stress1)) == 0:
+        Fyield['M11'] = 0
+    else:
+        Fyield['M11'] = fy/np.max(abs(stress1))*Fyield['M11']
+    
+    Fyield['M22'] = 1
+    stress1 = np.zeros((1, len(nodes)))
+    stress1 = stress1 - Fyield['M22'] * prin_coord[:, 0] / sect_props['I22']
+    if np.max(abs(stress1)) == 0:
+        Fyield['M22'] = 0
+    else:
+        Fyield['M22'] = fy/np.max(abs(stress1))*Fyield['M22']
+    return Fyield
 
 def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
     # BWS
@@ -414,7 +483,38 @@ def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
     prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
     stress = stress - \
         forces['M11'] * prin_coord[:, 1] / sect_props['I11']
+
     stress = stress - \
         forces['M22'] * prin_coord[:, 0] / sect_props['I22']
     nodes[:, 7] = stress.flatten()
     return nodes
+
+def doubler(node, elem):
+    # %BWS
+    # %1998 (last modified)
+    # %A function to double the number of elements to help
+    # %out the discretization of the member somewhat.
+    # %
+    # %node=[node# x z dofx dofz dofy doftheta stress]
+    # %elem=[elem# nodei nodej thickness]
+    # %
+    old_num_elem = len(elem)
+    old_num_node = len(node)
+    elem_out = np.zeros((2*old_num_elem, 5))
+    node_out = np.zeros((old_num_elem+old_num_node, 8))
+    # %For node_out set all the old numbers to odd numbers and fill in the
+    # %new ones with even numbers.
+    for i in range(old_num_node):
+        node_out[2*i,0] = 2*node[i, 0]
+        node_out[2*i, 1:8] = node[i, 1:8]
+    
+    for i in range(old_num_elem):
+        elem_out[2*i, :] = [2*elem[i, 0], 2*elem[i, 1], 2*i+1, elem[i, 3], elem[i, 4]]
+        elem_out[2*i+1, :] = [2*i+1, 2*i+1, 2*elem[i, 2], elem[i, 3], elem[i, 4]]
+        nnumi = int(elem[i, 1])
+        nnumj = int(elem[i, 2])
+        xcoord = np.mean([node[nnumi, 1], node[nnumj, 1]])
+        zcoord = np.mean([node[nnumi, 2], node[nnumj, 2]])
+        stress = np.mean([node[nnumi, 7], node[nnumj, 7]])
+        node_out[2*i+1, :] = [2*i+1, xcoord, zcoord, node[nnumi, 3], node[nnumi, 4], node[nnumi, 5], node[nnumi, 6], stress]
+    return node_out, elem_out

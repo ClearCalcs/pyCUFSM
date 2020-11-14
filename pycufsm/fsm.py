@@ -3,7 +3,7 @@ from scipy import linalg as spla
 import numpy as np
 import pycufsm.analysis
 import pycufsm.cfsm
-
+# from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
 #
@@ -81,7 +81,7 @@ def strip(
 
     # GENERATE STRIP WIDTH AND DIRECTION ANGLE
     el_props = pycufsm.analysis.elem_prop(nodes=nodes, elements=elements)
-
+    
     # ENABLE cFSM ANALYSIS IF APPLICABLE, AND FIND BASE PROPERTIES
     if sum(gbt_con['glob']) + sum(gbt_con['dist']) \
                 + sum(gbt_con['local']) + sum(gbt_con['other']) > 0:
@@ -160,7 +160,8 @@ def strip(
             thick = elem[3]
             b_strip = el_props[j, 1]
             mat_num = int(elem[4])
-            mat = props[mat_num]
+            row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
+            mat = props[row]
             stiff_x = mat[1]
             stiff_y = mat[2]
             nu_x = mat[3]
@@ -221,7 +222,7 @@ def strip(
                 k_w = spring[5]
                 k_q = spring[6]
                 discrete = spring[8]
-                y_s = spring[9]
+                y_s = spring[9]*length
                 ks_l = pycufsm.analysis.spring_klocal(
                     k_u=k_u,
                     k_v=k_v,
@@ -333,7 +334,6 @@ def strip(
         # INTRODUCE CONSTRAINTS AND REDUCE k_global MATRICES TO FREE PARTS ONLY
         k_global_ff = r_matrix.transpose() @ k_global @ r_matrix
         kg_global_ff = r_matrix.transpose() @ kg_global @ r_matrix
-
         # SOLVE THE EIGENVALUE PROBLEM
         # Determine which solver to use
         # small problems usually use eig (dense matrix),
@@ -352,26 +352,25 @@ def strip(
         #     # eig
 
         # if eig_sparse:
-        #     # k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
-        #     # if k_eigs == 1 or k_eigs == len(k_global_ff):
-        #     [length_factors, modes] = spla.eig(
-        #         a=k_global_ff,
-        #         b=kg_global_ff
-        #     )
-        #     # else:
-        #     #     # pull out 10 eigenvalues
-        #     #     [length_factors, modes] = sparse.linalg.eigs(
-        #     #         A=k_global_ff,
-        #     #         k=k_eigs,
-        #     #         M=kg_global_ff,
-        #     #         which='SM'
-        #     #     )
+        #     k_eigs = max(min(2*n_eigs, len(k_global_ff)), 1)
+        #     if k_eigs == 1 or k_eigs == len(k_global_ff):
+        #         [length_factors, modes] = spla.eig(
+        #             a=k_global_ff,
+        #             b=kg_global_ff
+        #         )
+        #     else:
+        #         # pull out 10 eigenvalues
+        #         [length_factors, modes] = eigs(
+        #             A=k_global_ff,
+        #             k=k_eigs,
+        #             M=kg_global_ff,
+        #             which='SM'
+        #         )
         # else:
         [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
-
         # CLEAN UP THE EIGEN SOLUTION
         # eigenvalues are along the diagonal of matrix length_factors
-        # length_factors = np.diag(length_factors)
+        #length_factors = np.diag(length_factors)
         # find all the positive eigenvalues and corresponding vectors, squeeze out the rest
         index = np.logical_and(length_factors > 0, abs(np.imag(length_factors)) < 0.00001)
         length_factors = length_factors[index]
@@ -397,10 +396,10 @@ def strip(
         # CLEAN UP NORMALIZATION OF MODE SHAPE
         # eig and eigs solver use different normalization
         # set max entry (absolute) to +1.0 and scale the rest
+
         max_vals = np.amax(abs(modes_full), axis=0)
         for j in range(0, n_modes):
             modes_full[:, j] = modes_full[:, j]/max_vals[j]
-
         # GENERATE OUTPUT VALUES
         # curve and shapes are changed to cells!!
         # curve: buckling curve (load factor)
