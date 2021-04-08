@@ -6,6 +6,12 @@ This is a port of the analysis portions of CUFSM v5.01, written by Benjamin Scha
 
 The original MATLAB CUFSM program may be accessed at the following address: https://www.ce.jhu.edu/bschafer/cufsm/
 
+### Installation
+
+This package is still under check and development in its alpha state, therefore it has not yet been published to the Python's PyPI repository. Users may install clone and install the package on their systems using relevant codes the same as printed bellow:
+
+`python -m pip install git+https://github.com/ClearCalcs/pyCUFSM.git`
+
 ### Limitations
 
 -   **No GUI** - While the MATLAB version of CUFSM contains a full graphical user interface, I will be making no effort in this project to create anything more than a basic command-line interface (though other contributions will be welcome). I anticipate that users of this package will have their own user interface and that this package will function as something of a plug-in.
