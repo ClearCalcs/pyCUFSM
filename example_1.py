@@ -3,13 +3,13 @@
 # in the Imperial unit system
 
 import numpy as np
-from pyCUFSM.fsm import strip
-from pyCUFSM.preprocess import stress_gen
+from pycufsm.fsm import strip
+from pycufsm.preprocess import stress_gen
 
 
 def __main__():
     # Define an isotropic material with E = 29,500 ksi and nu = 0.3
-    props = [[0, 29500, 29500, 0.3, 0.3, 29500/(2*(1 + 0.3))]]
+    props = np.array([np.array([0, 29500, 29500, 0.3, 0.3, 29500/(2*(1 + 0.3))])])
 
     # Define a lightly-meshed Cee shape
     # (1 element per lip, 2 elements per flange, 3 elements on the web)
