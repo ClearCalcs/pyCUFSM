@@ -3,8 +3,8 @@
 # in the Metric unit system
 
 import numpy as np
-from pyCUFSM.fsm import strip
-from pyCUFSM.preprocess import stress_gen
+from pysufsm.fsm import strip
+from pycufsm.preprocess import stress_gen
 
 
 def __main__():
