@@ -21,6 +21,10 @@ def template_path(draw_table, thick, n_r=4):
 
     nodes = []
     elements = []
+    if len(draw_table[0]) == 5:
+        n_r_table = True
+    else:
+        n_r_table = False
 
     # Set initial point
     if draw_table[0][1] != 0:
@@ -48,6 +52,9 @@ def template_path(draw_table, thick, n_r=4):
             nodes[-1][1] + dist/n_s*np.cos(theta) - np.sign(phi)*rad*np.sin(theta),
             nodes[-1][2] + dist/n_s*np.sin(theta) + np.sign(phi)*rad*np.cos(theta),
         ]
+        if n_r_table:
+            n_r = row[4]
+
         if rad == 0:
             nodes.append(np.array([len(nodes), centre[0], centre[1], 1, 1, 1, 1, 1.0]))
         else:
