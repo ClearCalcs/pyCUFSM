@@ -12,37 +12,46 @@ import pycufsm.cfsm
 
 #Helper Function
 def gammait(phi, dbar):
-    p = phi
-    gamma = np.array([[np.cos(p), 0, 0, 0, -np.sin(p), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
-                      [0, 0, np.cos(p), 0, 0, 0, -np.sin(p), 0], [0, 0, 0, 1, 0, 0, 0, 0],
-                      [np.sin(p), 0, 0, 0, np.cos(p), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
-                      [0, 0, np.sin(p), 0, 0, 0, np.cos(p), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
-    d = np.dot(gamma, dbar)
-    return d
+    # BWS
+    # 1998 (last modified)
+    #
+    # transform global coordinates into local coordinates
+    gamma = np.array([[np.cos(phi), 0, 0, 0, -np.sin(phi), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
+                      [0, 0, np.cos(phi), 0, 0, 0, -np.sin(phi), 0], [0, 0, 0, 1, 0, 0, 0, 0],
+                      [np.sin(phi), 0, 0, 0, np.cos(phi), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
+                      [0, 0, np.sin(phi), 0, 0, 0, np.cos(phi), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
+    return np.dot(gamma, dbar)
 
 
 #Helper Fucntion
-def gammait2(phi, dl):
-    p = phi
-    gamma = np.array([[np.cos(p), 0, -np.sin(p)], [0, 1, 0], [np.sin(p), 0, np.cos(p)]])
-    dlbar = np.dot(np.linalg.inv(gamma), dl)
-    return dlbar
+def gammait2(phi, disp_local):
+    # BWS
+    # 1998 last modified
+    # transform local disps into global dispa
+    gamma = np.array([[np.cos(phi), 0, -np.sin(phi)], [0, 1, 0], [np.sin(phi), 0, np.cos(phi)]])
+    return np.dot(np.linalg.inv(gamma), disp_local)
 
 
 #Helper function
-def shapef(links, d, b):
+def shapef(links, disp, length):
+    # BWS
+    # 1998
+    #
+    # links: the number of additional line segments used to show the disp shape
+    # disp: the vector of nodal displacements
+    # length: the actual length of the element
     inc = 1/(links)
-    xb = np.linspace(inc, 1 - inc, links - 1)
-    dl = np.zeros((3, len(xb)))
-    for i in range(len(xb)):
-        N1 = 1 - 3*xb[i]*xb[i] + 2*xb[i]*xb[i]*xb[i]
-        N2 = xb[i]*b*(1 - 2*xb[i] + xb[i]**2)
-        N3 = 3*xb[i]**2 - 2*xb[i]**3
-        N4 = xb[i]*b*(xb[i]**2 - xb[i])
-        N = np.array([[(1 - xb[i]), 0, xb[i], 0, 0, 0, 0, 0],
-                      [0, (1 - xb[i]), 0, xb[i], 0, 0, 0, 0], [0, 0, 0, 0, N1, N2, N3, N4]])
-        dl[:, i] = np.dot(N, d).reshape(3)
-    return dl
+    x_disps = np.linspace(inc, 1 - inc, links - 1)
+    disp_local = np.zeros((3, len(x_disps)))
+    for i, x_d in enumerate(x_disps):
+        n_1 = 1 - 3*x_d*x_d + 2*x_d*x_d*x_d
+        n_2 = x_d*length*(1 - 2*x_d + x_d**2)
+        n_3 = 3*x_d**2 - 2*x_d**3
+        n_4 = x_d*length*(x_d**2 - x_d)
+        n_matrix = np.array([[(1 - x_d), 0, x_d, 0, 0, 0, 0, 0], [0, (1 - x_d), 0, x_d, 0, 0, 0, 0],
+                             [0, 0, 0, 0, n_1, n_2, n_3, n_4]])
+        disp_local[:, i] = np.dot(n_matrix, disp).reshape(3)
+    return disp_local
 
 
 def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
@@ -288,12 +297,12 @@ def load_mat(mat):
         cufsm_input['props'] = np.array(mat['prop'])
     if 'constraints' in mat:
         constraints = np.array(mat['constraints'])
-        if (len(constraints[0]) > 5):
-            for i in range(len(constraints)):
-                for j in range(len(constraints[i])):
+        if len(constraints[0]) > 5:
+            for i, constraint_row in enumerate(constraints):
+                for j, constraint in enumerate(constraint_row):
                     if j < 5 and j != 2:
-                        constraints[i, j] = int(constraints[i, j]) - 1
-        if (len(constraints[0]) < 5):
+                        constraints[i, j] = int(constraint) - 1
+        if len(constraints[0]) < 5:
             constraints = []
         cufsm_input['constraints'] = constraints
     if 'springs' in mat:
