@@ -353,11 +353,11 @@ def template_out_to_in(sect):
     # dimensions throughout
     # convert the inner radii to centerline if nonzero
     if sect['type'] == 'C':
-        b_1 = sect['b_l']
-        b_2 = sect['b_r']
+        b_1 = sect['b_1']
+        b_2 = sect['b_2']
     else:
-        b_1 = sect['b_l']
-        b_2 = sect['b_r']
+        b_1 = sect['b_1']
+        b_2 = sect['b_2']
 
     thick = sect['t']
     if sect['r_out'] == 0:
@@ -380,16 +380,11 @@ def template_out_to_in(sect):
         l_2 = sect['l_2'] - (rad + thick/2)*np.tan(np.pi/4)
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
+
 def yieldMP(nodes, fy, sect_props, restrained=False):
     # %BWS
     # %August 2000
-    Fyield={
-    'P': 0,
-    'Mxx': 0,
-    'Myy': 0,
-    'M11': 0,
-    'M22': 0
-    }
+    Fyield = {'P': 0, 'Mxx': 0, 'Myy': 0, 'M11': 0, 'M22': 0}
 
     Fyield['P'] = fy*sect_props['A']
     #account for the possibility of restrained bending vs. unrestrained bending
@@ -429,26 +424,25 @@ def yieldMP(nodes, fy, sect_props, restrained=False):
     # %transform coordinates of nodes into principal coordinates
     phi = sect_props['phi']
     transform = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
-    cent_coord = np.array([
-        nodes[:, 1] - sect_props['cx'], nodes[:, 2] - sect_props['cy']
-    ])
+    cent_coord = np.array([nodes[:, 1] - sect_props['cx'], nodes[:, 2] - sect_props['cy']])
     prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
     Fyield['M11'] = 1
     stress1 = np.zeros((1, len(nodes)))
-    stress1 = stress1 - Fyield['M11'] * prin_coord[:, 1] / sect_props['I11']
+    stress1 = stress1 - Fyield['M11']*prin_coord[:, 1]/sect_props['I11']
     if np.max(abs(stress1)) == 0:
         Fyield['M11'] = 0
     else:
         Fyield['M11'] = fy/np.max(abs(stress1))*Fyield['M11']
-    
+
     Fyield['M22'] = 1
     stress1 = np.zeros((1, len(nodes)))
-    stress1 = stress1 - Fyield['M22'] * prin_coord[:, 0] / sect_props['I22']
+    stress1 = stress1 - Fyield['M22']*prin_coord[:, 0]/sect_props['I22']
     if np.max(abs(stress1)) == 0:
         Fyield['M22'] = 0
     else:
         Fyield['M22'] = fy/np.max(abs(stress1))*Fyield['M22']
     return Fyield
+
 
 def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
     # BWS
@@ -489,6 +483,7 @@ def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
     nodes[:, 7] = stress.flatten()
     return nodes
 
+
 def doubler(node, elem):
     # %BWS
     # %1998 (last modified)
@@ -501,20 +496,23 @@ def doubler(node, elem):
     old_num_elem = len(elem)
     old_num_node = len(node)
     elem_out = np.zeros((2*old_num_elem, 5))
-    node_out = np.zeros((old_num_elem+old_num_node, 8))
+    node_out = np.zeros((old_num_elem + old_num_node, 8))
     # %For node_out set all the old numbers to odd numbers and fill in the
     # %new ones with even numbers.
     for i in range(old_num_node):
-        node_out[2*i,0] = 2*node[i, 0]
+        node_out[2*i, 0] = 2*node[i, 0]
         node_out[2*i, 1:8] = node[i, 1:8]
-    
+
     for i in range(old_num_elem):
-        elem_out[2*i, :] = [2*elem[i, 0], 2*elem[i, 1], 2*i+1, elem[i, 3], elem[i, 4]]
-        elem_out[2*i+1, :] = [2*i+1, 2*i+1, 2*elem[i, 2], elem[i, 3], elem[i, 4]]
+        elem_out[2*i, :] = [2*elem[i, 0], 2*elem[i, 1], 2*i + 1, elem[i, 3], elem[i, 4]]
+        elem_out[2*i + 1, :] = [2*i + 1, 2*i + 1, 2*elem[i, 2], elem[i, 3], elem[i, 4]]
         nnumi = int(elem[i, 1])
         nnumj = int(elem[i, 2])
         xcoord = np.mean([node[nnumi, 1], node[nnumj, 1]])
         zcoord = np.mean([node[nnumi, 2], node[nnumj, 2]])
         stress = np.mean([node[nnumi, 7], node[nnumj, 7]])
-        node_out[2*i+1, :] = [2*i+1, xcoord, zcoord, node[nnumi, 3], node[nnumi, 4], node[nnumi, 5], node[nnumi, 6], stress]
+        node_out[2*i + 1, :] = [
+            2*i + 1, xcoord, zcoord, node[nnumi, 3], node[nnumi, 4], node[nnumi, 5], node[nnumi, 6],
+            stress
+        ]
     return node_out, elem_out
