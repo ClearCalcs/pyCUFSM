@@ -11,6 +11,7 @@ from matplotlib.cm import jet
 import pycufsm.helpers as helpers
 import math
 
+
 ##Cross section
 def crossect(node, elem, springs, constraint, flag):
     nodeflag = flag[0]
@@ -310,7 +311,7 @@ def thecurve3(
                 ax2.semilogx(
                     curve[:, modedisplay[j] - 1, 0],
                     curve[:, modedisplay[j] - 1, 1],
-                    color=color1[(j%4)],
+                    color=color1[(j % 4)],
                     marker=mark[1]
                 )
                 # ax2.semilogx(curve_sign[:,0], curve_sign[:,1], 'k')
@@ -329,17 +330,25 @@ def thecurve3(
         if minopt == 1:
             for j in range(len(modedisplay)):
                 for m in range(len(curve[:, 1, 1]) - 2):
-                    load1 = curve[m, modedisplay[j]-1, 1]
-                    load2 = curve[m + 1, modedisplay[j]-1, 1]
-                    load3 = curve[m + 2, modedisplay[j]-1, 1]
+                    load1 = curve[m, modedisplay[j] - 1, 1]
+                    load2 = curve[m + 1, modedisplay[j] - 1, 1]
+                    load3 = curve[m + 2, modedisplay[j] - 1, 1]
                     if load2 < load1 and load2 <= load3:
                         cr = cr + 1
                         mstring = [
-                            "{0:.2f}, {0:.2f}".format(curve[m + 1, modedisplay[j]-1, 0], curve[m + 1, modedisplay[j]-1, 1])
+                            "{0:.2f}, {0:.2f}".format(
+                                curve[m + 1, modedisplay[j] - 1, 0], curve[m + 1,
+                                                                           modedisplay[j] - 1, 1]
+                            )
                         ]
                         ax2.text(
-                            curve[m + 1, modedisplay[j]-1, 0], curve[m + 1, modedisplay[j]-1, 1] - (ymax - ymin)/20,
-                            "{0:.2f}, {0:.2f}".format(curve[m + 1, modedisplay[j]-1, 0], curve[m + 1, modedisplay[j]-1, 1], color = 'r')
+                            curve[m + 1, modedisplay[j] - 1,
+                                  0], curve[m + 1, modedisplay[j] - 1, 1] - (ymax - ymin)/20,
+                            "{0:.2f}, {0:.2f}".format(
+                                curve[m + 1, modedisplay[j] - 1, 0],
+                                curve[m + 1, modedisplay[j] - 1, 1],
+                                color='r'
+                            )
                         )
     # ax2.text(picpoint[0], picpoint[1],
     #  "{0:.2f}, {0:.2f}".format(curve[m + 1, j, 0], curve[m + 1, j, 1], color = 'r' )
