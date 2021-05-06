@@ -81,7 +81,7 @@ def strip(
 
     # GENERATE STRIP WIDTH AND DIRECTION ANGLE
     el_props = pycufsm.analysis.elem_prop(nodes=nodes, elements=elements)
-    
+
     # ENABLE cFSM ANALYSIS IF APPLICABLE, AND FIND BASE PROPERTIES
     if sum(gbt_con['glob']) + sum(gbt_con['dist']) \
                 + sum(gbt_con['local']) + sum(gbt_con['other']) > 0:
