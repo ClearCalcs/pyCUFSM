@@ -23,7 +23,7 @@ def gammait(phi, dbar):
     return np.dot(gamma, dbar)
 
 
-#Helper Fucntion
+#Helper Function
 def gammait2(phi, disp_local):
     # BWS
     # 1998 last modified
@@ -199,6 +199,10 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
         load3 = curve_signature_local[i + 2, 1]
         if load2 < load1 and load2 <= load3:
             local_minima_local.append(curve_signature_local[i + 1, 0])
+    # If there were no local minima, then take the absolute minimum
+    if len(local_minima_local) == 0:
+        ind = np.argmin([val[1] for val in curve_signature_local])
+        local_minima_local.append(curve_signature_local[ind, 0])
 
     #cFSM dist half-wavelength
     local_minima_dist = []
@@ -208,6 +212,10 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
         load3 = curve_signature_dist[i + 2, 1]
         if load2 < load1 and load2 <= load3:
             local_minima_dist.append(curve_signature_dist[i + 1, 0])
+    # If there were no local minima, then take the absolute minimum
+    if len(local_minima_dist) == 0:
+        ind = np.argmin([val[1] for val in curve_signature_dist])
+        local_minima_dist.append(curve_signature_dist[ind, 0])
 
     if len(local_minima) == 2:
         length_crl = local_minima[0]
