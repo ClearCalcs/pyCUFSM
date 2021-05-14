@@ -9,7 +9,7 @@ from scipy import linalg as spla
 # change history, have been generally retained unaltered
 
 
-def template_path(draw_table, thick, n_r=4):
+def template_path(draw_table, thick, n_r=4, shift=None):
     # Brooks H. Smith
     # 17 June 2020
     # Assuming a uniform thickness, draws a section according to a path definition
@@ -18,6 +18,8 @@ def template_path(draw_table, thick, n_r=4):
     #              rad = radius of curved segment, n_s = number of mesh elements in straight
     # thick = thickness
     # n_r = number of mesh elements in curved segments
+    if shift is None:
+        shift = [0, 0]
 
     nodes = []
     elements = []
@@ -28,7 +30,7 @@ def template_path(draw_table, thick, n_r=4):
 
     # Set initial point
     if draw_table[0][1] != 0:
-        nodes.append(np.array([len(nodes), 0, 0, 1, 1, 1, 1, 1.0]))
+        nodes.append(np.array([len(nodes), shift[0], shift[1], 1, 1, 1, 1, 1.0]))
 
     # Progress through drawing the section
     for i, row in enumerate(draw_table[:-1]):
