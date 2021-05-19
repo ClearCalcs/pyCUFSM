@@ -62,6 +62,7 @@ def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
     #
     min_el_length = 1000000  #Minimum element length
     max_el_length = 0  #Maximum element length
+    min_el_thick = elements[0][3]  #Minimum element thickness
     for elem in elements:
         hh1 = abs(
             np.sqrt((nodes[int(elem[1]), 1] - nodes[int(elem[2]), 1])**2
@@ -69,8 +70,11 @@ def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
         )
         min_el_length = min(hh1, min_el_length)
         max_el_length = max(hh1, max_el_length)
+        min_el_thick = min(elem[3], min_el_thick)
 
-    lengths = np.logspace(np.log10(min_el_length), np.log10(1000*max_el_length), num=n_lengths)
+    lengths = np.logspace(
+        np.log10(max(min_el_length, min_el_thick)), np.log10(1000*max_el_length), num=n_lengths
+    )
 
     if length_append is not None:
         lengths = np.sort(np.concatenate((lengths, [length_append])))
