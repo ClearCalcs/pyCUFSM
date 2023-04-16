@@ -335,9 +335,7 @@ def thecurve3(
                         c_r = c_r + 1
                         ax2.text(
                             curve[j + 1, mode - 1, 0], curve[j + 1, mode - 1, 1] - (ymax - ymin)/20,
-                            "{0:.2f}, {1:.2f}".format(
-                                curve[j + 1, mode - 1, 0], curve[j + 1, mode - 1, 1], color='r'
-                            )
+                            f"{curve[j + 1, mode - 1, 0]:.2f}, {curve[j + 1, mode - 1, 1]:.2f}"
                         )
     # ax2.text(picpoint[0], picpoint[1],
     #  "{0:.2f}, {0:.2f}".format(curve[j + 1, j, 0], curve[j + 1, j, 1], color = 'r' )
