@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "cython"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pycufsm"
+authors = [
+    {name = "Brooks Smith", email = "smith120bh@gmail.com"}
+]
+description = "Python CUFSM (Constrained and Unconstrained Finite Strip Method)"
+requires-python = ">=3.6"
+keywords = ["CUFSM", "CFS", "thin-walled", "cold-formed steel", "aluminium", "structural engineering", "structural analysis"]
+license = {text = "AFL-3.0"}
+classifiers = [
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Academic Free License (AFL)",
+]
+dynamic = ["version", "readme", "dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pycufsm._version.__version__"}
+readme = {file = ["README.md"]}
+dependencies = {file = "requirements.txt"}
+
+[tool.setuptools.dynamic.optional-dependencies]
+plot = {file = "plot_requirements.txt"}
+test = {file = "test_requirements.txt"}
+dev = {file = "dev_requirements.txt"}
+
+[project.urls]
+homepage = "https://github.com/ClearCalcs/pyCUFSM"
+documentation = "https://github.com/ClearCalcs/pyCUFSM/wiki"
+
+[tool.setuptools]
+packages = [
+    "pycufsm",
+]
+
+[tool.pylint.messages_control]
+disable = [
+    "R",
+    "missing-docstring",
+    "too-many-lines",
+    "bad-continuation",
+    "invalid-name",
+    "pointless-string-statement",
+    "protected-access",
+    "logging-fstring-interpolation"
+]
