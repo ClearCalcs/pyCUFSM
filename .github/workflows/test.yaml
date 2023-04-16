@@ -24,9 +24,9 @@ jobs:
       - name: Run linting check with pylint
         run: |
           pylint --rcfile .pylintrc ./pycufsm
-      - name: Run formatting checks with black
+      - name: Run formatting checks with YAPF
         run: |
-          black --check .
+          yapf --diff --verbose --recursive .
       - name: Run type checks with mypy
         run: |
           mypy

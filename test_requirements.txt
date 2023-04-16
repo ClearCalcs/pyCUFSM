@@ -1,4 +1,4 @@
-black[jupyter]==23.1.0
+yapf==0.32.0
 mypy==1.0.1
 pylint==2.16.2
 pytest==7.2.1
