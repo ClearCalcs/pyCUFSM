@@ -5,5 +5,16 @@
         "**/.hg": true,
         "**/.DS_Store": true
     },
-    "python.formatting.provider": "yapf"
+    "python.formatting.provider": "yapf",
+    "python.linting.pylintEnabled": true,
+    "cSpell.words": [
+        "CUFSM",
+        "matplotlib",
+        "mypy",
+        "pspec",
+        "pycufsm",
+        "pylint",
+        "pytest"
+    ],
+    "editor.formatOnSave": true
 }

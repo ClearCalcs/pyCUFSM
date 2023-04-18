@@ -40,14 +40,14 @@ def shapef(links, disp, length):
     # links: the number of additional line segments used to show the disp shape
     # disp: the vector of nodal displacements
     # length: the actual length of the element
-    inc = 1/(links)
+    inc = 1 / (links)
     x_disps = np.linspace(inc, 1 - inc, links - 1)
     disp_local = np.zeros((3, len(x_disps)))
     for i, x_d in enumerate(x_disps):
         n_1 = 1 - 3*x_d*x_d + 2*x_d*x_d*x_d
-        n_2 = x_d*length*(1 - 2*x_d + x_d**2)
-        n_3 = 3*x_d**2 - 2*x_d**3
-        n_4 = x_d*length*(x_d**2 - x_d)
+        n_2 = x_d * length * (1 - 2*x_d + x_d**2)
+        n_3 = 3 * x_d**2 - 2 * x_d**3
+        n_4 = x_d * length * (x_d**2 - x_d)
         n_matrix = np.array([[(1 - x_d), 0, x_d, 0, 0, 0, 0, 0], [0, (1 - x_d), 0, x_d, 0, 0, 0, 0],
                              [0, 0, 0, 0, n_1, n_2, n_3, n_4]])
         disp_local[:, i] = np.dot(n_matrix, disp).reshape(3)
@@ -73,7 +73,7 @@ def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
         min_el_thick = min(elem[3], min_el_thick)
 
     lengths = np.logspace(
-        np.log10(max(min_el_length, min_el_thick)), np.log10(1000*max_el_length), num=n_lengths
+        np.log10(max(min_el_length, min_el_thick)), np.log10(1000 * max_el_length), num=n_lengths
     )
 
     if length_append is not None:
@@ -157,7 +157,7 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
     )
 
     n_global_modes = 4
-    n_other_modes = 2*(len(nodes) - 1)
+    n_other_modes = 2 * (len(nodes) - 1)
 
     i_gbt_con["local"] = np.ones((n_local_modes, 1))
     i_gbt_con["dist"] = np.zeros((n_dist_modes, 1))
@@ -234,28 +234,28 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
     im_pm_all = []
     for im_p_len in lengths:
 
-        if np.ceil(im_p_len/length_crl) > 4:
+        if np.ceil(im_p_len / length_crl) > 4:
             im_pm_all_temp = [
-                np.ceil(im_p_len/length_crl) - 3,
-                np.ceil(im_p_len/length_crl) - 2,
-                np.ceil(im_p_len/length_crl) - 1,
-                np.ceil(im_p_len/length_crl),
-                np.ceil(im_p_len/length_crl) + 1,
-                np.ceil(im_p_len/length_crl) + 2,
-                np.ceil(im_p_len/length_crl) + 3,
+                np.ceil(im_p_len / length_crl) - 3,
+                np.ceil(im_p_len / length_crl) - 2,
+                np.ceil(im_p_len / length_crl) - 1,
+                np.ceil(im_p_len / length_crl),
+                np.ceil(im_p_len / length_crl) + 1,
+                np.ceil(im_p_len / length_crl) + 2,
+                np.ceil(im_p_len / length_crl) + 3,
             ]
         else:
             im_pm_all_temp = [1, 2, 3, 4, 5, 6, 7]
 
-        if np.ceil(im_p_len/length_crd) > 4:
+        if np.ceil(im_p_len / length_crd) > 4:
             im_pm_all_temp.extend([
-                np.ceil(im_p_len/length_crd) - 3,
-                np.ceil(im_p_len/length_crd) - 2,
-                np.ceil(im_p_len/length_crd) - 1,
-                np.ceil(im_p_len/length_crd),
-                np.ceil(im_p_len/length_crd) + 1,
-                np.ceil(im_p_len/length_crd) + 2,
-                np.ceil(im_p_len/length_crl) + 3,
+                np.ceil(im_p_len / length_crd) - 3,
+                np.ceil(im_p_len / length_crd) - 2,
+                np.ceil(im_p_len / length_crd) - 1,
+                np.ceil(im_p_len / length_crd),
+                np.ceil(im_p_len / length_crd) + 1,
+                np.ceil(im_p_len / length_crd) + 2,
+                np.ceil(im_p_len / length_crl) + 3,
             ])
         else:
             im_pm_all_temp.extend([1, 2, 3, 4, 5, 6, 7])

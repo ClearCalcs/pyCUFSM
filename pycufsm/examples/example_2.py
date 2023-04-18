@@ -9,7 +9,7 @@ from pycufsm.preprocess import stress_gen
 
 def __main__():
     # Define an isotropic material with E = 203,000 MPa and nu = 0.3
-    props = np.array([[0, 203000, 203000, 0.3, 0.3, 203000/(2*(1 + 0.3))]])
+    props = np.array([[0, 203000, 203000, 0.3, 0.3, 203000 / (2 * (1+0.3))]])
 
     # Define a lightly-meshed Zed shape
     # (1 element per lip, 2 elements per flange, 3 elements on the web)
@@ -79,13 +79,13 @@ def __main__():
         nodes=nodes,
         forces={
             'P': 0,
-            'Mxx': 500*sect_props['Ixx']/sect_props['cy'],
+            'Mxx': 500 * sect_props['Ixx'] / sect_props['cy'],
             'Myy': 0,
             'M11': 0,
             'M22': 0
         },
         sect_props=sect_props,
-        offset_basis=[-thickness/2, -thickness/2]
+        offset_basis=[-thickness / 2, -thickness / 2]
     )
 
     # Perform the Finite Strip Method analysis

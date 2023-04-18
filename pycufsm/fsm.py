@@ -151,8 +151,8 @@ def strip(
             )
 
         # ZERO OUT THE GLOBAL MATRICES
-        k_global = np.zeros((4*n_nodes*total_m, 4*n_nodes*total_m))
-        kg_global = np.zeros((4*n_nodes*total_m, 4*n_nodes*total_m))
+        k_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
+        kg_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
 
         # ASSEMBLE THE GLOBAL STIFFNESS MATRICES
         for j, elem in enumerate(elements):
@@ -183,8 +183,8 @@ def strip(
             node_j = int(elem[2])
 
             # Generate geometric stiffness matrix (kg_local) in local coordinates
-            ty_1 = nodes[node_i][7]*thick
-            ty_2 = nodes[node_j][7]*thick
+            ty_1 = nodes[node_i][7] * thick
+            ty_2 = nodes[node_j][7] * thick
             kg_l = pycufsm.analysis.kglocal(
                 length=length, b_strip=b_strip, ty_1=ty_1, ty_2=ty_2, b_c=b_c, m_a=m_a
             )
@@ -222,7 +222,7 @@ def strip(
                 k_w = spring[5]
                 k_q = spring[6]
                 discrete = spring[8]
-                y_s = spring[9]*length
+                y_s = spring[9] * length
                 ks_l = pycufsm.analysis.spring_klocal(
                     k_u=k_u,
                     k_v=k_v,
@@ -304,14 +304,14 @@ def strip(
                 n_dist_modes=n_dist_modes,
                 n_local_modes=n_local_modes,
                 gbt_con=gbt_con,
-                n_dof_m=4*n_nodes,
+                n_dof_m=4 * n_nodes,
                 m_a=m_a
             )  # m
             r_mode = b_v
             # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         else:
             # no modal constraints are activated therefore
-            r_mode = np.eye(4*n_nodes*total_m)  # activate modal constraints
+            r_mode = np.eye(4 * n_nodes * total_m)  # activate modal constraints
 
         # CREATE FINAL CONSTRAINT MATRIX
         # Determine the number of modal constraints, nm0
@@ -399,7 +399,7 @@ def strip(
 
         max_vals = np.amax(abs(modes_full), axis=0)
         for j in range(0, n_modes):
-            modes_full[:, j] = modes_full[:, j]/max_vals[j]
+            modes_full[:, j] = modes_full[:, j] / max_vals[j]
         # GENERATE OUTPUT VALUES
         # curve and shapes are changed to cells!!
         # curve: buckling curve (load factor)

@@ -38,15 +38,16 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
         scale = 1
         maxstress = max(np.abs(node[:, 7]))
         stress = np.append(
-            node[:, 0].reshape((len(node), 1)), (node[:, 7]/maxstress).reshape((len(node), 1)),
+            node[:, 0].reshape((len(node), 1)), (node[:, 7] / maxstress).reshape((len(node), 1)),
             axis=1
         )
         maxi = np.max(np.abs(node[:, 1:3]))
-        maxoffset = scale*np.max(maxi)/10
+        maxoffset = scale * np.max(maxi) / 10
         stresscord = np.zeros((len(node), 3))
         for i in range(len(stress)):
             stresscord[i, 0:3] = [
-                node[i, 0], node[i, 1] + maxoffset*stress[i, 1], node[i, 2] - maxoffset*stress[i, 1]
+                node[i, 0], node[i, 1] + maxoffset * stress[i, 1],
+                node[i, 2] - maxoffset * stress[i, 1]
             ]
     #Plot the nodes
     _, ax1 = plt.subplots(constrained_layout=True, figsize=(6, 6))
@@ -60,11 +61,11 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
         x_j = node[nodej, 1]
         z_j = node[nodej, 2]
         theta = np.arctan2((z_j - z_i), (x_j - x_i))
-        thick = elem[i, 3]*1
-        points = np.array([[x_i - np.sin(theta)*thick/2, z_i + np.cos(theta)*thick/2],
-                           [x_j - np.sin(theta)*thick/2, z_j + np.cos(theta)*thick/2],
-                           [x_j + np.sin(theta)*thick/2, z_j - np.cos(theta)*thick/2],
-                           [x_i + np.sin(theta)*thick/2, z_i - np.cos(theta)*thick/2]])
+        thick = elem[i, 3] * 1
+        points = np.array([[x_i - np.sin(theta) * thick / 2, z_i + np.cos(theta) * thick / 2],
+                           [x_j - np.sin(theta) * thick / 2, z_j + np.cos(theta) * thick / 2],
+                           [x_j + np.sin(theta) * thick / 2, z_j - np.cos(theta) * thick / 2],
+                           [x_i + np.sin(theta) * thick / 2, z_i - np.cos(theta) * thick / 2]])
         plt.plot([x_i, x_j], [z_i, z_j], 'bo', markersize=0.5)
         polygon = Polygon(points, True, ec='b', fc=(1, 1, 0, 1), lw=0.5)
         ax1.add_artist(polygon)
@@ -90,10 +91,10 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
                 plt.text(sxj, szj, str(round(node[nodej, 7], 2)))
         #plot the element labels if wanted
         if elemflag == 1:
-            plt.text((x_i + x_j)/2, (z_i + z_j)/2, str(elem[i, 0] + 1), fontsize=8)
+            plt.text((x_i+x_j) / 2, (z_i+z_j) / 2, str(elem[i, 0] + 1), fontsize=8)
         #plot the materials labels if wanted
         if matflag == 1:
-            plt.text((x_i + x_j)/2 + 10, (z_i + z_j)/2 + 10, str(elem[i, 4]), fontsize=8)
+            plt.text((x_i+x_j) / 2 + 10, (z_i+z_j) / 2 + 10, str(elem[i, 4]), fontsize=8)
         #Plot th stress distribution in 3D if wanted
         #####___#####
     ####Patches of cross section
@@ -121,10 +122,10 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
         xmax = np.max(np.max(node[:, 1]))
         zmax = np.max(np.max([node[:, 2]]))
         ax_len = min(xmax, zmax)
-        plt.plot([0, 0.2*ax_len], [0, 0], 'k')
-        plt.text(0.22*ax_len, 0, 'x_o')
-        plt.plot([0, 0], [0, 0.2*ax_len], 'k')
-        plt.text(0, 0.22*ax_len, 'z_o')
+        plt.plot([0, 0.2 * ax_len], [0, 0], 'k')
+        plt.text(0.22 * ax_len, 0, 'x_o')
+        plt.plot([0, 0], [0, 0.2 * ax_len], 'k')
+        plt.text(0, 0.22 * ax_len, 'z_o')
     if constraintsflag == 1:
         for i in range(len(node)):
             dofx = node[i, 3]
@@ -156,7 +157,7 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
     ##dispmax=np.max(np.abs(mode))
     dispmax = np.max(np.abs(mode))
     membersize = np.max(np.max(node[:, 1:2])) - np.min(np.min(node[:, 1:2]))
-    scale = scalem*membersize/dispmax/10
+    scale = scalem * membersize / dispmax / 10
     #Generate and Plot
     _, axes = plt.subplots(constrained_layout=True, figsize=(6, 6))
     x_max = -np.inf
@@ -175,10 +176,10 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
             #PLOT undeformed geometry
             theta = np.arctan2((z_j - z_i), (x_j - x_i))
             thick = elem[i, 3]
-            points = np.array([[x_i - np.sin(theta)*thick/2, z_i + np.cos(theta)*thick/2],
-                               [x_j - np.sin(theta)*thick/2, z_j + np.cos(theta)*thick/2],
-                               [x_j + np.sin(theta)*thick/2, z_j - np.cos(theta)*thick/2],
-                               [x_i + np.sin(theta)*thick/2, z_i - np.cos(theta)*thick/2]])
+            points = np.array([[x_i - np.sin(theta) * thick / 2, z_i + np.cos(theta) * thick / 2],
+                               [x_j - np.sin(theta) * thick / 2, z_j + np.cos(theta) * thick / 2],
+                               [x_j + np.sin(theta) * thick / 2, z_j - np.cos(theta) * thick / 2],
+                               [x_i + np.sin(theta) * thick / 2, z_i - np.cos(theta) * thick / 2]])
             #Plot axis limits
             x_max = max(x_max, np.max(points[:, 0]))
             y_max = max(y_max, np.max(points[:, 1]))
@@ -211,12 +212,12 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
         dlbarm = np.zeros((3, 9))
         defpatches = []
         for j, m_a_j in enumerate(m_a):
-            dbar[0:2, 0] = mode[4*nnodes*j + 2*(nodei + 1) - 2:4*nnodes*j + 2*(nodei + 1)]
-            dbar[2:4, 0] = mode[4*nnodes*j + 2*(nodej + 1) - 2:4*nnodes*j + 2*(nodej + 1)]
-            dbar[4:6, 0] = mode[4*nnodes*j + 2*nnodes + 2*(nodei + 1) - 2:4*nnodes*j + 2*nnodes
-                                + 2*(nodei + 1)]
-            dbar[6:8, 0] = mode[4*nnodes*j + 2*nnodes + 2*(nodej + 1) - 2:4*nnodes*j + 2*nnodes
-                                + 2*(nodej + 1)]
+            dbar[0:2, 0] = mode[4*nnodes*j + 2 * (nodei+1) - 2:4*nnodes*j + 2 * (nodei+1)]
+            dbar[2:4, 0] = mode[4*nnodes*j + 2 * (nodej+1) - 2:4*nnodes*j + 2 * (nodej+1)]
+            dbar[4:6, 0] = mode[4*nnodes*j + 2*nnodes + 2 * (nodei+1) - 2:4*nnodes*j + 2*nnodes
+                                + 2 * (nodei+1)]
+            dbar[6:8, 0] = mode[4*nnodes*j + 2*nnodes + 2 * (nodej+1) - 2:4*nnodes*j + 2*nnodes
+                                + 2 * (nodej+1)]
             #Transform dbar into local coordinates
             phi = np.arctan2(-(z_j - z_i), (x_j - x_i))
             disp = helpers.gammait(phi, dbar)
@@ -226,38 +227,43 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
             disp_local = helpers.shapef(links, disp, length)
             #Transform additional displacements into global coordinates
             dlbar = helpers.gammait2(phi, disp_local)
-            cutloc = 1/surf_pos
+            cutloc = 1 / surf_pos
             if b_c.startswith('S-S'):
-                dbarm = dbar*np.sin(m_a_j*np.pi/cutloc) + dbarm
-                dlbarm = dlbar*np.sin(m_a_j*np.pi/cutloc) + dlbarm
+                dbarm = dbar * np.sin(m_a_j * np.pi / cutloc) + dbarm
+                dlbarm = dlbar * np.sin(m_a_j * np.pi / cutloc) + dlbarm
             elif b_c.startswith('C-C'):
-                dbarm = dbar*np.sin(m_a_j*np.pi/cutloc)*np.sin(np.pi/cutloc) + dbarm
-                dlbarm = dlbar*np.sin(m_a_j*np.pi/cutloc)*np.sin(np.pi/cutloc) + dlbarm
+                dbarm = dbar * np.sin(m_a_j * np.pi / cutloc) * np.sin(np.pi / cutloc) + dbarm
+                dlbarm = dlbar * np.sin(m_a_j * np.pi / cutloc) * np.sin(np.pi / cutloc) + dlbarm
             elif b_c.startswith('S-C') or b_c.startswith('C-S'):
-                dbarm = dbar*(
-                    np.sin((m_a_j + 1)*np.pi/cutloc) + (m_a_j + 1)*np.sin(np.pi/cutloc)/m_a_j
+                dbarm = dbar * (
+                    np.sin((m_a_j+1) * np.pi / cutloc) + (m_a_j+1) * np.sin(np.pi / cutloc) / m_a_j
                 ) + dbarm
-                dlbarm = dlbar*(
-                    np.sin((m_a_j + 1)*np.pi/cutloc) + (m_a_j + 1)*np.sin(np.pi/cutloc)/m_a_j
+                dlbarm = dlbar * (
+                    np.sin((m_a_j+1) * np.pi / cutloc) + (m_a_j+1) * np.sin(np.pi / cutloc) / m_a_j
                 ) + dlbarm
             elif b_c.startswith('F-C') or b_c.startswith('C-F'):
-                dbarm = dbar*(1 - np.cos((m_a_j - 1/2)*np.pi/cutloc)) + dbarm
-                dlbarm = dlbar*(1 - np.cos((m_a_j - 1/2)*np.pi/cutloc)) + dlbarm
+                dbarm = dbar * (1 - np.cos((m_a_j - 1/2) * np.pi / cutloc)) + dbarm
+                dlbarm = dlbar * (1 - np.cos((m_a_j - 1/2) * np.pi / cutloc)) + dlbarm
             elif b_c.startswith('G-C') or b_c.startswith('C-G'):
-                dbarm = dbar*(np.sin((m_a_j - 1/2)*np.pi/cutloc)*np.sin(np.pi/cutloc/2)) + dbarm
-                dlbarm = dlbar*(np.sin((m_a_j - 1/2)*np.pi/cutloc)*np.sin(np.pi/cutloc/2)) + dlbarm
+                dbarm = dbar * (
+                    np.sin((m_a_j - 1/2) * np.pi / cutloc) * np.sin(np.pi / cutloc / 2)
+                ) + dbarm
+                dlbarm = dlbar * (
+                    np.sin((m_a_j - 1/2) * np.pi / cutloc) * np.sin(np.pi / cutloc / 2)
+                ) + dlbarm
         #Create a vertor of undisplaced coordinates "undisp"
         undisp = np.zeros((2, links + 1))
         # undisp[:, 0] = np.transpose([x_i, z_i])
         # undisp[:, links] = np.transpose([x_j, z_j])
         for j in range(0, links + 1):
-            undisp[:, j] = np.transpose([x_i + (x_j - x_i)*(j)/links, z_i + (z_j - z_i)*(j)/links])
+            undisp[:,
+                   j] = np.transpose([x_i + (x_j-x_i) * (j) / links, z_i + (z_j-z_i) * (j) / links])
         #create a vector of displaced coordinated "disp"
         disp = np.zeros((2, links + 1))
-        disp[:, 0] = np.transpose([x_i + scale*dbarm[0], z_i + scale*dbarm[4]])
-        disp[:, links] = np.transpose([x_j + scale*dbarm[2], z_j + scale*dbarm[6]])
-        disp[0, 1:links] = undisp[0, 1:links] + scale*dlbarm[0, :]
-        disp[1, 1:links] = undisp[1, 1:links] + scale*dlbarm[2, :]
+        disp[:, 0] = np.transpose([x_i + scale * dbarm[0], z_i + scale * dbarm[4]])
+        disp[:, links] = np.transpose([x_j + scale * dbarm[2], z_j + scale * dbarm[6]])
+        disp[0, 1:links] = undisp[0, 1:links] + scale * dlbarm[0, :]
+        disp[1, 1:links] = undisp[1, 1:links] + scale * dlbarm[2, :]
         #The angle of each link
         thetalinks = np.arctan2(
             disp[1, 1:links + 1] - disp[1, 0:links], disp[0, 1:links + 1] - disp[0, 0:links]
@@ -267,10 +273,10 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
         theta = np.arctan2((z_j - z_i), (x_j - x_i))
         thick = elem[i, 3]
         #Deformed geomtery with appropriate thickness
-        dispout = np.array([[disp[0, :] + np.sin(thetalinks)*thick/2],
-                            [disp[1, :] - np.cos(thetalinks)*thick/2]]).T
-        dispin = np.array([[disp[0, :] - np.sin(thetalinks)*thick/2],
-                           [disp[1, :] + np.cos(thetalinks)*thick/2]]).T
+        dispout = np.array([[disp[0, :] + np.sin(thetalinks) * thick / 2],
+                            [disp[1, :] - np.cos(thetalinks) * thick / 2]]).T
+        dispin = np.array([[disp[0, :] - np.sin(thetalinks) * thick / 2],
+                           [disp[1, :] + np.cos(thetalinks) * thick / 2]]).T
         dispout = dispout.reshape((11, 2))
         dispin = dispin.reshape((11, 2))
         for j in range(links):
@@ -334,10 +340,8 @@ def thecurve3(
                     if load2 < load1 and load2 <= load3:
                         c_r = c_r + 1
                         ax2.text(
-                            curve[j + 1, mode - 1, 0], curve[j + 1, mode - 1, 1] - (ymax - ymin)/20,
-                            "{0:.2f}, {1:.2f}".format(
-                                curve[j + 1, mode - 1, 0], curve[j + 1, mode - 1, 1], color='r'
-                            )
+                            curve[j + 1, mode - 1, 0], curve[j + 1, mode - 1, 1] - (ymax-ymin) / 20,
+                            f"{curve[j + 1, mode - 1, 0]:.2f}, {curve[j + 1, mode - 1, 1]:.2f}"
                         )
     # ax2.text(picpoint[0], picpoint[1],
     #  "{0:.2f}, {0:.2f}".format(curve[j + 1, j, 0], curve[j + 1, j, 1], color = 'r' )

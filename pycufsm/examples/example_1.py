@@ -9,7 +9,7 @@ from pycufsm.preprocess import stress_gen
 
 def __main__():
     # Define an isotropic material with E = 29,500 ksi and nu = 0.3
-    props = np.array([np.array([0, 29500, 29500, 0.3, 0.3, 29500/(2*(1 + 0.3))])])
+    props = np.array([np.array([0, 29500, 29500, 0.3, 0.3, 29500 / (2 * (1+0.3))])])
 
     # Define a lightly-meshed Cee shape
     # (1 element per lip, 2 elements per flange, 3 elements on the web)
@@ -79,14 +79,14 @@ def __main__():
     nodes_p = stress_gen(
         nodes=nodes,
         forces={
-            'P': sect_props['A']*50,
+            'P': sect_props['A'] * 50,
             'Mxx': 0,
             'Myy': 0,
             'M11': 0,
             'M22': 0
         },
         sect_props=sect_props,
-        offset_basis=[-thickness/2, -thickness/2]
+        offset_basis=[-thickness / 2, -thickness / 2]
     )
 
     # Perform the Finite Strip Method analysis

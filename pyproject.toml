@@ -1,0 +1,108 @@
+[build-system]
+requires = ["setuptools>=61.0", "cython"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pycufsm"
+authors = [
+    {name = "Brooks Smith", email = "smith120bh@gmail.com"}
+]
+description = "Python CUFSM (Constrained and Unconstrained Finite Strip Method)"
+requires-python = ">=3.8"
+keywords = ["CUFSM", "CFS", "thin-walled", "cold-formed steel", "aluminium", "structural engineering", "structural analysis"]
+license = {text = "AFL-3.0"}
+classifiers = [
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Academic Free License (AFL)",
+]
+dynamic = ["version", "readme", "dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pycufsm._version.__version__"}
+readme = {file = ["README.md"]}
+dependencies = {file = "requirements.txt"}
+
+[tool.setuptools.dynamic.optional-dependencies]
+plot = {file = "plot_requirements.txt"}
+test = {file = "test_requirements.txt"}
+dev = {file = "dev_requirements.txt"}
+
+[project.urls]
+homepage = "https://github.com/ClearCalcs/pyCUFSM"
+documentation = "https://github.com/ClearCalcs/pyCUFSM/wiki"
+
+[tool.setuptools]
+packages = [
+    "pycufsm",
+]
+
+[tool.pylint.messages_control]
+disable = [
+    "R",
+    "missing-docstring",
+    "too-many-lines",
+    "bad-continuation",
+    "invalid-name",
+    "pointless-string-statement",
+    "protected-access",
+    "logging-fstring-interpolation"
+]
+
+[tool.yapf]
+align_closing_bracket_with_visual_indent = true
+allow_multiline_dictionary_keys = false
+allow_multiline_lambdas = false
+allow_split_before_default_or_named_assigns = true
+allow_split_before_dict_value = true
+arithmetic_precedence_indication = true #
+blank_lines_around_top_level_definition = 2
+blank_line_before_class_docstring = false
+blank_line_before_module_docstring = false
+blank_line_before_nested_class_or_def = true
+coalesce_brackets = true
+column_limit = 100
+continuation_align_style = "SPACE"
+continuation_indent_width = 4
+dedent_closing_brackets = true
+disable_ending_comma_heuristic = false
+each_dict_entry_on_separate_line = true
+indent_blank_lines = false
+indent_closing_brackets = false
+indent_dictionary_value = true
+indent_width = 4
+join_multiple_lines = true
+no_spaces_around_selected_binary_operators="," #
+spaces_around_default_or_named_assign = false
+spaces_around_power_operator = false
+spaces_before_comment=2
+space_between_ending_comma_and_closing_bracket = true
+split_all_comma_separated_values = false
+split_all_top_level_comma_separated_values = false
+split_arguments_when_comma_terminated = false
+split_before_arithmetic_operator = true
+split_before_bitwise_operator = true
+split_before_closing_bracket = false
+split_before_dict_set_generator = true
+split_before_dot = true
+split_before_expression_after_opening_paren = false
+split_before_first_argument = true
+split_before_logical_operator = true
+split_before_named_assigns = true
+split_complex_comprehension = true
+split_penalty_after_opening_bracket=300
+split_penalty_after_unary_operator=10000
+split_penalty_arithmetic_operator=300
+split_penalty_before_if_expr=0
+split_penalty_bitwise_operator=300
+split_penalty_comprehension=80
+split_penalty_excess_character=7000
+split_penalty_for_added_line_split=30
+split_penalty_import_names=0
+split_penalty_logical_operator=300
+use_tabs = false

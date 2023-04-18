@@ -39,20 +39,20 @@ def template_path(draw_table, thick, n_r=4, shift=None):
         rad = row[2]
         n_s = row[3]
         next_theta = draw_table[i + 1][0]
-        phi = np.mod(next_theta - theta, 2*np.pi)
+        phi = np.mod(next_theta - theta, 2 * np.pi)
         if phi > np.pi:
-            phi = phi - 2*np.pi
+            phi = phi - 2 * np.pi
 
         # Add elements in straight segment (if n_s > 1)
         for j in range(1, int(n_s)):
-            x_loc = nodes[-1][1] + dist/n_s*np.cos(theta)
-            y_loc = nodes[-1][2] + dist/n_s*np.sin(theta)
+            x_loc = nodes[-1][1] + dist / n_s * np.cos(theta)
+            y_loc = nodes[-1][2] + dist / n_s * np.sin(theta)
             nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
 
         # Add elements in curved segment
         centre = [
-            nodes[-1][1] + dist/n_s*np.cos(theta) - np.sign(phi)*rad*np.sin(theta),
-            nodes[-1][2] + dist/n_s*np.sin(theta) + np.sign(phi)*rad*np.cos(theta),
+            nodes[-1][1] + dist / n_s * np.cos(theta) - np.sign(phi) * rad * np.sin(theta),
+            nodes[-1][2] + dist / n_s * np.sin(theta) + np.sign(phi) * rad * np.cos(theta),
         ]
         if n_r_table:
             n_r = row[4]
@@ -61,9 +61,9 @@ def template_path(draw_table, thick, n_r=4, shift=None):
             nodes.append(np.array([len(nodes), centre[0], centre[1], 1, 1, 1, 1, 1.0]))
         else:
             for j in range(int(n_r)):
-                theta_j = theta - np.sign(phi)*np.pi/2 + j*1.0/max(1, n_r - 1)*phi
-                x_loc = centre[0] + rad*np.cos(theta_j)
-                y_loc = centre[1] + rad*np.sin(theta_j)
+                theta_j = theta - np.sign(phi) * np.pi / 2 + j * 1.0 / max(1, n_r - 1) * phi
+                x_loc = centre[0] + rad * np.cos(theta_j)
+                y_loc = centre[1] + rad * np.sin(theta_j)
                 nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
 
     # Draw the last straight line
@@ -72,8 +72,8 @@ def template_path(draw_table, thick, n_r=4, shift=None):
     n_s = draw_table[-1][3]
     if dist > 0:
         for j in range(1, int(n_s) + 1):
-            x_loc = nodes[-1][1] + dist/n_s*np.cos(theta)
-            y_loc = nodes[-1][2] + dist/n_s*np.sin(theta)
+            x_loc = nodes[-1][1] + dist / n_s * np.cos(theta)
+            y_loc = nodes[-1][2] + dist / n_s * np.sin(theta)
             nodes.append(np.array([len(nodes), x_loc, y_loc, 1, 1, 1, 1, 1.0]))
 
     # build the elements list
@@ -108,8 +108,8 @@ def template_calc(sect):
 
     # channel template
     # convert angles to radians
-    q_1 = 90*np.pi/180
-    q_2 = 90*np.pi/180
+    q_1 = 90 * np.pi / 180
+    q_2 = 90 * np.pi / 180
 
     # outer dimensions and inner radii came in and these
     # need to be corrected to all centerline for the use of this template
@@ -135,7 +135,7 @@ def template_calc(sect):
                 'n': n_b2,
                 'r': False
             }, {
-                'x': flip_b2*(b_2),
+                'x': flip_b2 * (b_2),
                 'y': depth,
                 'n': 0,
                 'r': False
@@ -143,8 +143,8 @@ def template_calc(sect):
         else:
             # lipped C or Z with sharp corners
             geom = [{
-                'x': b_1 + l_1*np.cos(q_1),
-                'y': l_1*np.sin(q_1),
+                'x': b_1 + l_1 * np.cos(q_1),
+                'y': l_1 * np.sin(q_1),
                 'n': n_l1,
                 'r': False
             }, {
@@ -163,13 +163,13 @@ def template_calc(sect):
                 'n': n_b2,
                 'r': False
             }, {
-                'x': flip_b2*(b_2),
+                'x': flip_b2 * (b_2),
                 'y': depth,
                 'n': n_l2,
                 'r': False
             }, {
-                'x': flip_b2*(b_2 + l_2*np.cos(q_2)),
-                'y': depth - l_2*np.sin(q_2),
+                'x': flip_b2 * (b_2 + l_2 * np.cos(q_2)),
+                'y': depth - l_2 * np.sin(q_2),
                 'n': 0,
                 'r': False
             }]
@@ -198,12 +198,12 @@ def template_calc(sect):
                 'n': n_r,
                 'r': True
             }, {
-                'x': flip_b2*rad,
+                'x': flip_b2 * rad,
                 'y': rad + depth + rad,
                 'n': n_b2,
                 'r': False
             }, {
-                'x': flip_b2*(rad + b_2),
+                'x': flip_b2 * (rad+b_2),
                 'y': rad + depth + rad,
                 'n': 0,
                 'r': False
@@ -211,13 +211,13 @@ def template_calc(sect):
         # lipped C or Z with round corners
         else:
             geom = [{
-                'x': rad + b_1 + rad*np.cos(np.pi/2 - q_1) + l_1*np.cos(q_1),
-                'y': rad - rad*np.sin(np.pi/2 - q_1) + l_1*np.sin(q_1),
+                'x': rad + b_1 + rad * np.cos(np.pi / 2 - q_1) + l_1 * np.cos(q_1),
+                'y': rad - rad * np.sin(np.pi / 2 - q_1) + l_1 * np.sin(q_1),
                 'n': n_l1,
                 'r': False
             }, {
-                'x': rad + b_1 + rad*np.cos(np.pi/2 - q_1),
-                'y': rad - rad*np.sin(np.pi/2 - q_1),
+                'x': rad + b_1 + rad * np.cos(np.pi / 2 - q_1),
+                'y': rad - rad * np.sin(np.pi / 2 - q_1),
                 'n': n_r,
                 'r': True
             }, {
@@ -241,23 +241,23 @@ def template_calc(sect):
                 'n': n_r,
                 'r': True
             }, {
-                'x': flip_b2*rad,
+                'x': flip_b2 * rad,
                 'y': rad + depth + rad,
                 'n': n_b2,
                 'r': False
             }, {
-                'x': flip_b2*(rad + b_2),
+                'x': flip_b2 * (rad+b_2),
                 'y': rad + depth + rad,
                 'n': n_r,
                 'r': True
             }, {
-                'x': flip_b2*(rad + b_2 + rad*np.cos(np.pi/2 - q_2)),
-                'y': rad + depth + rad - rad + rad*np.sin(np.pi/2 - q_2),
+                'x': flip_b2 * (rad + b_2 + rad * np.cos(np.pi / 2 - q_2)),
+                'y': rad + depth + rad - rad + rad * np.sin(np.pi / 2 - q_2),
                 'n': n_l2,
                 'r': False
             }, {
-                'x': flip_b2*(rad + b_2 + rad*np.cos(np.pi/2 - q_2) + l_2*np.cos(q_2)),
-                'y': rad + depth + rad - rad + rad*np.sin(np.pi/2 - q_2) - l_2*np.sin(q_2),
+                'x': flip_b2 * (rad + b_2 + rad * np.cos(np.pi / 2 - q_2) + l_2 * np.cos(q_2)),
+                'y': rad + depth + rad - rad + rad * np.sin(np.pi / 2 - q_2) - l_2 * np.sin(q_2),
                 'n': 0,
                 'r': False
             }]
@@ -279,16 +279,16 @@ def template_calc(sect):
                     if i == 1:
                         x_c = rad
                         y_c = rad
-                        q_start = np.pi/2
-                        d_q = np.pi/2*j/g_1['n']
+                        q_start = np.pi / 2
+                        d_q = np.pi / 2 * j / g_1['n']
                     if i == 3:
-                        x_c = flip_b2*rad
+                        x_c = flip_b2 * rad
                         y_c = rad + depth
                         q_start = np.pi if flip_b2 == 1 else 0
-                        d_q = flip_b2*np.pi/2*j/g_1['n']
-                    x_2 = x_c + rad*np.cos(q_start + d_q)
+                        d_q = flip_b2 * np.pi / 2 * j / g_1['n']
+                    x_2 = x_c + rad * np.cos(q_start + d_q)
                     # note sign on 2nd term is negative due to y sign convention (down positive)
-                    y_2 = y_c - rad*np.sin(q_start + d_q)
+                    y_2 = y_c - rad * np.sin(q_start + d_q)
                     nodes.append(np.array([len(nodes), x_2, y_2, 1, 1, 1, 1, 1.0]))
                 # ------------------------
             else:
@@ -299,26 +299,26 @@ def template_calc(sect):
                     if i == 1:
                         x_c = rad + b_1
                         y_c = rad
-                        q_start = np.pi/2 - q_1
-                        d_q = q_1*j/g_1['n']
+                        q_start = np.pi / 2 - q_1
+                        d_q = q_1 * j / g_1['n']
                     if i == 3:
                         x_c = rad
                         y_c = rad
-                        q_start = np.pi/2
-                        d_q = np.pi/2*j/g_1['n']
+                        q_start = np.pi / 2
+                        d_q = np.pi / 2 * j / g_1['n']
                     if i == 5:
-                        x_c = flip_b2*rad
+                        x_c = flip_b2 * rad
                         y_c = rad + depth
                         q_start = np.pi if flip_b2 == 1 else 0
-                        d_q = flip_b2*np.pi/2*j/g_1['n']
+                        d_q = flip_b2 * np.pi / 2 * j / g_1['n']
                     if i == 7:
-                        x_c = flip_b2*(rad + b_2)
+                        x_c = flip_b2 * (rad+b_2)
                         y_c = rad + depth + rad - rad
-                        q_start = 3*np.pi/2
-                        d_q = flip_b2*q_2*j/g_1['n']
-                    x_2 = x_c + rad*np.cos(q_start + d_q)
+                        q_start = 3 * np.pi / 2
+                        d_q = flip_b2 * q_2 * j / g_1['n']
+                    x_2 = x_c + rad * np.cos(q_start + d_q)
                     # note sign on 2nd term is negative due to y sign convention (down positive)
-                    y_2 = y_c - rad*np.sin(q_start + d_q)
+                    y_2 = y_c - rad * np.sin(q_start + d_q)
                     nodes.append(np.array([len(nodes), x_2, y_2, 1, 1, 1, 1, 1.0]))
                 # ------------------------
         else:
@@ -327,8 +327,8 @@ def template_calc(sect):
             for j in range(0, g_1['n']):
                 nodes.append(
                     np.array([
-                        len(nodes), g_1['x'] + d_x*j/g_1['n'], g_1['y'] + d_y*j/g_1['n'], 1, 1, 1,
-                        1, 1.0
+                        len(nodes), g_1['x'] + d_x * j / g_1['n'], g_1['y'] + d_y * j / g_1['n'], 1,
+                        1, 1, 1, 1.0
                     ])
                 )
             # ------------------------
@@ -379,14 +379,14 @@ def template_out_to_in(sect):
         b_1 = b_1 - rad - thick/2
         l_1 = 0
     else:
-        b_1 = b_1 - rad - thick/2 - (rad + thick/2)*np.tan(np.pi/4)
-        l_1 = sect['l_1'] - (rad + thick/2)*np.tan(np.pi/4)
+        b_1 = b_1 - rad - thick/2 - (rad + thick/2) * np.tan(np.pi / 4)
+        l_1 = sect['l_1'] - (rad + thick/2) * np.tan(np.pi / 4)
     if sect['l_2'] == 0:
         b_2 = b_2 - rad - thick/2
         l_2 = 0
     else:
-        b_2 = b_2 - rad - thick/2 - (rad + thick/2)*np.tan(np.pi/4)
-        l_2 = sect['l_2'] - (rad + thick/2)*np.tan(np.pi/4)
+        b_2 = b_2 - rad - thick/2 - (rad + thick/2) * np.tan(np.pi / 4)
+        l_2 = sect['l_2'] - (rad + thick/2) * np.tan(np.pi / 4)
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 
@@ -398,7 +398,7 @@ def yield_mp(nodes, f_y, sect_props, restrained=False):
 
     f_yield = {'P': 0, 'Mxx': 0, 'Myy': 0, 'M11': 0, 'M22': 0}
 
-    f_yield['P'] = f_y*sect_props['A']
+    f_yield['P'] = f_y * sect_props['A']
     #account for the possibility of restrained bending vs. unrestrained bending
     if restrained is False:
         sect_props['Ixy'] = 0
@@ -416,7 +416,7 @@ def yield_mp(nodes, f_y, sect_props, restrained=False):
     if np.max(abs(stress1)) == 0:
         f_yield['Mxx'] = 0
     else:
-        f_yield['Mxx'] = f_y/np.max(abs(stress1))
+        f_yield['Mxx'] = f_y / np.max(abs(stress1))
     #Calculate stress at every point based on m_yy=1
     m_xx = 0
     m_yy = 1
@@ -431,7 +431,7 @@ def yield_mp(nodes, f_y, sect_props, restrained=False):
     if np.max(abs(stress1)) == 0:
         f_yield['Myy'] = 0
     else:
-        f_yield['Myy'] = f_y/np.max(abs(stress1))
+        f_yield['Myy'] = f_y / np.max(abs(stress1))
     # %M11_y, M22_y
     # %transform coordinates of nodes into principal coordinates
     phi = sect_props['phi']
@@ -440,19 +440,19 @@ def yield_mp(nodes, f_y, sect_props, restrained=False):
     prin_coord = np.transpose(spla.inv(transform) @ cent_coord)
     f_yield['M11'] = 1
     stress1 = np.zeros((1, len(nodes)))
-    stress1 = stress1 - f_yield['M11']*prin_coord[:, 1]/sect_props['I11']
+    stress1 = stress1 - f_yield['M11'] * prin_coord[:, 1] / sect_props['I11']
     if np.max(abs(stress1)) == 0:
         f_yield['M11'] = 0
     else:
-        f_yield['M11'] = f_y/np.max(abs(stress1))*f_yield['M11']
+        f_yield['M11'] = f_y / np.max(abs(stress1)) * f_yield['M11']
 
     f_yield['M22'] = 1
     stress1 = np.zeros((1, len(nodes)))
-    stress1 = stress1 - f_yield['M22']*prin_coord[:, 0]/sect_props['I22']
+    stress1 = stress1 - f_yield['M22'] * prin_coord[:, 0] / sect_props['I22']
     if np.max(abs(stress1)) == 0:
         f_yield['M22'] = 0
     else:
-        f_yield['M22'] = f_y/np.max(abs(stress1))*f_yield['M22']
+        f_yield['M22'] = f_y / np.max(abs(stress1)) * f_yield['M22']
     return f_yield
 
 
@@ -467,20 +467,20 @@ def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
         offset_basis = [offset_basis, offset_basis]
 
     stress = np.zeros((1, len(nodes)))
-    stress = stress + forces['P']/sect_props['A']
+    stress = stress + forces['P'] / sect_props['A']
     if restrained:
-        stress = stress - ((forces['Myy']*sect_props['Ixx'])*
+        stress = stress - ((forces['Myy'] * sect_props['Ixx']) *
                            (nodes[:, 1] - sect_props['cx'] - offset_basis[0]) -
-                           (forces['Mxx']*sect_props['Iyy'])*
+                           (forces['Mxx'] * sect_props['Iyy']) *
                            (nodes[:, 2] - sect_props['cy'] - offset_basis[1])
-                           )/(sect_props['Iyy']*sect_props['Ixx'])
+                           ) / (sect_props['Iyy'] * sect_props['Ixx'])
     else:
-        stress = stress - ((forces['Myy']*sect_props['Ixx'] + forces['Mxx']*sect_props['Ixy'])*
+        stress = stress - ((forces['Myy'] * sect_props['Ixx'] + forces['Mxx'] * sect_props['Ixy']) *
                            (nodes[:, 1] - sect_props['cx'] - offset_basis[0]) -
-                           (forces['Myy']*sect_props['Ixy'] + forces['Mxx']*sect_props['Iyy'])*
+                           (forces['Myy'] * sect_props['Ixy'] + forces['Mxx'] * sect_props['Iyy']) *
                            (nodes[:, 2] - sect_props['cy'] - offset_basis[1])
-                           )/(sect_props['Iyy']*sect_props['Ixx'] - sect_props['Ixy']**2)
-    phi = sect_props['phi']*np.pi/180
+                           ) / (sect_props['Iyy'] * sect_props['Ixx'] - sect_props['Ixy']**2)
+    phi = sect_props['phi'] * np.pi / 180
     transform = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
     cent_coord = np.array([
         nodes[:, 1] - sect_props['cx'] - offset_basis[0],
@@ -507,17 +507,17 @@ def doubler(node, elem):
     # %
     old_num_elem = len(elem)
     old_num_node = len(node)
-    elem_out = np.zeros((2*old_num_elem, 5))
+    elem_out = np.zeros((2 * old_num_elem, 5))
     node_out = np.zeros((old_num_elem + old_num_node, 8))
     # %For node_out set all the old numbers to odd numbers and fill in the
     # %new ones with even numbers.
     for i in range(old_num_node):
-        node_out[2*i, 0] = 2*node[i, 0]
-        node_out[2*i, 1:8] = node[i, 1:8]
+        node_out[2 * i, 0] = 2 * node[i, 0]
+        node_out[2 * i, 1:8] = node[i, 1:8]
 
     for i in range(old_num_elem):
-        elem_out[2*i, :] = [2*elem[i, 0], 2*elem[i, 1], 2*i + 1, elem[i, 3], elem[i, 4]]
-        elem_out[2*i + 1, :] = [2*i + 1, 2*i + 1, 2*elem[i, 2], elem[i, 3], elem[i, 4]]
+        elem_out[2 * i, :] = [2 * elem[i, 0], 2 * elem[i, 1], 2*i + 1, elem[i, 3], elem[i, 4]]
+        elem_out[2*i + 1, :] = [2*i + 1, 2*i + 1, 2 * elem[i, 2], elem[i, 3], elem[i, 4]]
         nnumi = int(elem[i, 1])
         nnumj = int(elem[i, 2])
         xcoord = np.mean([node[nnumi, 1], node[nnumj, 1]])
