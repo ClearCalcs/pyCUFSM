@@ -1,5 +1,7 @@
 def pspec_context(s):
+
     def decorator(function):
+
         def _decorator():
             return function()
 
