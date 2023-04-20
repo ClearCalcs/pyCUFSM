@@ -222,7 +222,7 @@ def cutwp_prop2(coord, ends):
             )
         if (i_xx*i_yy - i_xy**2) != 0:
             x_shearcentre = (i_yy*i_wy - i_xy*i_wx) / (i_xx*i_yy - i_xy**2) + x_centroid
-            y_shearcentre = (-(i_xx*i_wx - i_xy*i_wy) / (i_xx*i_yy - i_xy**2) + y_centroid)
+            y_shearcentre = -(i_xx*i_wx - i_xy*i_wy) / (i_xx*i_yy - i_xy**2) + y_centroid
         else:
             x_shearcentre = x_centroid
             y_shearcentre = y_centroid
