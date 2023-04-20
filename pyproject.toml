@@ -32,6 +32,7 @@ dependencies = {file = "requirements.txt"}
 plot = {file = "plot_requirements.txt"}
 test = {file = "test_requirements.txt"}
 dev = {file = "dev_requirements.txt"}
+jupyter = {file = "jupyter_requirements.txt"}
 
 [project.urls]
 homepage = "https://github.com/ClearCalcs/pyCUFSM"

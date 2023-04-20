@@ -1,0 +1,2 @@
+ipywidgets>=8.0.0
+google.colab>=1.0.0
