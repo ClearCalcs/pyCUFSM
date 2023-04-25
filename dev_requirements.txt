@@ -5,5 +5,5 @@ ipywidgets==8.0.6
 yapf==0.33.0
 toml==0.10.2 # Required for YAPF 
 mypy==1.2.0
-pylint==2.17.2
+pylint==2.17.3
 
