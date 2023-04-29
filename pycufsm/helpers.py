@@ -327,14 +327,26 @@ def load_mat(mat):
         cufsm_input['curve'] = np.array(mat['curve'])
     if 'GBTcon' in mat:
         gbt_con = {
-            "glob": mat["GBTcon"]["glob"].flatten()[0].flatten() if "glob" in mat["GBTcon"].dtype.names else [0],
-            "dist": mat["GBTcon"]["dist"].flatten()[0].flatten() if "dist" in mat["GBTcon"].dtype.names else [0],
-            "local": mat["GBTcon"]["local"].flatten()[0].flatten() if "local" in mat["GBTcon"].dtype.names else [0],
-            "other": mat["GBTcon"]["other"].flatten()[0].flatten() if "other" in mat["GBTcon"].dtype.names else [0], 
-            "o_space": mat["GBTcon"]["o_space"] if "o_space" in mat["GBTcon"].dtype.names else 1,
-            "norm": mat["GBTcon"]["norm"] if "norm" in mat["GBTcon"].dtype.names else 1,
-            "couple": mat["GBTcon"]["couple"] if "couple" in mat["GBTcon"].dtype.names else 1,
-            "orth": mat["GBTcon"]["orth"] if "orth" in mat["GBTcon"].dtype.names else 1
+            "glob":
+                mat["GBTcon"]["glob"].flatten()[0].flatten()
+                if "glob" in mat["GBTcon"].dtype.names else [0],
+            "dist":
+                mat["GBTcon"]["dist"].flatten()[0].flatten()
+                if "dist" in mat["GBTcon"].dtype.names else [0],
+            "local":
+                mat["GBTcon"]["local"].flatten()[0].flatten()
+                if "local" in mat["GBTcon"].dtype.names else [0],
+            "other":
+                mat["GBTcon"]["other"].flatten()[0].flatten()
+                if "other" in mat["GBTcon"].dtype.names else [0],
+            "o_space":
+                mat["GBTcon"]["o_space"] if "o_space" in mat["GBTcon"].dtype.names else 1,
+            "norm":
+                mat["GBTcon"]["norm"] if "norm" in mat["GBTcon"].dtype.names else 1,
+            "couple":
+                mat["GBTcon"]["couple"] if "couple" in mat["GBTcon"].dtype.names else 1,
+            "orth":
+                mat["GBTcon"]["orth"] if "orth" in mat["GBTcon"].dtype.names else 1
         }
         cufsm_input['GBTcon'] = gbt_con
     if 'shapes' in mat:

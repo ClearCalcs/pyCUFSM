@@ -6,6 +6,7 @@ import pycufsm.examples.example_1 as example_1
 from .utils import pspec_context
 from .fixtures.e2e_fixtures import *
 
+
 def mat_file_test(mat_filename):
     mat = scipy.io.loadmat("tests/mat_files/" + mat_filename)
     cufsm_input = helpers.load_mat(mat)
@@ -16,10 +17,10 @@ def mat_file_test(mat_filename):
     cufsm_input["GBTcon"]["local"] = [0]
     cufsm_input["GBTcon"]["other"] = [0]
 
-    coords = cufsm_input["nodes"][:,1:3]
-    ends = cufsm_input["elements"][:,1:4]
+    coords = cufsm_input["nodes"][:, 1:3]
+    ends = cufsm_input["elements"][:, 1:4]
     sect_props_cutwp = cutwp.prop2(coords, ends)
-    m_all_ones = np.ones((len(cufsm_input["lengths"]), 1)) 
+    m_all_ones = np.ones((len(cufsm_input["lengths"]), 1))
     signature, curve, shapes = fsm.strip(
         props=cufsm_input["props"],
         nodes=cufsm_input["nodes"],
@@ -35,6 +36,7 @@ def mat_file_test(mat_filename):
     )
     lengths = list(cufsm_input["lengths"])
     return lengths, mat["curve"], sect_props_cutwp, signature, curve, shapes
+
 
 def describe_end_to_end_tests():
 
@@ -66,14 +68,7 @@ def describe_end_to_end_tests():
 
         lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("cwlip_Mx.mat")
 
-        expected = {
-            "xcrl": 5,
-            "Mcrl": 0.67,
-            "xcrd": 26.6,
-            "Mcrd": 0.85,
-            "A": 0.880,
-            "Ixx": 10.285
-        }
+        expected = {"xcrl": 5, "Mcrl": 0.67, "xcrd": 26.6, "Mcrd": 0.85, "A": 0.880, "Ixx": 10.285}
 
         def ir_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
@@ -84,7 +79,7 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:,1,0], curve[:,0], rtol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-4)
 
     def context_dsm_3_2_1_c_with_lips_P():
 
@@ -112,8 +107,7 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Pcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:,1,0], curve[:,0], rtol=1.e-4)
-
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-4)
 
     def context_dsm_3_2_2_c_with_lips_modified_Mx():
 
@@ -121,7 +115,9 @@ def describe_end_to_end_tests():
         def describe():
             pass
 
-        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("cwlip_modified_Mx.mat")
+        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test(
+            "cwlip_modified_Mx.mat"
+        )
 
         expected = {
             "xcrl": 2.7,
@@ -141,7 +137,7 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:,1,0], curve[:,0], rtol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-4)
 
     def context_dsm_3_2_2_c_with_lips_modified_P():
 
@@ -149,7 +145,9 @@ def describe_end_to_end_tests():
         def describe():
             pass
 
-        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("cwlip_modified_P.mat")
+        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test(
+            "cwlip_modified_P.mat"
+        )
 
         expected = {
             "xcrl": 11.5,
@@ -169,7 +167,7 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Pcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:,1,0], curve[:,0], rtol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-4)
 
     def context_dsm_3_2_5_z_with_lips_Mx():
 
@@ -179,14 +177,7 @@ def describe_end_to_end_tests():
 
         lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("zwlip_Mxr.mat")
 
-        expected = {
-            "xcrl": 4.1,
-            "Mcrl": 0.85,
-            "xcrd": 22.1,
-            "Mcrd": 0.77,
-            "A": 0.822,
-            "Ixx": 7.762
-        }
+        expected = {"xcrl": 4.1, "Mcrl": 0.85, "xcrd": 22.1, "Mcrd": 0.77, "A": 0.822, "Ixx": 7.762}
 
         def ir_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
@@ -198,7 +189,7 @@ def describe_end_to_end_tests():
 
         def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[0:-10,1,0], curve[0:-10,0], rtol=1.e-3)
+            assert np.allclose(expected_curve[0:-10, 1, 0], curve[0:-10, 0], rtol=1.e-3)
 
     def context_dsm_3_2_5_z_with_lips_P():
 
@@ -208,14 +199,7 @@ def describe_end_to_end_tests():
 
         lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("zwlip_P.mat")
 
-        expected = {
-            "xcrl": 5.9,
-            "Pcrl": 0.16,
-            "xcrd": 18.3,
-            "Pcrd": 0.29,
-            "A": 0.822,
-            "Ixx": 7.762
-        }    
+        expected = {"xcrl": 5.9, "Pcrl": 0.16, "xcrd": 18.3, "Pcrd": 0.29, "A": 0.822, "Ixx": 7.762}
 
         def ir_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
@@ -227,5 +211,4 @@ def describe_end_to_end_tests():
 
         def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[0:-10,1,0], curve[0:-10,0], rtol=1.e-3)
-    
+            assert np.allclose(expected_curve[0:-10, 1, 0], curve[0:-10, 0], rtol=1.e-3)

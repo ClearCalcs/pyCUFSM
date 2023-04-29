@@ -4,25 +4,31 @@ from pycufsm import preprocess, helpers, fsm
 
 # import pycufsm.examples.example_1 as ex1_main
 
+
 @pytest.fixture
 def nodes():
-    return np.array([[0, 0, 0, 1, 1, 1, 1, 0], [1, 5, 0, 1, 1, 1, 1, 0]]) # trivial 2-node cross-section
+    return np.array([[0, 0, 0, 1, 1, 1, 1, 0], [1, 5, 0, 1, 1, 1, 1,
+                                                0]])  # trivial 2-node cross-section
+
 
 @pytest.fixture
 def thickness():
     return 0.1
 
+
 @pytest.fixture
 def elements(thickness):
-    return np.array([[0, 0, 1, thickness, 0]]) # trivial 1-element cross-section
+    return np.array([[0, 0, 1, thickness, 0]])  # trivial 1-element cross-section
+
 
 @pytest.fixture
 def props():
     # Standard steel stiffness properties in Imperial units
-    e_stiff = 29500 # ksi
+    e_stiff = 29500  # ksi
     nu_poisson = 0.3
-    g_stiff = 29500 / (2 * (1+0.3)) # ksi
+    g_stiff = 29500 / (2 * (1+0.3))  # ksi
     return np.array([np.array([0, e_stiff, e_stiff, nu_poisson, nu_poisson, g_stiff])])
+
 
 @pytest.fixture
 def sect_props():
@@ -40,6 +46,7 @@ def sect_props():
         'I22': 1.04167
     }
 
+
 @pytest.fixture
 def lengths():
     # These lengths will generally provide sufficient accuracy for
@@ -51,15 +58,18 @@ def lengths():
         132, 144, 156, 168, 180, 204, 228, 252, 276, 300
     ]
 
+
 @pytest.fixture
 def springs():
     # No special springs
     return []
 
+
 @pytest.fixture
 def constraints():
     # No special constraints
     return []
+
 
 @pytest.fixture
 def gbt_con():
@@ -75,51 +85,54 @@ def gbt_con():
         'norm': 0,
     }
 
+
 @pytest.fixture
 def b_c():
     # Simply supported boundary conditions
     return 'S-S'
+
 
 @pytest.fixture
 def m_all(lengths):
     # For signature curve analysis, only a single array of ones makes sense here
     return np.ones((len(lengths), 1))
 
+
 @pytest.fixture
 def n_eigs():
     # Solve for 10 eigenvalues
     return 10
 
+
 @pytest.fixture
 def forces(sect_props):
     # Generate the stress points assuming 50 ksi yield and pure compression
-    return {
-        'P': sect_props['A'] * 50,
-        'Mxx': 0,
-        'Myy': 0,
-        'M11': 0,
-        'M22': 0
-    }
+    return {'P': sect_props['A'] * 50, 'Mxx': 0, 'Myy': 0, 'M11': 0, 'M22': 0}
+
 
 @pytest.fixture
 def offset_basis(thickness):
     return [-thickness / 2, -thickness / 2]
 
+
 @pytest.fixture
 def stress_gen(nodes, forces, sect_props, offset_basis):
     return preprocess.stress_gen(
-        nodes=nodes,
-        forces=forces,
-        sect_props=sect_props,
-        offset_basis=offset_basis
+        nodes=nodes, forces=forces, sect_props=sect_props, offset_basis=offset_basis
     )
+
 
 @pytest.fixture
 def stressed_nodes():
-    return np.array([[0, 0, 0, 1, 1, 1, 1, 50], [1, 5, 0, 1, 1, 1, 1, 50]]) # trivial 2-node cross-section with 50ksi stress
+    return np.array([[0, 0, 0, 1, 1, 1, 1, 50],
+                     [1, 5, 0, 1, 1, 1, 1, 50]])  # trivial 2-node cross-section with 50ksi stress
+
 
 @pytest.fixture
-def strip(props, stressed_nodes, elements, lengths, springs, constraints, gbt_con, b_c, m_all, n_eigs, sect_props):
+def strip(
+    props, stressed_nodes, elements, lengths, springs, constraints, gbt_con, b_c, m_all, n_eigs,
+    sect_props
+):
     return fsm.strip(
         props=props,
         nodes=stressed_nodes,

@@ -161,7 +161,7 @@ def prop2(coord, ends):
     # Compute the principal moment of inertia
     i_11 = np.sum((y_diffs12**2 / 12 + (y_means12)**2) * lengths * thicknesses)
     i_22 = np.sum((x_diffs12**2 / 12 + (x_means12)**2) * lengths * thicknesses)
-    
+
     if section == "open":
         # Compute torsional constant
         j_torsion = np.sum(lengths * thicknesses**3) / 3

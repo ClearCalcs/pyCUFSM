@@ -411,5 +411,5 @@ def strip(
         curve.append(length_factors)
         # shapes(:,i,1:min([n_modes,num_pos_modes]))=modes
         shapes.append(modes_full)
-    
+
     return signature.flatten(), np.array(curve), np.array(shapes)
