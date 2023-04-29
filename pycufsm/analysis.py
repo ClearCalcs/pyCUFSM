@@ -39,7 +39,7 @@ def constr_bc_flag(nodes, constraints):
                 return 1
 
     # Check for user defined constraints too
-    if constraints == []:
+    if len(constraints) == 0:
         return 0
     else:
         return 1
