@@ -24,6 +24,7 @@ This package is still under check and development in its alpha state, therefore 
 -   [x] Unconstrained FSM (signature curve generation)
 -   [x] Constrained FSM
 -   [x] Added template_path() function to define a complete arbitrary cross-section by simple paths
+-   [x] Add automated validation testing of FSM calculations via pytest
 
 #### Complete But Untested
 
@@ -33,7 +34,6 @@ This package is still under check and development in its alpha state, therefore 
 
 #### Planned Further Work
 
--   [ ] Add automated testing of calculations (probably via pytest)
 -   [ ] Handle holes in cross-sections in some meaningful way
 -   [ ] Various efficiency and readability improvements:
     -   [ ] Make use of scipy.sparse for sparse matrices where possible
