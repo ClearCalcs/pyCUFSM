@@ -113,7 +113,7 @@ def prop2(coord, ends):
         x_diffs[i] = np.diff([coord[start_node, 0], coord[end_node, 0]])
         y_diffs[i] = np.diff([coord[start_node, 1], coord[end_node, 1]])
         # Compute length
-        lengths[i] = np.sqrt(x_diffs[-1]**2 + y_diffs[-1]**2)
+        lengths[i] = np.sqrt(x_diffs[i]**2 + y_diffs[i]**2)
 
     # Compute Area
     area = np.sum(lengths * thicknesses)
