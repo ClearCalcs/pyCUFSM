@@ -588,7 +588,7 @@ def mode_select(b_v, n_global_modes, n_dist_modes, n_local_modes, gbt_con, n_dof
         #                n_dist_modes+n_local_modes+n_other_modes)]
         #     # b_v_red[:,(nmo+1)] = b_v[:,(n_global_modes+n_dist_modes+n_local_modes+1)]
         # end
-        b_v_red[:, nmo * i:nmo * (i+1)+1] = b_v_red_m
+        b_v_red[:, nmo * i:nmo * (i+1)] = b_v_red_m
 
     return b_v_red
 
