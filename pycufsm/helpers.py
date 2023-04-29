@@ -109,7 +109,7 @@ def signature_ss(props, nodes, elements, i_gbt_con, sect_props, lengths):
     return isignature, icurve, ishapes
 
 
-def m_recommend(props, nodes, elements, sect_props, length_append=None, n_lengths=50):
+def m_recommend(props, nodes, elements, sect_props, length_append=None, n_lengths=50, lengths=None):
     # Z. Li, Oct. 2010
     #Suggested longitudinal terms are calculated based on the characteristic
     #half-wave lengths of local, distortional, and global buckling from the
@@ -126,9 +126,10 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
         "orth": 1,
         "norm": 1,
     }
-    lengths = lengths_recommend(
-        nodes=nodes, elements=elements, length_append=length_append, n_lengths=n_lengths
-    )
+    if lengths is None:
+        lengths = lengths_recommend(
+            nodes=nodes, elements=elements, length_append=length_append, n_lengths=n_lengths
+        )
 
     print("Running initial pyCUFSM signature curve")
     isignature, icurve, ishapes = signature_ss(
@@ -141,7 +142,7 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
     )
 
     curve_signature = np.zeros((len(lengths), 2))
-    curve_signature[:, 0] = lengths
+    curve_signature[:, 0] = lengths.T
     curve_signature[:, 1] = isignature
 
     local_minima = []
@@ -315,14 +316,39 @@ def load_mat(mat):
                     if j < 5 and j != 2:
                         constraints[i, j] = int(constraint) - 1
         if len(constraints[0]) < 5:
-            constraints = []
+            constraints = np.array([])
         cufsm_input['constraints'] = constraints
     if 'springs' in mat:
-        cufsm_input['springs'] = np.array(mat['springs'])
+        springs = np.array(mat['springs'])
+        if len(springs[0]) < 4:
+            springs = np.array([])
+        cufsm_input['springs'] = springs
     if 'curve' in mat:
         cufsm_input['curve'] = np.array(mat['curve'])
     if 'GBTcon' in mat:
-        cufsm_input['GBTcon'] = mat['GBTcon']
+        gbt_con = {
+            "glob":
+                mat["GBTcon"]["glob"].flatten()[0].flatten()
+                if "glob" in mat["GBTcon"].dtype.names else [0],
+            "dist":
+                mat["GBTcon"]["dist"].flatten()[0].flatten()
+                if "dist" in mat["GBTcon"].dtype.names else [0],
+            "local":
+                mat["GBTcon"]["local"].flatten()[0].flatten()
+                if "local" in mat["GBTcon"].dtype.names else [0],
+            "other":
+                mat["GBTcon"]["other"].flatten()[0].flatten()
+                if "other" in mat["GBTcon"].dtype.names else [0],
+            "o_space":
+                mat["GBTcon"]["o_space"] if "o_space" in mat["GBTcon"].dtype.names else 1,
+            "norm":
+                mat["GBTcon"]["norm"] if "norm" in mat["GBTcon"].dtype.names else 1,
+            "couple":
+                mat["GBTcon"]["couple"] if "couple" in mat["GBTcon"].dtype.names else 1,
+            "orth":
+                mat["GBTcon"]["orth"] if "orth" in mat["GBTcon"].dtype.names else 1
+        }
+        cufsm_input['GBTcon'] = gbt_con
     if 'shapes' in mat:
         cufsm_input['shapes'] = np.array(mat['shapes'])
     if 'clas' in mat:

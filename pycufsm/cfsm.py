@@ -553,12 +553,12 @@ def mode_select(b_v, n_global_modes, n_dist_modes, n_local_modes, gbt_con, n_dof
         nmo = 0
         b_v_red_m = np.zeros((len(b_v), n_m))
         for j in range(0, n_global_modes):
-            if gbt_con['glob'][j] == 1:
+            if j < len(gbt_con['glob']) and gbt_con['glob'][j] == 1:
                 b_v_red_m[:, nmo] = b_v[:, n_dof_m*i + j]
                 nmo = nmo + 1
 
         for j in range(0, n_dist_modes):
-            if gbt_con['dist'][j] == 1:
+            if j < len(gbt_con['dist']) and gbt_con['dist'][j] == 1:
                 b_v_red_m[:, nmo] = b_v[:, n_dof_m*i + n_global_modes + j]
                 nmo = nmo + 1
 
@@ -569,12 +569,12 @@ def mode_select(b_v, n_global_modes, n_dist_modes, n_local_modes, gbt_con, n_dof
         #     nmo = nmo+n_local_modes
         # end
         for j in range(0, n_local_modes):
-            if gbt_con['local'][j] == 1:
+            if j < len(gbt_con['local']) and gbt_con['local'][j] == 1:
                 b_v_red_m[:, nmo] = b_v[:, n_dof_m*i + n_global_modes + n_dist_modes + j]
                 nmo = nmo + 1
 
         for j in range(0, n_other_modes):
-            if gbt_con['other'][j] == 1:
+            if j < len(gbt_con['other']) and gbt_con['other'][j] == 1:
                 b_v_red_m[:,
                           nmo] = b_v[:,
                                      n_dof_m*i + n_global_modes + n_dist_modes + n_local_modes + j]

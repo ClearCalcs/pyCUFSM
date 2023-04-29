@@ -213,7 +213,7 @@ def strip(
         #     %         [k_global]=addspring(k_global,springs,n_nodes,length,b_c,m_a)
         #     %     end
         # %Now from version 4.3 this is the new springs method
-        if springs != []:
+        if len(springs) != 0:
             # springs variable exists
             for spring in springs:
                 # Generate spring stiffness matrix (k_s) in local coordinates
@@ -412,4 +412,4 @@ def strip(
         # shapes(:,i,1:min([n_modes,num_pos_modes]))=modes
         shapes.append(modes_full)
 
-    return signature.flatten(), curve, shapes
+    return signature.flatten(), np.array(curve), np.array(shapes)

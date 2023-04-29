@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def cutwp_prop2(coord, ends):
+def prop2(coord, ends):
     # Function modified for use in CUFSM by Ben Schafer in 2004 with permission
     # of Sarawit. removed elastic buckling calcs and kept only section
     # properties
@@ -96,24 +96,24 @@ def cutwp_prop2(coord, ends):
     #         en[i, 1] = 0
 
     # Find the element properties
-    thicknesses = []
-    x_means = []
-    y_means = []
-    x_diffs = []
-    y_diffs = []
-    lengths = []
-    for elem in ends:
+    thicknesses = np.zeros(n_elements)
+    x_means = np.zeros(n_elements)
+    y_means = np.zeros(n_elements)
+    x_diffs = np.zeros(n_elements)
+    y_diffs = np.zeros(n_elements)
+    lengths = np.zeros(n_elements)
+    for i, elem in enumerate(ends):
         start_node = int(elem[0])
         end_node = int(elem[1])
-        thicknesses.append(elem[2])
+        thicknesses[i] = elem[2]
         # Compute coordinate of midpoint of the element
-        x_means.append(np.mean([coord[start_node, 0], coord[end_node, 0]]))
-        y_means.append(np.mean([coord[start_node, 1], coord[end_node, 1]]))
+        x_means[i] = np.mean([coord[start_node, 0], coord[end_node, 0]])
+        y_means[i] = np.mean([coord[start_node, 1], coord[end_node, 1]])
         # Compute the dimension of the element
-        x_diffs.append(np.diff([coord[start_node, 0], coord[end_node, 0]]))
-        y_diffs.append(np.diff([coord[start_node, 1], coord[end_node, 1]]))
+        x_diffs[i] = np.diff([coord[start_node, 0], coord[end_node, 0]])
+        y_diffs[i] = np.diff([coord[start_node, 1], coord[end_node, 1]])
         # Compute length
-        lengths.append(np.sqrt(x_diffs[-1]**2 + y_diffs[-1]**2))
+        lengths[i] = np.sqrt(x_diffs[i]**2 + y_diffs[i]**2)
 
     # Compute Area
     area = np.sum(lengths * thicknesses)
@@ -138,29 +138,30 @@ def cutwp_prop2(coord, ends):
     theta = (np.angle([(i_xx-i_yy) - 2*i_xy*1j]) / 2)[0]
 
     # Transfer section coordinates to the centroid principal coordinates
-    coord12 = [coord[:, 0] - x_centroid, coord[:, 1] - y_centroid]
-    coord12 = [[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]
-               ] @ (np.array(coord12).T)
-    coord12 = np.array(coord12).T
+    coord12 = np.array([coord[:, 0] - x_centroid, coord[:, 1] - y_centroid]).T
+    rotation_matrix = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
+    coord12 = rotation_matrix @ coord12.T
+    coord12 = coord12.T
 
     # Find the element properties
-    x_means = []
-    y_means = []
-    x_diffs = []
-    y_diffs = []
-    for elem in ends:
+    x_means12 = np.zeros(n_elements)
+    y_means12 = np.zeros(n_elements)
+    x_diffs12 = np.zeros(n_elements)
+    y_diffs12 = np.zeros(n_elements)
+    for i, elem in enumerate(ends):
         start_node = int(elem[0])
         end_node = int(elem[1])
         # Compute coordinate of midpoint of the element
-        x_means.append(np.mean([coord[start_node, 0], coord[end_node, 0]]))
-        y_means.append(np.mean([coord[start_node, 1], coord[end_node, 1]]))
+        x_means12[i] = np.mean([coord12[start_node, 0], coord12[end_node, 0]])
+        y_means12[i] = np.mean([coord12[start_node, 1], coord12[end_node, 1]])
         # Compute the dimension of the element
-        x_diffs.append(np.diff([coord[start_node, 0], coord[end_node, 0]]))
-        y_diffs.append(np.diff([coord[start_node, 1], coord[end_node, 1]]))
+        x_diffs12[i] = np.diff([coord12[start_node, 0], coord12[end_node, 0]])
+        y_diffs12[i] = np.diff([coord12[start_node, 1], coord12[end_node, 1]])
 
     # Compute the principal moment of inertia
-    i_11 = np.sum((y_diffs**2 / 12 + (y_means)**2) * lengths * thicknesses)
-    i_22 = np.sum((x_diffs**2 / 12 + (x_means)**2) * lengths * thicknesses)
+    i_11 = np.sum((y_diffs12**2 / 12 + (y_means12)**2) * lengths * thicknesses)
+    i_22 = np.sum((x_diffs12**2 / 12 + (x_means12)**2) * lengths * thicknesses)
+
     if section == "open":
         # Compute torsional constant
         j_torsion = np.sum(lengths * thicknesses**3) / 3
@@ -302,12 +303,12 @@ def cutwp_prop2(coord, ends):
             b2_vals = 0
     ends[:, 0:2] = (ends[:, 0:2]) - 1
     sect_props = {
-        "area": area,
+        "A": area,
         "cx": x_centroid,
         "cy": y_centroid,
         "Ixx": i_xx,
         "Iyy": i_yy,
-        "i_xy": i_xy,
+        "Ixy": i_xy,
         "phi": theta,
         "I11": i_11,
         "I22": i_22,
