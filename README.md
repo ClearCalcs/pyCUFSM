@@ -37,6 +37,7 @@ If you would like to contribute to the pyCUFSM project, then please do - all pro
 
 -   [ ] Handle holes in cross-sections in some meaningful way
 -   [ ] Various efficiency and readability improvements:
+    -   [ ] Cythonise a few computation-heavy functions in analysis.py, including klocal(), kglocal(), and assemble()
     -   [ ] Make use of scipy.sparse for sparse matrices where possible
     -   [ ] Convert some numerical inputs and data to dictionaries with strings
     -   [ ] Eliminate matrix columns which are nothing more than the index number of the row

@@ -3,7 +3,7 @@
 # in the Metric unit system
 
 import numpy as np
-from pysufsm.fsm import strip
+from pycufsm.fsm import strip
 from pycufsm.preprocess import stress_gen
 
 
