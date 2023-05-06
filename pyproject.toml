@@ -35,8 +35,8 @@ dev = {file = "dev_requirements.txt"}
 jupyter = {file = "jupyter_requirements.txt"}
 
 [project.urls]
-homepage = "https://github.com/ClearCalcs/pyCUFSM"
-documentation = "https://github.com/ClearCalcs/pyCUFSM/wiki"
+"Homepage" = "https://github.com/ClearCalcs/pyCUFSM"
+"Documentation" = "https://github.com/ClearCalcs/pyCUFSM/wiki"
 
 [tool.setuptools]
 packages = [

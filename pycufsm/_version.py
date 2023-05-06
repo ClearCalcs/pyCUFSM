@@ -1,1 +1,1 @@
-__version__ = "0.1.0+cufsm501"
+__version__ = "0.1.0"
