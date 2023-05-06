@@ -2,20 +2,21 @@
 
 ## Description
 
-This is a port of the analysis portions of CUFSM v5.01, written by Benjamin Schafer PhD et al at Johns Hopkins University, from its original MATLAB language to Python v3, using the Numpy and Scipy packages for matrix manipulation and other advanced mathematics functionality. The goal of this project is to create a derivative of CUFSM which can be used in cloud-based applications. This project is not affiliated with Benjamin Schafer PhD or Johns Hopkins University in any way.
+This package is primarily a port of CUFSM v5.01, written by Benjamin Schafer PhD et al at Johns Hopkins University, from its original MATLAB language to Python v3, using the Numpy and Scipy packages for matrix manipulation and other advanced mathematics functionality. The goal of this project is to create a derivative of CUFSM which can be used either in Jupyter Notebooks or in headless (library) applications. This project is not affiliated with Benjamin Schafer PhD or Johns Hopkins University in any way.
 
-The original MATLAB CUFSM program may be accessed at the following address: https://www.ce.jhu.edu/bschafer/cufsm/
+The original MATLAB CUFSM program may be accessed at the following address: https://www.ce.jhu.edu/cufsm/
 
 ### Installation
 
-This package is still under check and development in its alpha state, therefore it has not yet been published to the Python's PyPI repository. Users may install clone and install the package on their systems using relevant codes the same as printed bellow:
+This package is still under heavy development, but it may be installed in several different possible forms, as described below:
+1. Minimal (headless) installation: `pip install pycufsm`
+2. Installation with plotting capabilities: `pip install pycufsm[plot]`
+3. Installation with Jupyter Notebooks: `pip install pycufsm[jupyter]`
+4. Installation with full development dependencies: `pip install pycufsm[dev]`
 
-`python -m pip install git+https://github.com/ClearCalcs/pyCUFSM.git`
+### Contributing
 
-### Limitations
-
--   **No GUI** - While the MATLAB version of CUFSM contains a full graphical user interface, I will be making no effort in this project to create anything more than a basic command-line interface (though other contributions will be welcome). I anticipate that users of this package will have their own user interface and that this package will function as something of a plug-in.
--   **No CUTWP** - The MATLAB version of CUFSM makes use of CUTWP code for calculating section properties (A, I, J, etc). There are already several mature, open-source Python section properties calculators available, and CUTWP is inherently less accurate because it is based upon section centerline calculations only. As such, I have no plans to port the CUTWP code and anticipate that users of this package will make use of other section properties calculators instead.
+If you would like to contribute to the pyCUFSM project, then please do - all productive contributions are welcome! However, please make sure that you're working off of the most recent development version of the pyCUFSM code, by cloning the [GitHub repository](https://github.com/ClearCalcs/pyCUFSM), and please review our wiki article on [Contributing to the Code](https://github.com/ClearCalcs/pyCUFSM/wiki/Contributing-to-the-Code).
 
 ## Current Status
 
@@ -45,6 +46,6 @@ This package is still under check and development in its alpha state, therefore 
 
 ## Disclaimer
 
-While the original MATLAB CUFSM has been extensively tested, and best efforts have been made to check accuracy of this package against the original MATLAB CUFSM program, no warrant is made as to the accuracy of this package. The developers accept no liability for any errors or inaccuracies in this package, including, but not limited to, any problems which may stem from such errors or inaccuracies in this package such as under-conservative engineering designs or structural failures.
+While the original MATLAB CUFSM has been extensively tested, and best efforts have been made to check accuracy of this package against the original MATLAB CUFSM program, including via automated validation testing, no warrant is made as to the accuracy of this package. The developers accept no liability for any errors or inaccuracies in this package, including, but not limited to, any problems which may stem from such errors or inaccuracies in this package such as under-conservative engineering designs or structural failures.
 
 Always check your designs and never blindly trust any engineering program, including this one.
