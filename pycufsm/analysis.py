@@ -481,8 +481,6 @@ def assemble(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes, m_
     # Z. Li, June 2010
 
     total_m = len(m_a)  # Total number of longitudinal terms m
-    k_2_matrix = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
-    k_3_matrix = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
     skip = 2 * n_nodes
     for i in range(0, total_m):
         for j in range(0, total_m):
@@ -504,41 +502,41 @@ def assemble(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes, m_
             k43 = k_local[8*i + 6:8*i + 8, 8*j + 4:8*j + 6]
             k44 = k_local[8*i + 6:8*i + 8, 8*j + 6:8*j + 8]
 
-            k_2_matrix[4*n_nodes*i+(node_i+1)*2-2:4*n_nodes*i+(node_i+1)*2, \
-                4*n_nodes*j+(node_i+1)*2-2:4*n_nodes*j+(node_i+1)*2] = k11
-            k_2_matrix[4*n_nodes*i+(node_i+1)*2-2:4*n_nodes*i+(node_i+1)*2, \
-                4*n_nodes*j+(node_j+1)*2-2:4*n_nodes*j+(node_j+1)*2] = k12
-            k_2_matrix[4*n_nodes*i+(node_j+1)*2-2:4*n_nodes*i+(node_j+1)*2, \
-                4*n_nodes*j+(node_i+1)*2-2:4*n_nodes*j+(node_i+1)*2] = k21
-            k_2_matrix[4*n_nodes*i+(node_j+1)*2-2:4*n_nodes*i+(node_j+1)*2, \
-                4*n_nodes*j+(node_j+1)*2-2:4*n_nodes*j+(node_j+1)*2] = k22
+            k_global[4*n_nodes*i+(node_i+1)*2-2:4*n_nodes*i+(node_i+1)*2, \
+                4*n_nodes*j+(node_i+1)*2-2:4*n_nodes*j+(node_i+1)*2] += k11
+            k_global[4*n_nodes*i+(node_i+1)*2-2:4*n_nodes*i+(node_i+1)*2, \
+                4*n_nodes*j+(node_j+1)*2-2:4*n_nodes*j+(node_j+1)*2] += k12
+            k_global[4*n_nodes*i+(node_j+1)*2-2:4*n_nodes*i+(node_j+1)*2, \
+                4*n_nodes*j+(node_i+1)*2-2:4*n_nodes*j+(node_i+1)*2] += k21
+            k_global[4*n_nodes*i+(node_j+1)*2-2:4*n_nodes*i+(node_j+1)*2, \
+                4*n_nodes*j+(node_j+1)*2-2:4*n_nodes*j+(node_j+1)*2] += k22
 
-            k_2_matrix[4*n_nodes*i+skip+(node_i+1)*2-2:4*n_nodes*i+skip+(node_i+1)*2, \
-                4*n_nodes*j+skip+(node_i+1)*2-2:4*n_nodes*j+skip+(node_i+1)*2] = k33
-            k_2_matrix[4*n_nodes*i+skip+(node_i+1)*2-2:4*n_nodes*i+skip+(node_i+1)*2, \
-                4*n_nodes*j+skip+(node_j+1)*2-2:4*n_nodes*j+skip+(node_j+1)*2] = k34
-            k_2_matrix[4*n_nodes*i+skip+(node_j+1)*2-2:4*n_nodes*i+skip+(node_j+1)*2, \
-                4*n_nodes*j+skip+(node_i+1)*2-2:4*n_nodes*j+skip+(node_i+1)*2] = k43
-            k_2_matrix[4*n_nodes*i+skip+(node_j+1)*2-2:4*n_nodes*i+skip+(node_j+1)*2, \
-                4*n_nodes*j+skip+(node_j+1)*2-2:4*n_nodes*j+skip+(node_j+1)*2] = k44
+            k_global[4*n_nodes*i+skip+(node_i+1)*2-2:4*n_nodes*i+skip+(node_i+1)*2, \
+                4*n_nodes*j+skip+(node_i+1)*2-2:4*n_nodes*j+skip+(node_i+1)*2] += k33
+            k_global[4*n_nodes*i+skip+(node_i+1)*2-2:4*n_nodes*i+skip+(node_i+1)*2, \
+                4*n_nodes*j+skip+(node_j+1)*2-2:4*n_nodes*j+skip+(node_j+1)*2] += k34
+            k_global[4*n_nodes*i+skip+(node_j+1)*2-2:4*n_nodes*i+skip+(node_j+1)*2, \
+                4*n_nodes*j+skip+(node_i+1)*2-2:4*n_nodes*j+skip+(node_i+1)*2] += k43
+            k_global[4*n_nodes*i+skip+(node_j+1)*2-2:4*n_nodes*i+skip+(node_j+1)*2, \
+                4*n_nodes*j+skip+(node_j+1)*2-2:4*n_nodes*j+skip+(node_j+1)*2] += k44
 
-            k_2_matrix[4*n_nodes*i+(node_i+1)*2-2:4*n_nodes*i+(node_i+1)*2, \
-                4*n_nodes*j+skip+(node_i+1)*2-2:4*n_nodes*j+skip+(node_i+1)*2] = k13
-            k_2_matrix[4*n_nodes*i+(node_i+1)*2-2:4*n_nodes*i+(node_i+1)*2, \
-                4*n_nodes*j+skip+(node_j+1)*2-2:4*n_nodes*j+skip+(node_j+1)*2] = k14
-            k_2_matrix[4*n_nodes*i+(node_j+1)*2-2:4*n_nodes*i+(node_j+1)*2, \
-                4*n_nodes*j+skip+(node_i+1)*2-2:4*n_nodes*j+skip+(node_i+1)*2] = k23
-            k_2_matrix[4*n_nodes*i+(node_j+1)*2-2:4*n_nodes*i+(node_j+1)*2, \
-                4*n_nodes*j+skip+(node_j+1)*2-2:4*n_nodes*j+skip+(node_j+1)*2] = k24
+            k_global[4*n_nodes*i+(node_i+1)*2-2:4*n_nodes*i+(node_i+1)*2, \
+                4*n_nodes*j+skip+(node_i+1)*2-2:4*n_nodes*j+skip+(node_i+1)*2] += k13
+            k_global[4*n_nodes*i+(node_i+1)*2-2:4*n_nodes*i+(node_i+1)*2, \
+                4*n_nodes*j+skip+(node_j+1)*2-2:4*n_nodes*j+skip+(node_j+1)*2] += k14
+            k_global[4*n_nodes*i+(node_j+1)*2-2:4*n_nodes*i+(node_j+1)*2, \
+                4*n_nodes*j+skip+(node_i+1)*2-2:4*n_nodes*j+skip+(node_i+1)*2] += k23
+            k_global[4*n_nodes*i+(node_j+1)*2-2:4*n_nodes*i+(node_j+1)*2, \
+                4*n_nodes*j+skip+(node_j+1)*2-2:4*n_nodes*j+skip+(node_j+1)*2] += k24
 
-            k_2_matrix[4*n_nodes*i+skip+(node_i+1)*2-2:4*n_nodes*i+skip+(node_i+1)*2, \
-                4*n_nodes*j+(node_i+1)*2-2:4*n_nodes*j+(node_i+1)*2] = k31
-            k_2_matrix[4*n_nodes*i+skip+(node_i+1)*2-2:4*n_nodes*i+skip+(node_i+1)*2, \
-                4*n_nodes*j+(node_j+1)*2-2:4*n_nodes*j+(node_j+1)*2] = k32
-            k_2_matrix[4*n_nodes*i+skip+(node_j+1)*2-2:4*n_nodes*i+skip+(node_j+1)*2, \
-                4*n_nodes*j+(node_i+1)*2-2:4*n_nodes*j+(node_i+1)*2] = k41
-            k_2_matrix[4*n_nodes*i+skip+(node_j+1)*2-2:4*n_nodes*i+skip+(node_j+1)*2, \
-                4*n_nodes*j+(node_j+1)*2-2:4*n_nodes*j+(node_j+1)*2] = k42
+            k_global[4*n_nodes*i+skip+(node_i+1)*2-2:4*n_nodes*i+skip+(node_i+1)*2, \
+                4*n_nodes*j+(node_i+1)*2-2:4*n_nodes*j+(node_i+1)*2] += k31
+            k_global[4*n_nodes*i+skip+(node_i+1)*2-2:4*n_nodes*i+skip+(node_i+1)*2, \
+                4*n_nodes*j+(node_j+1)*2-2:4*n_nodes*j+(node_j+1)*2] += k32
+            k_global[4*n_nodes*i+skip+(node_j+1)*2-2:4*n_nodes*i+skip+(node_j+1)*2, \
+                4*n_nodes*j+(node_i+1)*2-2:4*n_nodes*j+(node_i+1)*2] += k41
+            k_global[4*n_nodes*i+skip+(node_j+1)*2-2:4*n_nodes*i+skip+(node_j+1)*2, \
+                4*n_nodes*j+(node_j+1)*2-2:4*n_nodes*j+(node_j+1)*2] += k42
 
             # Submatrices for the initial stiffness
             kg11 = kg_local[8 * i:8*i + 2, 8 * j:8*j + 2]
@@ -558,48 +556,45 @@ def assemble(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes, m_
             kg43 = kg_local[8*i + 6:8*i + 8, 8*j + 4:8*j + 6]
             kg44 = kg_local[8*i + 6:8*i + 8, 8*j + 6:8*j + 8]
 
-            k_3_matrix[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] = kg11
-            k_3_matrix[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] = kg12
-            k_3_matrix[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] = kg21
-            k_3_matrix[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] = kg22
+            kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2,
+                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg11
+            kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2,
+                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg12
+            kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2,
+                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg21
+            kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2,
+                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg22
 
-            k_3_matrix[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
+            kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
                        4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_i+1) * 2] = kg33
-            k_3_matrix[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
+                       + (node_i+1) * 2] += kg33
+            kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
                        4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_j+1) * 2] = kg34
-            k_3_matrix[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
+                       + (node_j+1) * 2] += kg34
+            kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
                        4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_i+1) * 2] = kg43
-            k_3_matrix[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
+                       + (node_i+1) * 2] += kg43
+            kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
                        4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_j+1) * 2] = kg44
+                       + (node_j+1) * 2] += kg44
 
-            k_3_matrix[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
-                       + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] = kg13
-            k_3_matrix[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
-                       + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] = kg14
-            k_3_matrix[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
-                       + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] = kg23
-            k_3_matrix[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
-                       + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] = kg24
+            kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
+                       + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg13
+            kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
+                       + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg14
+            kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
+                       + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg23
+            kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
+                       + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg24
 
-            k_3_matrix[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] = kg31
-            k_3_matrix[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] = kg32
-            k_3_matrix[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] = kg41
-            k_3_matrix[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] = kg42
-
-    k_global = k_global + k_2_matrix
-    kg_global = kg_global + k_3_matrix
+            kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
+                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg31
+            kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
+                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg32
+            kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
+                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg41
+            kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
+                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg42
 
     return [k_global, kg_global]
 
