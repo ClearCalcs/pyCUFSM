@@ -217,8 +217,8 @@ def klocal(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, b_c, m_a)
             kf_mp[3, 3] = (1680*b_strip**2*d_x*i_1 - 56*b_strip**4*d_1*i_2 - 56*b_strip**4*d_1*i_3 \
                 + 4*b_strip**6*d_y*i_4 + 224*b_strip**4*d_xy*i_5)/420/b_strip**3
 
-            k_local[8*i:8*i + 4, 8*j:8*j + 4] = km_mp
-            k_local[8*i+4:8*(i+1), 8*j + 4: 8*(j+1)] = kf_mp
+            k_local[8 * i:8*i + 4, 8 * j:8*j + 4] = km_mp
+            k_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = kf_mp
 
     return k_local
 
@@ -438,8 +438,8 @@ def kglocal(length, b_strip, ty_1, ty_2, b_c, m_a):
             gf_mp[3, 2] = gf_mp[2, 3]
             gf_mp[3, 3] = (3*ty_1 + 5*ty_2) * b_strip**3 * i_5 / 420 / 2
 
-            kg_local[8*i:8*i + 4, 8*j:8*j + 4] = gm_mp
-            kg_local[8*i+4:8*(i+1), 8*j + 4: 8*(j+1)] = gf_mp
+            kg_local[8 * i:8*i + 4, 8 * j:8*j + 4] = gm_mp
+            kg_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = gf_mp
     return kg_local
 
 
@@ -557,44 +557,44 @@ def assemble(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes, m_
             kg44 = kg_local[8*i + 6:8*i + 8, 8*j + 6:8*j + 8]
 
             kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg11
+                      4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg11
             kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg12
+                      4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg12
             kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg21
+                      4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg21
             kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg22
+                      4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg22
 
             kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_i+1) * 2] += kg33
+                      4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
+                      + (node_i+1) * 2] += kg33
             kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_j+1) * 2] += kg34
+                      4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
+                      + (node_j+1) * 2] += kg34
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_i+1) * 2] += kg43
+                      4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
+                      + (node_i+1) * 2] += kg43
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_j+1) * 2] += kg44
+                      4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
+                      + (node_j+1) * 2] += kg44
 
             kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
-                       + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg13
+                      + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg13
             kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
-                       + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg14
+                      + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg14
             kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
-                       + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg23
+                      + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg23
             kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
-                       + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg24
+                      + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg24
 
             kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg31
+                      4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg31
             kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg32
+                      4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg32
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg41
+                      4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg41
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg42
+                      4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg42
 
     return [k_global, kg_global]
 
@@ -624,7 +624,6 @@ def spring_klocal(k_u, k_v, k_w, k_q, length, b_c, m_a, discrete, y_s):
 
     total_m = len(m_a)  # Total number of longitudinal terms m
     k_local = np.zeros(8 * total_m, 8 * total_m)
-    z_0 = np.zeros(4, 4)
     for i in range(0, total_m):
         for j in range(0, total_m):
             km_mp = np.zeros(4, 4)
@@ -648,9 +647,9 @@ def spring_klocal(k_u, k_v, k_w, k_q, length, b_c, m_a, discrete, y_s):
             # assemble the matrix of kf_mp (flexural stiffness)
             kf_mp = np.array([[k_w * i_1, 0, -k_w * i_1, 0], [0, k_q * i_1, 0, -k_q * i_1],
                               [-k_w * i_1, 0, k_w * i_1, 0], [0, -k_q * i_1, 0, k_q * i_1]])
-            
-            k_local[8*i:8*i + 4, 8*j:8*j + 4] = km_mp
-            k_local[8*i+4:8*(i+1), 8*j + 4: 8*(j+1)] = kf_mp
+
+            k_local[8 * i:8*i + 4, 8 * j:8*j + 4] = km_mp
+            k_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = kf_mp
 
     return k_local
 
