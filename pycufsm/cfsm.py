@@ -1877,7 +1877,7 @@ def klocal_m(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_i, b_
     d_1 = nu_x * stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
     d_xy = bulk * thick**3 / 12
     #
-    k_local = np.zeros(8*m_i, 8*m_i)
+    k_local = np.zeros(8 * m_i, 8 * m_i)
     i = m_i
     j = m_i
     km_mp = np.zeros((4, 4))
@@ -1957,7 +1957,7 @@ def kglocal_m(length, b_strip, m_i, ty_1, ty_2, b_c):
     # created on Jul 10, 2009 by Z. Li
 
     # Generate geometric stiffness matrix (kg_local) in local coordinates
-    kg_local = np.zeros((8*m_i, 8*m_i))
+    kg_local = np.zeros((8 * m_i, 8 * m_i))
     i = m_i
     j = m_i
     gm_mp = np.zeros((4, 4))
