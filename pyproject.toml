@@ -42,6 +42,10 @@ jupyter = {file = "jupyter_requirements.txt"}
 packages = [
     "pycufsm",
 ]
+py-modules = ["_custom_build"]
+
+[tool.setuptools.cmdclass]
+build_py = "_custom_build.build_py"
 
 [tool.pylint.messages_control]
 disable = [
