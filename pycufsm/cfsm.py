@@ -1,7 +1,9 @@
 from copy import deepcopy
 from scipy import linalg as spla
 import numpy as np
-import pycufsm.analysis
+# import pycufsm.analysis # uncomment to use pure Python file
+# import pyximport; pyximport.install(build_in_temp=False, inplace=True) # uncomment to compile on demand (e.g. for easier pytest)
+import pycufsm.analysis_c
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
