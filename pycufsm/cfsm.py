@@ -1877,8 +1877,7 @@ def klocal_m(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_i, b_
     d_1 = nu_x * stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
     d_xy = bulk * thick**3 / 12
     #
-    # k_local = sparse(np.zeros(8*m_i, 8*m_i))
-    z_0 = np.zeros((4, 4))
+    k_local = np.zeros(8 * m_i, 8 * m_i)
     i = m_i
     j = m_i
     km_mp = np.zeros((4, 4))
@@ -1946,12 +1945,8 @@ def klocal_m(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_i, b_
     kf_mp[3, 3] = (1680*b_strip**2*d_x*i_1 - 56*b_strip**4*d_1*i_2 - 56*b_strip**4*d_1*i_3 \
         + 4*b_strip**6*d_y*i_4 + 224*b_strip**4*d_xy*i_5) / 420/b_strip**3
 
-    # assemble the membrane and flexural stiffness matrices
-    kmp = np.concatenate(
-        (np.concatenate((km_mp, z_0), axis=1), np.concatenate((z_0, kf_mp), axis=1))
-    )
-    # add it into local element stiffness matrix by corresponding to m_i
-    k_local = kmp
+    k_local[0:4, 0:4] = km_mp
+    k_local[4:8, 4:8] = kf_mp
 
     return k_local
 
@@ -1962,11 +1957,10 @@ def kglocal_m(length, b_strip, m_i, ty_1, ty_2, b_c):
     # created on Jul 10, 2009 by Z. Li
 
     # Generate geometric stiffness matrix (kg_local) in local coordinates
-    # kg_local = sparse(np.zeros(8*m_i, 8*m_i))
+    kg_local = np.zeros((8 * m_i, 8 * m_i))
     i = m_i
     j = m_i
     gm_mp = np.zeros((4, 4))
-    z_0 = np.zeros((4, 4))
     gf_mp = np.zeros((4, 4))
     u_m = i * np.pi
     u_p = j * np.pi
@@ -2000,12 +1994,9 @@ def kglocal_m(length, b_strip, m_i, ty_1, ty_2, b_c):
     gf_mp[2, 3] = -(7*ty_1 + 15*ty_2) * b_strip**2 * i_5 / 420
     gf_mp[3, 2] = gf_mp[2, 3]
     gf_mp[3, 3] = (3*ty_1 + 5*ty_2) * b_strip**3 * i_5 / 420 / 2
-    # assemble the membrane and flexural stiffness matrices
-    kg_mp = np.concatenate(
-        (np.concatenate((gm_mp, z_0), axis=1), np.concatenate((z_0, gf_mp), axis=1))
-    )
-    # add it into local geometric stiffness matrix by corresponding to m_i
-    kg_local = kg_mp
+
+    kg_local[0:4, 0:4] = gm_mp
+    kg_local[4:8, 4:8] = gf_mp
     return kg_local
 
 
@@ -2211,7 +2202,7 @@ def klocal_transv(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_
     d_1 = nu_x * stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
     d_xy = bulk * thick**3 / 12
 
-    z_0 = np.zeros((4, 4))
+    k_local = np.zeros((8, 8))
     i = m_i
     j = m_i
     km_mp = np.zeros((4, 4))
@@ -2282,13 +2273,8 @@ def klocal_transv(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_
     kf_mp[3, 3] = (1680*b_strip**2*d_x*i_1 - 56*b_strip**4*d_1*i_2 - 56*b_strip**4*d_1*i_3 \
         + 4*b_strip**6*d_y*i_4 + 224*b_strip**4*d_xy*i_5) / 420/b_strip**3
 
-    # assemble the membrane and flexural stiffness matrices
-    kmp = np.concatenate(
-        (np.concatenate((km_mp, z_0), axis=1), np.concatenate((z_0, kf_mp), axis=1))
-    )
-
-    # local stiffness matrix:
-    k_local = kmp
+    k_local[0:4, 0:4] = km_mp
+    k_local[4:8, 4:8] = kf_mp
     return k_local
 
 
