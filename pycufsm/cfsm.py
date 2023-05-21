@@ -1,9 +1,7 @@
 from copy import deepcopy
 from scipy import linalg as spla
 import numpy as np
-# import pycufsm.analysis # uncomment to use pure Python file
-# import pyximport; pyximport.install(build_in_temp=False, inplace=True) # uncomment to compile on demand (e.g. for easier pytest)
-import pycufsm.analysis_c
+from pycufsm.analysis import analysis
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
@@ -304,7 +302,7 @@ def base_update(
                 nu_x = mat[3]
                 nu_y = mat[4]
                 bulk = mat[5]
-                k_l = pycufsm.analysis.klocal(
+                k_l = analysis.klocal(
                     stiff_x=stiff_x,
                     stiff_y=stiff_y,
                     nu_x=nu_x,
@@ -321,18 +319,18 @@ def base_update(
                 node_j = int(elem[2])
                 ty_1 = nodes_base[node_i][7] * thick
                 ty_2 = nodes_base[node_j][7] * thick
-                kg_l = pycufsm.analysis.kglocal(
+                kg_l = analysis.kglocal(
                     length=length, b_strip=b_strip, ty_1=ty_1, ty_2=ty_2, b_c=b_c, m_a=m_a
                 )
                 # Transform k_local and kg_local into global coordinates
                 alpha = el_props[i, 2]
-                [k_local, kg_local] = pycufsm.analysis.trans(
+                [k_local, kg_local] = analysis.trans(
                     alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a
                 )
 
                 # Add element contribution of k_local to full matrix k_global
                 # and kg_local to kg_global
-                [k_global, kg_global] = pycufsm.analysis.assemble(
+                [k_global, kg_global] = analysis.assemble(
                     k_global=k_global,
                     kg_global=kg_global,
                     k_local=k_local,
@@ -1889,7 +1887,7 @@ def klocal_m(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_i, b_
     c_1 = u_m / length
     c_2 = u_p / length
     #
-    [i_1, i_2, i_3, i_4, i_5] = pycufsm.analysis.bc_i1_5(b_c, i, j, length)
+    [i_1, i_2, i_3, i_4, i_5] = analysis.bc_i1_5(b_c, i, j, length)
     #
     # assemble the matrix of Km_mp
     km_mp[0, 0] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
@@ -1967,7 +1965,7 @@ def kglocal_m(length, b_strip, m_i, ty_1, ty_2, b_c):
     u_m = i * np.pi
     u_p = j * np.pi
     #
-    [_, _, _, i_4, i_5] = pycufsm.analysis.bc_i1_5(b_c, i, j, length)
+    [_, _, _, i_4, i_5] = analysis.bc_i1_5(b_c, i, j, length)
     #
     # assemble the matrix of gm_mp (symmetric membrane stability matrix)
     gm_mp[0, 0] = b_strip * (3*ty_1 + ty_2) * i_5 / 12
@@ -2214,7 +2212,7 @@ def klocal_transv(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, m_
     c_1 = u_m / length
     c_2 = u_p / length
 
-    [i_1, _, _, _, _] = pycufsm.analysis.bc_i1_5(b_c, i, j, length)
+    [i_1, _, _, _, _] = analysis.bc_i1_5(b_c, i, j, length)
     i_2 = 0
     i_3 = 0
     i_4 = 0
@@ -2363,10 +2361,10 @@ def classify(props, nodes, elements, lengths, shapes, gbt_con, b_c, m_all, sect_
 
     # CLEAN UP INPUT
     # clean u_p 0's, multiple terms. or out-of-order terms in m_all
-    m_all = pycufsm.analysis.m_sort(m_all)
+    m_all = analysis.m_sort(m_all)
 
     # FIND BASE PROPERTIES
-    el_props = pycufsm.analysis.elem_prop(nodes=nodes, elements=elements)
+    el_props = analysis.elem_prop(nodes=nodes, elements=elements)
     # set u_p stress to 1.0 for finding kg_global and k_global for axial modes
     nodes_base = deepcopy(nodes)
     nodes_base[:, 7] = np.ones_like(nodes[:, 7])

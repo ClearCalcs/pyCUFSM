@@ -1,9 +1,7 @@
 from copy import deepcopy
 from scipy import linalg as spla
 import numpy as np
-# import pycufsm.analysis # uncomment to use pure Python file
-# import pyximport; pyximport.install(build_in_temp=False, inplace=True) # uncomment to compile on demand (e.g. for easier pytest)
-import pycufsm.analysis_c
+from pycufsm.analysis import analysis
 import pycufsm.cfsm
 # from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
@@ -76,13 +74,13 @@ def strip(
 
     # CLEAN UP INPUT
     # clean u_j 0's, multiple terms. or out-of-order terms in m_all
-    m_all = pycufsm.analysis.m_sort(m_all)
+    m_all = analysis.m_sort(m_all)
 
     # DETERMINE FLAGS FOR USER CONSTRAINTS AND INTERNAL (AT NODE) B.C.'s
-    bc_flag = pycufsm.analysis.constr_bc_flag(nodes=nodes, constraints=constraints)
+    bc_flag = analysis.constr_bc_flag(nodes=nodes, constraints=constraints)
 
     # GENERATE STRIP WIDTH AND DIRECTION ANGLE
-    el_props = pycufsm.analysis.elem_prop(nodes=nodes, elements=elements)
+    el_props = analysis.elem_prop(nodes=nodes, elements=elements)
 
     # ENABLE cFSM ANALYSIS IF APPLICABLE, AND FIND BASE PROPERTIES
     if sum(gbt_con['glob']) + sum(gbt_con['dist']) \
@@ -169,7 +167,7 @@ def strip(
             nu_x = mat[3]
             nu_y = mat[4]
             bulk = mat[5]
-            k_l = pycufsm.analysis.klocal(
+            k_l = analysis.klocal(
                 stiff_x=stiff_x,
                 stiff_y=stiff_y,
                 nu_x=nu_x,
@@ -187,18 +185,16 @@ def strip(
             # Generate geometric stiffness matrix (kg_local) in local coordinates
             ty_1 = nodes[node_i][7] * thick
             ty_2 = nodes[node_j][7] * thick
-            kg_l = pycufsm.analysis.kglocal(
+            kg_l = analysis.kglocal(
                 length=length, b_strip=b_strip, ty_1=ty_1, ty_2=ty_2, b_c=b_c, m_a=m_a
             )
 
             # Transform k_local and kg_local into global coordinates
             alpha = el_props[j, 2]
-            [k_local, kg_local] = pycufsm.analysis.trans(
-                alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a
-            )
+            [k_local, kg_local] = analysis.trans(alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a)
 
             # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
-            [k_global, kg_global] = pycufsm.analysis.assemble(
+            [k_global, kg_global] = analysis.assemble(
                 k_global=k_global,
                 kg_global=kg_global,
                 k_local=k_local,
@@ -225,7 +221,7 @@ def strip(
                 k_q = spring[6]
                 discrete = spring[8]
                 y_s = spring[9] * length
-                ks_l = pycufsm.analysis.spring_klocal(
+                ks_l = analysis.spring_klocal(
                     k_u=k_u,
                     k_v=k_v,
                     k_w=k_w,
@@ -255,9 +251,9 @@ def strip(
                     else:
                         # local orientation for spring
                         alpha = np.arctan2(d_y, d_x)
-                k_s = pycufsm.analysis.spring_trans(alpha=alpha, k_s=ks_l, m_a=m_a)
+                k_s = analysis.spring_trans(alpha=alpha, k_s=ks_l, m_a=m_a)
                 # Add element contribution of k_s to full matrix k_global
-                k_global = pycufsm.analysis.spring_assemble(
+                k_global = analysis.spring_assemble(
                     k_global=k_global,
                     k_local=k_s,
                     node_i=node_i,

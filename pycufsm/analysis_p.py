@@ -1,7 +1,4 @@
-# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-import cython
 import numpy as np
-cimport numpy as np
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
@@ -119,7 +116,7 @@ def elem_prop(nodes, elements):
     return el_props
 
 
-cpdef np.ndarray klocal(double stiff_x, double stiff_y, double nu_x, double nu_y, double bulk, double thick, double length, double b_strip, str b_c, np.ndarray m_a):
+def klocal(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, b_c, m_a):
     # Generate element stiffness matrix (k_local) in local coordinates
 
     # Inputs:
@@ -144,27 +141,16 @@ cpdef np.ndarray klocal(double stiff_x, double stiff_y, double nu_x, double nu_y
     # modified by Z. Li, Aug. 09, 2009
     # modified by Z. Li, June 2010
 
-    cdef double e_1 = stiff_x / (1 - nu_x*nu_y)
-    cdef double e_2 = stiff_y / (1 - nu_x*nu_y)
-    cdef double d_x = stiff_x * thick**3 / (12 * (1 - nu_x*nu_y))
-    cdef double d_y = stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
-    cdef double d_1 = nu_x * stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
-    cdef double d_xy = bulk * thick**3 / 12
+    e_1 = stiff_x / (1 - nu_x*nu_y)
+    e_2 = stiff_y / (1 - nu_x*nu_y)
+    d_x = stiff_x * thick**3 / (12 * (1 - nu_x*nu_y))
+    d_y = stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
+    d_1 = nu_x * stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
+    d_xy = bulk * thick**3 / 12
 
-    cdef int total_m = len(m_a)  # Total number of longitudinal terms m
+    total_m = len(m_a)  # Total number of longitudinal terms m
 
-    cdef np.ndarray[np.double_t, ndim=2] k_local = np.zeros((8 * total_m, 8 * total_m), dtype=np.double)
-    
-    # declare looping variables
-    cdef np.ndarray[np.double_t, ndim=2] km_mp
-    cdef np.ndarray[np.double_t, ndim=2] kf_mp
-    cdef double u_i
-    cdef double u_j
-    cdef double c_1
-    cdef double c_2
-    cdef int i
-    cdef int j
-
+    k_local = np.zeros((8 * total_m, 8 * total_m))
     for i in range(0, total_m):
         for j in range(0, total_m):
             km_mp = np.zeros((4, 4))
@@ -237,7 +223,7 @@ cpdef np.ndarray klocal(double stiff_x, double stiff_y, double nu_x, double nu_y
     return k_local
 
 
-cdef bc_i1_5(str b_c, double m_i, double m_j, double length):
+def bc_i1_5(b_c, m_i, m_j, length):
     # Calculate the 5 undetermined parameters i_1,i_2,i_3,i_4,i_5 for local elastic
     # and geometric stiffness matrices.
     # b_c: a string specifying boundary conditions to be analysed:
@@ -255,12 +241,12 @@ cdef bc_i1_5(str b_c, double m_i, double m_j, double length):
     # calculation of i_4 is the integration of y_m''*Yn'' from 0 to length
     # calculation of i_5 is the integration of y_m'*Yn' from 0 to length
 
-    cdef double i_1 = 0
-    cdef double i_2 = 0
-    cdef double i_3 = 0
-    cdef double i_4 = 0
-    cdef double i_5 = 0
-
+    i_1 = 0
+    i_2 = 0
+    i_3 = 0
+    i_4 = 0
+    i_5 = 0
+    
     if b_c == 'S-S':
         # For simply-pimply supported boundary condition at loaded edges
         if m_i == m_j:
@@ -369,7 +355,7 @@ cdef bc_i1_5(str b_c, double m_i, double m_j, double length):
     return [i_1, i_2, i_3, i_4, i_5]
 
 
-cpdef kglocal(double length, double b_strip, double ty_1, double ty_2, str b_c, np.ndarray m_a):
+def kglocal(length, b_strip, ty_1, ty_2, b_c, m_a):
     # Generate geometric stiffness matrix (kg_local) in local coordinates
 
     # Inputs:
@@ -394,21 +380,13 @@ cpdef kglocal(double length, double b_strip, double ty_1, double ty_2, str b_c, 
     # modified by Z. Li, Aug. 09, 2009
     # modified by Z. Li, June 2010
 
-    cdef int total_m = len(m_a)  # Total number of longitudinal terms m
-    cdef np.ndarray[np.double_t, ndim=2] kg_local = np.zeros((8 * total_m, 8 * total_m), dtype=np.double)
-
-    # declare loop variables
-    cdef np.ndarray[np.double_t, ndim=2] gm_mp
-    cdef np.ndarray[np.double_t, ndim=2] gf_mp
-    cdef double u_i
-    cdef double u_j
-    cdef int i
-    cdef int j
+    total_m = len(m_a)  # Total number of longitudinal terms m
+    kg_local = np.zeros((8 * total_m, 8 * total_m))
 
     for i in range(0, total_m):
         for j in range(0, total_m):
-            gm_mp = np.zeros((4, 4), dtype=np.double)
-            gf_mp = np.zeros((4, 4), dtype=np.double)
+            gm_mp = np.zeros((4, 4))
+            gf_mp = np.zeros((4, 4))
             u_i = m_a[i] * np.pi
             u_j = m_a[j] * np.pi
 
@@ -447,30 +425,30 @@ cpdef kglocal(double length, double b_strip, double ty_1, double ty_2, str b_c, 
     return kg_local
 
 
-cpdef trans(float alpha, np.ndarray k_local, np.ndarray kg_local, np.ndarray m_a):
-    # Transform the local stiffness into global stiffness
+def trans(alpha, k_local, kg_local, m_a):
+    # Transfer the local stiffness into global stiffness
     # Zhanjie 2008
     # modified by Z. Li, Aug. 09, 2009
 
-    cdef int total_m = len(m_a)  # Total number of longitudinal terms m
-    cdef np.ndarray[np.double_t, ndim=2] gamma = np.zeros((8 * total_m, 8 * total_m), dtype=np.double)
-    cdef np.ndarray[np.double_t, ndim=2] gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
+    total_m = len(m_a)  # Total number of longitudinal terms m
+    gamma = np.zeros((8 * total_m, 8 * total_m))
+
+    gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
                     [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0], [0, 0, 0, 1, 0, 0, 0, 0],
                     [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
-                    [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0], [0, 0, 0, 0, 0, 0, 0, 1]], dtype=np.double)
+                    [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
 
     # extend to multi-m
-    cdef int i
     for i in range(0, total_m):
         gamma[8 * i:8 * (i+1), 8 * i:8 * (i+1)] = gam
 
-    cdef np.ndarray[np.double_t, ndim=2] k_global = gamma @ k_local @ gamma.conj().T
-    cdef np.ndarray[np.double_t, ndim=2] kg_global = gamma @ kg_local @ gamma.conj().T
+    k_global = gamma @ k_local @ gamma.conj().T
+    kg_global = gamma @ kg_local @ gamma.conj().T
 
     return [k_global, kg_global]
 
 
-cpdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np.ndarray kg_local, int node_i, int node_j, int n_nodes, np.ndarray m_a):
+def assemble(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes, m_a):
     # Add the element contribution to the global stiffness matrix
 
     # Outputs:
@@ -484,13 +462,8 @@ cpdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np
     # modified by Z. Li, Aug. 09, 2009
     # Z. Li, June 2010
 
-    cdef int total_m = len(m_a)  # Total number of longitudinal terms m
-    cdef int skip = 2 * n_nodes
-    
-    # declare loop variables
-    cdef int i
-    cdef int j
-
+    total_m = len(m_a)  # Total number of longitudinal terms m
+    skip = 2 * n_nodes
     for i in range(0, total_m):
         for j in range(0, total_m):
             # Submatrices for the initial stiffness
@@ -566,44 +539,44 @@ cpdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np
             kg44 = kg_local[8*i + 6:8*i + 8, 8*j + 6:8*j + 8]
 
             kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg11
+                      4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg11
             kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg12
+                      4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg12
             kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg21
+                      4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg21
             kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg22
+                      4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg22
 
             kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_i+1) * 2] += kg33
+                      4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
+                      + (node_i+1) * 2] += kg33
             kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_j+1) * 2] += kg34
+                      4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
+                      + (node_j+1) * 2] += kg34
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_i+1) * 2] += kg43
+                      4*n_nodes*j + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip
+                      + (node_i+1) * 2] += kg43
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
-                       + (node_j+1) * 2] += kg44
+                      4*n_nodes*j + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip
+                      + (node_j+1) * 2] += kg44
 
             kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
-                       + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg13
+                      + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg13
             kg_global[4*n_nodes*i + (node_i+1) * 2 - 2:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
-                       + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg14
+                      + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg14
             kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
-                       + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg23
+                      + skip + (node_i+1) * 2 - 2:4*n_nodes*j + skip + (node_i+1) * 2] += kg23
             kg_global[4*n_nodes*i + (node_j+1) * 2 - 2:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
-                       + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg24
+                      + skip + (node_j+1) * 2 - 2:4*n_nodes*j + skip + (node_j+1) * 2] += kg24
 
             kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg31
+                      4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg31
             kg_global[4*n_nodes*i + skip + (node_i+1) * 2 - 2:4*n_nodes*i + skip + (node_i+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg32
+                      4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg32
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg41
+                      4*n_nodes*j + (node_i+1) * 2 - 2:4*n_nodes*j + (node_i+1) * 2] += kg41
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
-                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg42
+                      4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg42
 
     return [k_global, kg_global]
 
@@ -656,7 +629,7 @@ def spring_klocal(k_u, k_v, k_w, k_q, length, b_c, m_a, discrete, y_s):
             # assemble the matrix of kf_mp (flexural stiffness)
             kf_mp = np.array([[k_w * i_1, 0, -k_w * i_1, 0], [0, k_q * i_1, 0, -k_q * i_1],
                               [-k_w * i_1, 0, k_w * i_1, 0], [0, -k_q * i_1, 0, k_q * i_1]])
-            
+
             k_local[8 * i:8*i + 4, 8 * j:8*j + 4] = km_mp
             k_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = kf_mp
 
