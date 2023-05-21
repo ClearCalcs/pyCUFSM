@@ -246,7 +246,7 @@ def bc_i1_5(b_c, m_i, m_j, length):
     i_3 = 0
     i_4 = 0
     i_5 = 0
-    
+
     if b_c == 'S-S':
         # For simply-pimply supported boundary condition at loaded edges
         if m_i == m_j:
@@ -319,7 +319,6 @@ def bc_i1_5(b_c, m_i, m_j, length):
                 - length*(-1)**(m_j - 1) / (m_j - 1/2) / np.pi
             i_2 = (m_i - 1/2)**2 * np.pi**2 * ((-1)**(m_i - 1) / (m_i - 1/2) / np.pi) / length
             i_3 = (m_j - 1/2)**2 * np.pi**2 * ((-1)**(m_j - 1) / (m_j - 1/2) / np.pi) / length
-
 
     elif b_c == 'C-G' or b_c == 'G-C':
         # For clamped-guided supported boundary condition at loaded edges

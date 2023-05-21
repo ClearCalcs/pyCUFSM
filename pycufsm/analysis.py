@@ -2,7 +2,7 @@ try:
     try:
         # if the cython module is already built, use it
         import pycufsm.analysis_c as analysis
-        
+
     except ImportError:
         # if we can build the cython module, build and use it
         import pyximport

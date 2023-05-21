@@ -4,6 +4,7 @@ from Cython.Build import cythonize
 
 
 class build_py(_build_py):
+
     def run(self):
         self.run_command("build_ext")
         return super().run()
