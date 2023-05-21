@@ -1,6 +1,7 @@
 from setuptools import Extension
 from setuptools.command.build_py import build_py as _build_py
 from Cython.Build import cythonize
+import numpy as np
 
 
 class build_py(_build_py):
@@ -20,5 +21,6 @@ class build_py(_build_py):
             Extension(
                 "pycufsm",
                 sources=["pycufsm/analysis_c.c"],
+                include_dirs=[np.get_include()],
             )
         )

@@ -2,6 +2,7 @@
 import cython
 import numpy as np
 cimport numpy as np
+np.import_array()
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
