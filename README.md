@@ -26,6 +26,8 @@ If you would like to contribute to the pyCUFSM project, then please do - all pro
 -   [x] Constrained FSM
 -   [x] Added template_path() function to define a complete arbitrary cross-section by simple paths
 -   [x] Add automated validation testing of FSM calculations via pytest
+-   [x] Various efficiency and readability improvements:
+    -   [x] Cythonise a few computation-heavy functions in analysis.py, including klocal(), kglocal(), and assemble()
 
 #### Complete But Untested
 
@@ -37,7 +39,6 @@ If you would like to contribute to the pyCUFSM project, then please do - all pro
 
 -   [ ] Handle holes in cross-sections in some meaningful way
 -   [ ] Various efficiency and readability improvements:
-    -   [ ] Cythonise a few computation-heavy functions in analysis.py, including klocal(), kglocal(), and assemble()
     -   [ ] Make use of scipy.sparse for sparse matrices where possible
     -   [ ] Convert some numerical inputs and data to dictionaries with strings
     -   [ ] Eliminate matrix columns which are nothing more than the index number of the row
