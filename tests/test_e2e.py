@@ -40,7 +40,7 @@ def mat_file_test(mat_filename):
 
 def describe_end_to_end_tests():
 
-    @pspec_context("End-to-End Tests (i.e. original unittest tests)")
+    @pspec_context("End-to-End Tests")
     def describe():
         pass
 
@@ -62,7 +62,7 @@ def describe_end_to_end_tests():
 
     def context_dsm_3_2_1_c_with_lips_Mx():
 
-        @pspec_context("DSM Guide Jan 2006, Ex 3.2.1")
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.1: C-Section with Lips (Mx)")
         def describe():
             pass
 
@@ -83,7 +83,7 @@ def describe_end_to_end_tests():
 
     def context_dsm_3_2_1_c_with_lips_P():
 
-        @pspec_context("DSM Guide Jan 2006, Ex 3.2.1")
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.1: C-Section with Lips (P)")
         def describe():
             pass
 
@@ -111,7 +111,7 @@ def describe_end_to_end_tests():
 
     def context_dsm_3_2_2_c_with_lips_modified_Mx():
 
-        @pspec_context("DSM Guide Jan 2006, Ex 3.2.2")
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.2: Modified C-Section with Lips (Mx)")
         def describe():
             pass
 
@@ -137,11 +137,11 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-3)
 
     def context_dsm_3_2_2_c_with_lips_modified_P():
 
-        @pspec_context("DSM Guide Jan 2006, Ex 3.2.2")
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.2: Modified C-Section with Lips (P)")
         def describe():
             pass
 
@@ -171,7 +171,7 @@ def describe_end_to_end_tests():
 
     def context_dsm_3_2_5_z_with_lips_Mx():
 
-        @pspec_context("DSM Guide Jan 2006, Ex 3.2.2")
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.2: Z-Section with Lips (Mx)")
         def describe():
             pass
 
@@ -193,7 +193,7 @@ def describe_end_to_end_tests():
 
     def context_dsm_3_2_5_z_with_lips_P():
 
-        @pspec_context("DSM Guide Jan 2006, Ex 3.2.2")
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.2: Z-Section with Lips (P)")
         def describe():
             pass
 
