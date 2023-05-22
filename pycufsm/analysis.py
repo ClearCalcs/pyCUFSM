@@ -1,3 +1,4 @@
+import numpy as np
 try:
     try:
         # if the cython module is already built, use it
@@ -6,7 +7,12 @@ try:
     except ImportError:
         # if we can build the cython module, build and use it
         import pyximport
-        pyximport.install(build_in_temp=False, inplace=True, reload_support=True)
+        pyximport.install(
+            build_in_temp=False,
+            inplace=True,
+            reload_support=True,
+            setup_args={"include_dirs": np.get_include()},
+        )
         import pycufsm.analysis_c as analysis
 
 except ImportError:
