@@ -187,6 +187,7 @@ def strip(
                     discrete=discrete,
                     y_s=y_s
                 )
+
                 # Transform k_s into global coordinates
                 node_i = spring[1]
                 node_j = spring[2]
@@ -206,7 +207,9 @@ def strip(
                     else:
                         # local orientation for spring
                         alpha = np.arctan2(d_y, d_x)
-                k_s = analysis.spring_trans(alpha=alpha, k_s=ks_l, m_a=m_a)
+                gamma = analysis.trans(alpha=alpha, total_m=total_m)
+                k_s = gamma @ ks_l @ gamma.conj().T
+
                 # Add element contribution of k_s to full matrix k_global
                 k_global = analysis.spring_assemble(
                     k_global=k_global,
