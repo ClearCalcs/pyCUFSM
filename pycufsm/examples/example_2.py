@@ -20,9 +20,9 @@ def __main__():
                       [6, 0, 300, 1, 1, 1, 1, 0], [7, -50, 300, 1, 1, 1, 1, 0],
                       [8, -100, 300, 1, 1, 1, 1, 0], [9, -100, 275, 1, 1, 1, 1, 0]])
     thickness = 2
-    elements = [[0, 0, 1, thickness, 0], [1, 1, 2, thickness, 0], [2, 2, 3, thickness, 0],
-                [3, 3, 4, thickness, 0], [4, 4, 5, thickness, 0], [5, 5, 6, thickness, 0],
-                [6, 6, 7, thickness, 0], [7, 7, 8, thickness, 0], [8, 8, 9, thickness, 0]]
+    elements = np.array([[0, 0, 1, thickness, 0], [1, 1, 2, thickness, 0], [2, 2, 3, thickness, 0],
+                         [3, 3, 4, thickness, 0], [4, 4, 5, thickness, 0], [5, 5, 6, thickness, 0],
+                         [6, 6, 7, thickness, 0], [7, 7, 8, thickness, 0], [8, 8, 9, thickness, 0]])
 
     # These lengths will generally provide sufficient accuracy for
     # local, distortional, and global buckling modes

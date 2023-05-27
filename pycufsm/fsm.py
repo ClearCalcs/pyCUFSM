@@ -150,60 +150,15 @@ def strip(
                 d_y=d_y
             )
 
-        # ZERO OUT THE GLOBAL MATRICES
-        k_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
-        kg_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
-
-        # ASSEMBLE THE GLOBAL STIFFNESS MATRICES
-        for j, elem in enumerate(elements):
-            # Generate element stiffness matrix (k_local) in local coordinates
-            thick = elem[3]
-            b_strip = el_props[j, 1]
-            mat_num = int(elem[4])
-            row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
-            mat = props[row]
-            stiff_x = mat[1]
-            stiff_y = mat[2]
-            nu_x = mat[3]
-            nu_y = mat[4]
-            bulk = mat[5]
-            k_l = analysis.klocal(
-                stiff_x=stiff_x,
-                stiff_y=stiff_y,
-                nu_x=nu_x,
-                nu_y=nu_y,
-                bulk=bulk,
-                thick=thick,
-                length=length,
-                b_strip=b_strip,
-                b_c=b_c,
-                m_a=m_a
-            )
-            node_i = int(elem[1])
-            node_j = int(elem[2])
-
-            # Generate geometric stiffness matrix (kg_local) in local coordinates
-            ty_1 = nodes[node_i][7] * thick
-            ty_2 = nodes[node_j][7] * thick
-            kg_l = analysis.kglocal(
-                length=length, b_strip=b_strip, ty_1=ty_1, ty_2=ty_2, b_c=b_c, m_a=m_a
-            )
-
-            # Transform k_local and kg_local into global coordinates
-            alpha = el_props[j, 2]
-            [k_local, kg_local] = analysis.trans(alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a)
-
-            # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
-            [k_global, kg_global] = analysis.assemble(
-                k_global=k_global,
-                kg_global=kg_global,
-                k_local=k_local,
-                kg_local=kg_local,
-                node_i=node_i,
-                node_j=node_j,
-                n_nodes=n_nodes,
-                m_a=m_a
-            )
+        k_global, kg_global = analysis.k_kg_global(
+            nodes=nodes,
+            elements=elements,
+            el_props=el_props,
+            props=props,
+            length=length,
+            b_c=b_c,
+            m_a=m_a
+        )
 
         # %ADD SPRING CONTRIBUTIONS TO STIFFNESS
         # %Prior to version 4.3 this was the springs method
@@ -232,6 +187,7 @@ def strip(
                     discrete=discrete,
                     y_s=y_s
                 )
+
                 # Transform k_s into global coordinates
                 node_i = spring[1]
                 node_j = spring[2]
@@ -251,7 +207,9 @@ def strip(
                     else:
                         # local orientation for spring
                         alpha = np.arctan2(d_y, d_x)
-                k_s = analysis.spring_trans(alpha=alpha, k_s=ks_l, m_a=m_a)
+                gamma = analysis.trans(alpha=alpha, total_m=total_m)
+                k_s = gamma @ ks_l @ gamma.conj().T
+
                 # Add element contribution of k_s to full matrix k_global
                 k_global = analysis.spring_assemble(
                     k_global=k_global,
