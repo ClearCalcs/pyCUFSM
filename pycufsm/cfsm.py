@@ -292,6 +292,7 @@ def base_update(
             # ASSEMBLE THE GLOBAL STIFFNESS MATRICES
             for i, elem in enumerate(elements):
                 # Generate element stiffness matrix (k_local) in local coordinates
+                # Generate geometric stiffness matrix (kg_local) in local coordinates
                 thick = elem[3]
                 b_strip = el_props[i, 1]
                 mat_num = int(elem[4])
@@ -302,7 +303,13 @@ def base_update(
                 nu_x = mat[3]
                 nu_y = mat[4]
                 bulk = mat[5]
-                k_l = analysis.klocal(
+
+                node_i = int(elem[1])
+                node_j = int(elem[2])
+                ty_1 = nodes_base[node_i][7] * thick
+                ty_2 = nodes_base[node_j][7] * thick
+
+                k_l, kg_l = analysis.k_kg_local(
                     stiff_x=stiff_x,
                     stiff_y=stiff_y,
                     nu_x=nu_x,
@@ -310,18 +317,13 @@ def base_update(
                     bulk=bulk,
                     thick=thick,
                     length=length,
+                    ty_1=ty_1,
+                    ty_2=ty_2,
                     b_strip=b_strip,
                     b_c=b_c,
                     m_a=m_a
                 )
-                # Generate geometric stiffness matrix (kg_local) in local coordinates
-                node_i = int(elem[1])
-                node_j = int(elem[2])
-                ty_1 = nodes_base[node_i][7] * thick
-                ty_2 = nodes_base[node_j][7] * thick
-                kg_l = analysis.kglocal(
-                    length=length, b_strip=b_strip, ty_1=ty_1, ty_2=ty_2, b_c=b_c, m_a=m_a
-                )
+
                 # Transform k_local and kg_local into global coordinates
                 alpha = el_props[i, 2]
                 [k_local, kg_local] = analysis.trans(

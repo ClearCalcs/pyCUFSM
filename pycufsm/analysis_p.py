@@ -116,30 +116,37 @@ def elem_prop(nodes, elements):
     return el_props
 
 
-def klocal(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, b_c, m_a):
+def k_kg_local(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, ty_1, ty_2, b_strip, b_c, m_a):
     # Generate element stiffness matrix (k_local) in local coordinates
+    # Generate geometric stiffness matrix (kg_local) in local coordinates
 
     # Inputs:
     # stiff_x,stiff_y,nu_x,nu_y,bulk: material properties
     # thick: thickness of the strip (element)
     # length: length of the strip in longitudinal direction
+    # ty_1, ty_2: node stresses
     # b_strip: width of the strip in transverse direction
     # b_c: ['S-S'] a string specifying boundary conditions to be analyzed:
     # 'S-S' simply-pimply supported boundary condition at loaded edges
     # 'C-C' clamped-clamped boundary condition at loaded edges
     # 'S-C' simply-clamped supported boundary condition at loaded edges
     # 'C-F' clamped-free supported boundary condition at loaded edges
-    # 'C-G' clamped-guided supported boundary condition at loaded edges
+    # 'C-G' clamped-gcdef np.ndarray[np.double_t, ndim=2] uided supported boundary condition at loaded edges
     # m_a: longitudinal terms (or half-wave numbers) for this length
 
     # Output:
     # k_local: local stiffness matrix, a total_m x total_m matrix of 8 by 8 submatrices.
     # k_local=[k_mp]total_m x total_m block matrix
     # each k_mp is the 8 x 8 submatrix in the DOF order [u1 v1 u2 v2 w1 theta1 w2 theta2]'
+    # kg_local: local geometric stiffness matrix, a total_m x total_m matrix of 8 by 8 submatrices.
+    # kg_local=[kg_mp]total_m x total_m block matrix
+    # each kg_mp is the 8 x 8 submatrix in the DOF order [u1 v1 u2 v2 w1 theta1
+    # w2 theta2]'
 
     # Z. Li June 2008
     # modified by Z. Li, Aug. 09, 2009
     # modified by Z. Li, June 2010
+    # klocal and kglocal merged by B Smith, May 2023
 
     e_1 = stiff_x / (1 - nu_x*nu_y)
     e_2 = stiff_y / (1 - nu_x*nu_y)
@@ -151,10 +158,10 @@ def klocal(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, b_c, m_a)
     total_m = len(m_a)  # Total number of longitudinal terms m
 
     k_local = np.zeros((8 * total_m, 8 * total_m))
+    kg_local = np.zeros((8 * total_m, 8 * total_m))
+
     for i in range(0, total_m):
         for j in range(0, total_m):
-            km_mp = np.zeros((4, 4))
-            kf_mp = np.zeros((4, 4))
             u_i = m_a[i] * np.pi
             u_j = m_a[j] * np.pi
             c_1 = u_i / length
@@ -162,65 +169,123 @@ def klocal(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, b_strip, b_c, m_a)
 
             [i_1, i_2, i_3, i_4, i_5] = bc_i1_5(b_c, m_a[i], m_a[j], length)
 
-            # assemble the matrix of Km_mp (membrane stiffness matrix)
-            km_mp[0, 0] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
-            km_mp[0, 1] = e_2 * nu_x * (-1 / 2 / c_2) * i_3 - bulk*i_5/2/c_2
-            km_mp[0, 2] = -e_1 * i_1 / b_strip + bulk*b_strip*i_5/6
-            km_mp[0, 3] = e_2 * nu_x * (-1 / 2 / c_2) * i_3 + bulk*i_5/2/c_2
+            k_local[8 * i:8*i + 4, 8 * j:8*j + 4] = calc_km_mp(
+                e_1, e_2, c_1, c_2, b_strip, bulk, nu_x, thick, i_1, i_2, i_3, i_4, i_5
+            )
+            k_local[8*i + 4:8 * (i+1), 8*j + 4:8
+                    * (j+1)] = calc_kf_mp(d_x, d_y, d_1, d_xy, b_strip, i_1, i_2, i_3, i_4, i_5)
 
-            km_mp[1, 0] = e_2 * nu_x * (-1 / 2 / c_1) * i_2 - bulk*i_5/2/c_1
-            km_mp[1, 1] = e_2*b_strip*i_4/3/c_1/c_2 + bulk*i_5/b_strip/c_1/c_2
-            km_mp[1, 2] = e_2 * nu_x * (1/2/c_1) * i_2 - bulk*i_5/2/c_1
-            km_mp[1, 3] = e_2*b_strip*i_4/6/c_1/c_2 - bulk*i_5/b_strip/c_1/c_2
+            kg_local[8 * i:8*i + 4,
+                     8 * j:8*j + 4] = calc_gm_mp(u_i, u_j, b_strip, length, ty_1, ty_2, i_4, i_5)
+            kg_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = calc_gf_mp(ty_1, ty_2, b_strip, i_5)
 
-            km_mp[2, 0] = -e_1 * i_1 / b_strip + bulk*b_strip*i_5/6
-            km_mp[2, 1] = e_2 * nu_x * (1/2/c_2) * i_3 - bulk*i_5/2/c_2
-            km_mp[2, 2] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
-            km_mp[2, 3] = e_2 * nu_x * (1/2/c_2) * i_3 + bulk*i_5/2/c_2
+    return k_local, kg_local
 
-            km_mp[3, 0] = e_2 * nu_x * (-1 / 2 / c_1) * i_2 + bulk*i_5/2/c_1
-            km_mp[3, 1] = e_2*b_strip*i_4/6/c_1/c_2 - bulk*i_5/b_strip/c_1/c_2
-            km_mp[3, 2] = e_2 * nu_x * (1/2/c_1) * i_2 + bulk*i_5/2/c_1
-            km_mp[3, 3] = e_2*b_strip*i_4/3/c_1/c_2 + bulk*i_5/b_strip/c_1/c_2
-            km_mp = km_mp * thick
 
-            # assemble the matrix of Kf_mp (flexural stiffness matrix)
-            kf_mp[0, 0] = (5040*d_x*i_1 - 504*b_strip**2*d_1*i_2 - 504*b_strip**2*d_1*i_3 \
-                + 156*b_strip**4*d_y*i_4 + 2016*b_strip**2*d_xy*i_5)/420/b_strip**3
-            kf_mp[0, 1] = (2520*b_strip*d_x*i_1 - 462*b_strip**3*d_1*i_2 - 42*b_strip**3*d_1*i_3 \
-                + 22*b_strip**5*d_y*i_4 + 168*b_strip**3*d_xy*i_5)/420/b_strip**3
-            kf_mp[0, 2] = (-5040*d_x*i_1 + 504*b_strip**2*d_1*i_2 + 504*b_strip**2*d_1*i_3 \
-                + 54*b_strip**4*d_y*i_4 - 2016*b_strip**2*d_xy*i_5)/420/b_strip**3
-            kf_mp[0, 3] = (2520*b_strip*d_x*i_1 - 42*b_strip**3*d_1*i_2 - 42*b_strip**3*d_1*i_3 \
-                - 13*b_strip**5*d_y*i_4 + 168*b_strip**3*d_xy*i_5)/420/b_strip**3
+def calc_km_mp(e_1, e_2, c_1, c_2, b_strip, bulk, nu_x, thick, i_1, i_2, i_3, i_4, i_5):
+    km_mp = np.zeros((4, 4))
 
-            kf_mp[1, 0] = (2520*b_strip*d_x*i_1 - 462*b_strip**3*d_1*i_3 - 42*b_strip**3*d_1*i_2 \
-                + 22*b_strip**5*d_y*i_4 + 168*b_strip**3*d_xy*i_5)/420/b_strip**3
-            kf_mp[1, 1] = (1680*b_strip**2*d_x*i_1 - 56*b_strip**4*d_1*i_2 - 56*b_strip**4*d_1*i_3 \
-                + 4*b_strip**6*d_y*i_4 + 224*b_strip**4*d_xy*i_5)/420/b_strip**3
-            kf_mp[1, 2] = (-2520*b_strip*d_x*i_1 + 42*b_strip**3*d_1*i_2 + 42*b_strip**3*d_1*i_3 \
-                + 13*b_strip**5*d_y*i_4 - 168*b_strip**3*d_xy*i_5)/420/b_strip**3
-            kf_mp[1, 3] = (840*b_strip**2*d_x*i_1 + 14*b_strip**4*d_1*i_2 + 14*b_strip**4*d_1*i_3 \
-                - 3*b_strip**6*d_y*i_4 - 56*b_strip**4*d_xy*i_5)/420/b_strip**3
+    # assemble the matrix of Km_mp (membrane stiffness matrix)
+    km_mp[0, 0] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
+    km_mp[0, 1] = e_2 * nu_x * (-1 / 2 / c_2) * i_3 - bulk*i_5/2/c_2
+    km_mp[0, 2] = -e_1 * i_1 / b_strip + bulk*b_strip*i_5/6
+    km_mp[0, 3] = e_2 * nu_x * (-1 / 2 / c_2) * i_3 + bulk*i_5/2/c_2
 
-            kf_mp[2, 0] = kf_mp[0, 2]
-            kf_mp[2, 1] = kf_mp[1, 2]
-            kf_mp[2, 2] = (5040*d_x*i_1 - 504*b_strip**2*d_1*i_2 - 504*b_strip**2*d_1*i_3 \
-                + 156*b_strip**4*d_y*i_4 + 2016*b_strip**2*d_xy*i_5)/420/b_strip**3
-            kf_mp[2, 3] = (-2520*b_strip*d_x*i_1 + 462*b_strip**3*d_1*i_2 + 42*b_strip**3*d_1*i_3 \
-                - 22*b_strip**5*d_y*i_4 - 168*b_strip**3*d_xy*i_5)/420/b_strip**3
+    km_mp[1, 0] = e_2 * nu_x * (-1 / 2 / c_1) * i_2 - bulk*i_5/2/c_1
+    km_mp[1, 1] = e_2*b_strip*i_4/3/c_1/c_2 + bulk*i_5/b_strip/c_1/c_2
+    km_mp[1, 2] = e_2 * nu_x * (1/2/c_1) * i_2 - bulk*i_5/2/c_1
+    km_mp[1, 3] = e_2*b_strip*i_4/6/c_1/c_2 - bulk*i_5/b_strip/c_1/c_2
 
-            kf_mp[3, 0] = kf_mp[0, 3]
-            kf_mp[3, 1] = kf_mp[1, 3]
-            kf_mp[3, 2] = (-2520*b_strip*d_x*i_1 + 462*b_strip**3*d_1*i_3 + 42*b_strip**3*d_1*i_2 \
-                - 22*b_strip**5*d_y*i_4 - 168*b_strip**3*d_xy*i_5)/420/b_strip**3 # not symmetric
-            kf_mp[3, 3] = (1680*b_strip**2*d_x*i_1 - 56*b_strip**4*d_1*i_2 - 56*b_strip**4*d_1*i_3 \
-                + 4*b_strip**6*d_y*i_4 + 224*b_strip**4*d_xy*i_5)/420/b_strip**3
+    km_mp[2, 0] = -e_1 * i_1 / b_strip + bulk*b_strip*i_5/6
+    km_mp[2, 1] = e_2 * nu_x * (1/2/c_2) * i_3 - bulk*i_5/2/c_2
+    km_mp[2, 2] = e_1*i_1/b_strip + bulk*b_strip*i_5/3
+    km_mp[2, 3] = e_2 * nu_x * (1/2/c_2) * i_3 + bulk*i_5/2/c_2
 
-            k_local[8 * i:8*i + 4, 8 * j:8*j + 4] = km_mp
-            k_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = kf_mp
+    km_mp[3, 0] = e_2 * nu_x * (-1 / 2 / c_1) * i_2 + bulk*i_5/2/c_1
+    km_mp[3, 1] = e_2*b_strip*i_4/6/c_1/c_2 - bulk*i_5/b_strip/c_1/c_2
+    km_mp[3, 2] = e_2 * nu_x * (1/2/c_1) * i_2 + bulk*i_5/2/c_1
+    km_mp[3, 3] = e_2*b_strip*i_4/3/c_1/c_2 + bulk*i_5/b_strip/c_1/c_2
 
-    return k_local
+    return km_mp * thick
+
+
+def calc_kf_mp(d_x, d_y, d_1, d_xy, b_strip, i_1, i_2, i_3, i_4, i_5):
+    kf_mp = np.zeros((4, 4))
+
+    # assemble the matrix of Kf_mp (flexural stiffness matrix)
+    kf_mp[0, 0] = (5040*d_x*i_1 - 504*b_strip**2*d_1*i_2 - 504*b_strip**2*d_1*i_3 \
+        + 156*b_strip**4*d_y*i_4 + 2016*b_strip**2*d_xy*i_5)/420/b_strip**3
+    kf_mp[0, 1] = (2520*b_strip*d_x*i_1 - 462*b_strip**3*d_1*i_2 - 42*b_strip**3*d_1*i_3 \
+        + 22*b_strip**5*d_y*i_4 + 168*b_strip**3*d_xy*i_5)/420/b_strip**3
+    kf_mp[0, 2] = (-5040*d_x*i_1 + 504*b_strip**2*d_1*i_2 + 504*b_strip**2*d_1*i_3 \
+        + 54*b_strip**4*d_y*i_4 - 2016*b_strip**2*d_xy*i_5)/420/b_strip**3
+    kf_mp[0, 3] = (2520*b_strip*d_x*i_1 - 42*b_strip**3*d_1*i_2 - 42*b_strip**3*d_1*i_3 \
+        - 13*b_strip**5*d_y*i_4 + 168*b_strip**3*d_xy*i_5)/420/b_strip**3
+
+    kf_mp[1, 0] = (2520*b_strip*d_x*i_1 - 462*b_strip**3*d_1*i_3 - 42*b_strip**3*d_1*i_2 \
+        + 22*b_strip**5*d_y*i_4 + 168*b_strip**3*d_xy*i_5)/420/b_strip**3
+    kf_mp[1, 1] = (1680*b_strip**2*d_x*i_1 - 56*b_strip**4*d_1*i_2 - 56*b_strip**4*d_1*i_3 \
+        + 4*b_strip**6*d_y*i_4 + 224*b_strip**4*d_xy*i_5)/420/b_strip**3
+    kf_mp[1, 2] = (-2520*b_strip*d_x*i_1 + 42*b_strip**3*d_1*i_2 + 42*b_strip**3*d_1*i_3 \
+        + 13*b_strip**5*d_y*i_4 - 168*b_strip**3*d_xy*i_5)/420/b_strip**3
+    kf_mp[1, 3] = (840*b_strip**2*d_x*i_1 + 14*b_strip**4*d_1*i_2 + 14*b_strip**4*d_1*i_3 \
+        - 3*b_strip**6*d_y*i_4 - 56*b_strip**4*d_xy*i_5)/420/b_strip**3
+
+    kf_mp[2, 0] = kf_mp[0, 2]
+    kf_mp[2, 1] = kf_mp[1, 2]
+    kf_mp[2, 2] = (5040*d_x*i_1 - 504*b_strip**2*d_1*i_2 - 504*b_strip**2*d_1*i_3 \
+        + 156*b_strip**4*d_y*i_4 + 2016*b_strip**2*d_xy*i_5)/420/b_strip**3
+    kf_mp[2, 3] = (-2520*b_strip*d_x*i_1 + 462*b_strip**3*d_1*i_2 + 42*b_strip**3*d_1*i_3 \
+        - 22*b_strip**5*d_y*i_4 - 168*b_strip**3*d_xy*i_5)/420/b_strip**3
+
+    kf_mp[3, 0] = kf_mp[0, 3]
+    kf_mp[3, 1] = kf_mp[1, 3]
+    kf_mp[3, 2] = (-2520*b_strip*d_x*i_1 + 462*b_strip**3*d_1*i_3 + 42*b_strip**3*d_1*i_2 \
+        - 22*b_strip**5*d_y*i_4 - 168*b_strip**3*d_xy*i_5)/420/b_strip**3 # not symmetric
+    kf_mp[3, 3] = (1680*b_strip**2*d_x*i_1 - 56*b_strip**4*d_1*i_2 - 56*b_strip**4*d_1*i_3 \
+        + 4*b_strip**6*d_y*i_4 + 224*b_strip**4*d_xy*i_5)/420/b_strip**3
+
+    return kf_mp
+
+
+def calc_gm_mp(u_i, u_j, b_strip, length, ty_1, ty_2, i_4, i_5):
+    gm_mp = np.zeros((4, 4))
+
+    # assemble the matrix of gm_mp (symmetric membrane stability matrix)
+    gm_mp[0, 0] = b_strip * (3*ty_1 + ty_2) * i_5 / 12
+    gm_mp[0, 2] = b_strip * (ty_1+ty_2) * i_5 / 12
+    gm_mp[2, 0] = gm_mp[0, 2]
+    gm_mp[1, 1] = b_strip * length**2 * (3*ty_1 + ty_2) * i_4 / 12 / u_i / u_j
+    gm_mp[1, 3] = b_strip * length**2 * (ty_1+ty_2) * i_4 / 12 / u_i / u_j
+    gm_mp[3, 1] = gm_mp[1, 3]
+    gm_mp[2, 2] = b_strip * (ty_1 + 3*ty_2) * i_5 / 12
+    gm_mp[3, 3] = b_strip * length**2 * (ty_1 + 3*ty_2) * i_4 / 12 / u_i / u_j
+
+    return gm_mp
+
+
+def calc_gf_mp(ty_1, ty_2, b_strip, i_5):
+    gf_mp = np.zeros((4, 4))
+
+    # assemble the matrix of gf_mp (symmetric flexural stability matrix)
+    gf_mp[0, 0] = (10*ty_1 + 3*ty_2) * b_strip * i_5 / 35
+    gf_mp[0, 1] = (15*ty_1 + 7*ty_2) * b_strip**2 * i_5 / 210 / 2
+    gf_mp[1, 0] = gf_mp[0, 1]
+    gf_mp[0, 2] = 9 * (ty_1+ty_2) * b_strip * i_5 / 140
+    gf_mp[2, 0] = gf_mp[0, 2]
+    gf_mp[0, 3] = -(7*ty_1 + 6*ty_2) * b_strip**2 * i_5 / 420
+    gf_mp[3, 0] = gf_mp[0, 3]
+    gf_mp[1, 1] = (5*ty_1 + 3*ty_2) * b_strip**3 * i_5 / 2 / 420
+    gf_mp[1, 2] = (6*ty_1 + 7*ty_2) * b_strip**2 * i_5 / 420
+    gf_mp[2, 1] = gf_mp[1, 2]
+    gf_mp[1, 3] = -(ty_1 + ty_2) * b_strip**3 * i_5 / 140 / 2
+    gf_mp[3, 1] = gf_mp[1, 3]
+    gf_mp[2, 2] = (3*ty_1 + 10*ty_2) * b_strip * i_5 / 35
+    gf_mp[2, 3] = -(7*ty_1 + 15*ty_2) * b_strip**2 * i_5 / 420
+    gf_mp[3, 2] = gf_mp[2, 3]
+    gf_mp[3, 3] = (3*ty_1 + 5*ty_2) * b_strip**3 * i_5 / 420 / 2
+
+    return gf_mp
 
 
 def bc_i1_5(b_c, m_i, m_j, length):
@@ -352,76 +417,6 @@ def bc_i1_5(b_c, m_i, m_j, length):
                 i_5 = -m_i**2 * np.pi**2 / 8 / length
 
     return [i_1, i_2, i_3, i_4, i_5]
-
-
-def kglocal(length, b_strip, ty_1, ty_2, b_c, m_a):
-    # Generate geometric stiffness matrix (kg_local) in local coordinates
-
-    # Inputs:
-    # length: length of the strip in longitudinal direction
-    # b_strip: width of the strip in transverse direction
-    # ty_1, ty_2: node stresses
-    # b_c: a string specifying boundary conditions to be analysed:
-    #'S-S' simply-pimply supported boundary condition at loaded edges
-    #'C-C' clamped-clamped boundary condition at loaded edges
-    #'S-C' simply-clamped supported boundary condition at loaded edges
-    #'C-F' clamped-free supported boundary condition at loaded edges
-    #'C-G' clamped-guided supported boundary condition at loaded edges
-    # m_a: longitudinal terms (or half-wave numbers) for this length
-
-    # Output:
-    # kg_local: local geometric stiffness matrix, a total_m x total_m matrix of 8 by 8 submatrices.
-    # kg_local=[kg_mp]total_m x total_m block matrix
-    # each kg_mp is the 8 x 8 submatrix in the DOF order [u1 v1 u2 v2 w1 theta1
-    # w2 theta2]'
-
-    # Z. Li, June 2008
-    # modified by Z. Li, Aug. 09, 2009
-    # modified by Z. Li, June 2010
-
-    total_m = len(m_a)  # Total number of longitudinal terms m
-    kg_local = np.zeros((8 * total_m, 8 * total_m))
-
-    for i in range(0, total_m):
-        for j in range(0, total_m):
-            gm_mp = np.zeros((4, 4))
-            gf_mp = np.zeros((4, 4))
-            u_i = m_a[i] * np.pi
-            u_j = m_a[j] * np.pi
-
-            [_, _, _, i_4, i_5] = bc_i1_5(b_c, m_a[i], m_a[j], length)
-
-            # assemble the matrix of gm_mp (symmetric membrane stability matrix)
-            gm_mp[0, 0] = b_strip * (3*ty_1 + ty_2) * i_5 / 12
-            gm_mp[0, 2] = b_strip * (ty_1+ty_2) * i_5 / 12
-            gm_mp[2, 0] = gm_mp[0, 2]
-            gm_mp[1, 1] = b_strip * length**2 * (3*ty_1 + ty_2) * i_4 / 12 / u_i / u_j
-            gm_mp[1, 3] = b_strip * length**2 * (ty_1+ty_2) * i_4 / 12 / u_i / u_j
-            gm_mp[3, 1] = gm_mp[1, 3]
-            gm_mp[2, 2] = b_strip * (ty_1 + 3*ty_2) * i_5 / 12
-            gm_mp[3, 3] = b_strip * length**2 * (ty_1 + 3*ty_2) * i_4 / 12 / u_i / u_j
-
-            # assemble the matrix of gf_mp (symmetric flexural stability matrix)
-            gf_mp[0, 0] = (10*ty_1 + 3*ty_2) * b_strip * i_5 / 35
-            gf_mp[0, 1] = (15*ty_1 + 7*ty_2) * b_strip**2 * i_5 / 210 / 2
-            gf_mp[1, 0] = gf_mp[0, 1]
-            gf_mp[0, 2] = 9 * (ty_1+ty_2) * b_strip * i_5 / 140
-            gf_mp[2, 0] = gf_mp[0, 2]
-            gf_mp[0, 3] = -(7*ty_1 + 6*ty_2) * b_strip**2 * i_5 / 420
-            gf_mp[3, 0] = gf_mp[0, 3]
-            gf_mp[1, 1] = (5*ty_1 + 3*ty_2) * b_strip**3 * i_5 / 2 / 420
-            gf_mp[1, 2] = (6*ty_1 + 7*ty_2) * b_strip**2 * i_5 / 420
-            gf_mp[2, 1] = gf_mp[1, 2]
-            gf_mp[1, 3] = -(ty_1 + ty_2) * b_strip**3 * i_5 / 140 / 2
-            gf_mp[3, 1] = gf_mp[1, 3]
-            gf_mp[2, 2] = (3*ty_1 + 10*ty_2) * b_strip * i_5 / 35
-            gf_mp[2, 3] = -(7*ty_1 + 15*ty_2) * b_strip**2 * i_5 / 420
-            gf_mp[3, 2] = gf_mp[2, 3]
-            gf_mp[3, 3] = (3*ty_1 + 5*ty_2) * b_strip**3 * i_5 / 420 / 2
-
-            kg_local[8 * i:8*i + 4, 8 * j:8*j + 4] = gm_mp
-            kg_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = gf_mp
-    return kg_local
 
 
 def trans(alpha, k_local, kg_local, m_a):
