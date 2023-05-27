@@ -145,6 +145,10 @@ cpdef k_kg_global(np.ndarray nodes, np.ndarray elements, np.ndarray el_props, np
     cdef double ty_1
     cdef double ty_2
     cdef double alpha
+    cdef np.ndarray[np.double_t, ndim=2] k_l
+    cdef np.ndarray[np.double_t, ndim=2] kg_l
+    cdef np.ndarray[np.double_t, ndim=2] k_local
+    cdef np.ndarray[np.double_t, ndim=2] kg_local
 
     # ASSEMBLE THE GLOBAL STIFFNESS MATRICES
     for i in range(0, n_elems):
@@ -182,10 +186,12 @@ cpdef k_kg_global(np.ndarray nodes, np.ndarray elements, np.ndarray el_props, np
 
         # Transform k_local and kg_local into global coordinates
         alpha = el_props[i, 2]
-        [k_local, kg_local] = trans(alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a)
+        gamma = trans(alpha=alpha, total_m=total_m)
+        k_local = gamma @ k_l @ gamma.conj().T
+        kg_local = gamma @ kg_l @ gamma.conj().T
 
         # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
-        [k_global, kg_global] = assemble(
+        k_global, kg_global = assemble(
             k_global=k_global,
             kg_global=kg_global,
             k_local=k_local,
@@ -506,12 +512,11 @@ cdef bc_i1_5(str b_c, double m_i, double m_j, double length):
     return [i_1, i_2, i_3, i_4, i_5]
 
 
-cdef trans(float alpha, np.ndarray k_local, np.ndarray kg_local, np.ndarray m_a):
+cdef np.ndarray trans(float alpha, int total_m):
     # Transform the local stiffness into global stiffness
     # Zhanjie 2008
     # modified by Z. Li, Aug. 09, 2009
 
-    cdef int total_m = len(m_a)  # Total number of longitudinal terms m
     cdef np.ndarray[np.double_t, ndim=2] gamma = np.zeros((8 * total_m, 8 * total_m), dtype=np.double)
     cdef np.ndarray[np.double_t, ndim=2] gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
                     [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0], [0, 0, 0, 1, 0, 0, 0, 0],
@@ -523,10 +528,7 @@ cdef trans(float alpha, np.ndarray k_local, np.ndarray kg_local, np.ndarray m_a)
     for i in range(0, total_m):
         gamma[8 * i:8 * (i+1), 8 * i:8 * (i+1)] = gam
 
-    cdef np.ndarray[np.double_t, ndim=2] k_global = gamma @ k_local @ gamma.conj().T
-    cdef np.ndarray[np.double_t, ndim=2] kg_global = gamma @ kg_local @ gamma.conj().T
-
-    return [k_global, kg_global]
+    return gamma
 
 
 cdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np.ndarray kg_local, int node_i, int node_j, int n_nodes, np.ndarray m_a):
@@ -664,7 +666,7 @@ cdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np.
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
                        4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg42
 
-    return [k_global, kg_global]
+    return k_global, kg_global
 
 
 def spring_klocal(k_u, k_v, k_w, k_q, length, b_c, m_a, discrete, y_s):

@@ -160,10 +160,12 @@ def k_kg_global(nodes, elements, el_props, props, length, b_c, m_a):
 
         # Transform k_local and kg_local into global coordinates
         alpha = el_props[i, 2]
-        [k_local, kg_local] = trans(alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a)
+        gamma = trans(alpha=alpha, total_m=total_m)
+        k_local = gamma @ k_l @ gamma.conj().T
+        kg_local = gamma @ kg_l @ gamma.conj().T
 
         # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
-        [k_global, kg_global] = assemble(
+        k_global, kg_global = assemble(
             k_global=k_global,
             kg_global=kg_global,
             k_local=k_local,
@@ -480,12 +482,11 @@ def bc_i1_5(b_c, m_i, m_j, length):
     return [i_1, i_2, i_3, i_4, i_5]
 
 
-def trans(alpha, k_local, kg_local, m_a):
+def trans(alpha, total_m):
     # Transfer the local stiffness into global stiffness
     # Zhanjie 2008
     # modified by Z. Li, Aug. 09, 2009
 
-    total_m = len(m_a)  # Total number of longitudinal terms m
     gamma = np.zeros((8 * total_m, 8 * total_m))
 
     gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
@@ -497,10 +498,7 @@ def trans(alpha, k_local, kg_local, m_a):
     for i in range(0, total_m):
         gamma[8 * i:8 * (i+1), 8 * i:8 * (i+1)] = gam
 
-    k_global = gamma @ k_local @ gamma.conj().T
-    kg_global = gamma @ kg_local @ gamma.conj().T
-
-    return [k_global, kg_global]
+    return gamma
 
 
 def assemble(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes, m_a):
@@ -633,7 +631,7 @@ def assemble(k_global, kg_global, k_local, kg_local, node_i, node_j, n_nodes, m_
             kg_global[4*n_nodes*i + skip + (node_j+1) * 2 - 2:4*n_nodes*i + skip + (node_j+1) * 2,
                       4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg42
 
-    return [k_global, kg_global]
+    return k_global, kg_global
 
 
 def spring_klocal(k_u, k_v, k_w, k_q, length, b_c, m_a, discrete, y_s):
