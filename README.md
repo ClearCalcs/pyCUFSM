@@ -28,6 +28,8 @@ If you would like to contribute to the pyCUFSM project, then please do - all pro
 -   [x] Add automated validation testing of FSM calculations via pytest
 -   [x] Various efficiency and readability improvements:
     -   [x] Cythonise a few computation-heavy functions in analysis.py, including klocal(), kglocal(), and assemble()
+    -   [x] Moved computation-heavy cFSM functions to analysis.py and cythonised them
+    -   [x] Review code for places where matrices can be preallocated rather than concatenated together
 
 #### Complete But Untested
 
@@ -42,7 +44,6 @@ If you would like to contribute to the pyCUFSM project, then please do - all pro
     -   [ ] Make use of scipy.sparse for sparse matrices where possible
     -   [ ] Convert some numerical inputs and data to dictionaries with strings
     -   [ ] Eliminate matrix columns which are nothing more than the index number of the row
-    -   [ ] Review code for places where matrices can be preallocated rather than concatenated together
     -   [ ] Review code for function calls that are unnecessarily repeated (a couple of these have already been addressed, e.g. `base_properties()` did not need to be re-run for every half wavelength)
 -   [ ] Write API-style documentation (for now, generally refer to MATLAB CUFSM documentation and/or comments)
 
