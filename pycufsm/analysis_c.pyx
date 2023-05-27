@@ -263,19 +263,199 @@ cdef k_kg_local(double stiff_x, double stiff_y, double nu_x, double nu_y, double
             c_1 = u_i / length
             c_2 = u_j / length
 
-            [i_1, i_2, i_3, i_4, i_5] = bc_i1_5(b_c, m_a[i], m_a[j], length)
+            [i_1, i_2, i_3, i_4, i_5] = bc_i1_5(b_c=b_c, m_i=m_a[i], m_j=m_a[j], length=length)
 
             k_local[8 * i:8*i + 4, 8 * j:8*j + 4] = calc_km_mp(
-                e_1, e_2, c_1, c_2, b_strip, bulk, nu_x, thick, i_1, i_2, i_3, i_4, i_5
+                e_1=e_1,
+                e_2=e_2,
+                c_1=c_1,
+                c_2=c_2,
+                b_strip=b_strip,
+                bulk=bulk,
+                nu_x=nu_x,
+                thick=thick,
+                i_1=i_1,
+                i_2=i_2,
+                i_3=i_3,
+                i_4=i_4,
+                i_5=i_5
             )
-            k_local[8*i + 4:8 * (i+1), 8*j + 4:8
-                    * (j+1)] = calc_kf_mp(d_x, d_y, d_1, d_xy, b_strip, i_1, i_2, i_3, i_4, i_5)
+            k_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = calc_kf_mp(
+                d_x=d_x,
+                d_y=d_y,
+                d_1=d_1,
+                d_xy=d_xy,
+                b_strip=b_strip,
+                i_1=i_1,
+                i_2=i_2,
+                i_3=i_3,
+                i_4=i_4,
+                i_5=i_5
+            )
 
-            kg_local[8 * i:8*i + 4,
-                     8 * j:8*j + 4] = calc_gm_mp(u_i, u_j, b_strip, length, ty_1, ty_2, i_4, i_5)
-            kg_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = calc_gf_mp(ty_1, ty_2, b_strip, i_5)
+            kg_local[8 * i:8*i + 4, 8 * j:8*j + 4] = calc_gm_mp(
+                u_i=u_i,
+                u_j=u_j,
+                b_strip=b_strip,
+                length=length,
+                ty_1=ty_1,
+                ty_2=ty_2,
+                i_4=i_4,
+                i_5=i_5
+            )
+            kg_local[8*i + 4:8 * (i+1), 8*j + 4:8 * (j+1)] = calc_gf_mp(
+                ty_1=ty_1, ty_2=ty_2, b_strip=b_strip, i_5=i_5
+            )
 
     return k_local, kg_local
+
+
+cpdef np.ndarray kglobal_transv(np.ndarray nodes, np.ndarray elements, np.ndarray el_props, np.ndarray props, double length, str b_c, double m_i):
+    #
+    # this routine creates the global stiffness matrix for planar displacements
+    # basically the same way as in the main program, however:
+    #   only one half-wave number m_i is considered,
+    #   only w, teta terms are considered,
+    #   plus stiff_y = nu_x = nu_y = 0 is assumed
+    #   plus the longitudinal displacements. DOFs are explicitely eliminated
+    #   the multiplication by 'length' (member length) is not done here, must be done
+    #      outside of this routine
+    #
+    # input/output data
+    #   nodes, elements, props - same as elsewhere throughout this program
+    #   m_i - number of half waves
+    #   k_global_transv - global stiffness matrix (geometric not included)
+    #
+    # S. Adany, Feb 08, 2004
+    # Z. Li, Jul 10, 2009
+    #
+    cdef int n_nodes = len(nodes)
+    cdef int n_elems = len(elements)
+    cdef np.ndarray[np.double_t, ndim=2] k_global_transv = np.zeros((4 * n_nodes, 4 * n_nodes))
+    
+    # Declare looping variables
+    cdef int i
+    cdef double thick
+    cdef double b_strip
+    cdef int mat_num
+    cdef int row
+    cdef double stiff_x
+    cdef double stiff_y
+    cdef double nu_x
+    cdef double nu_y
+    cdef double bulk
+    cdef int node_i
+    cdef int node_j
+    cdef double alpha
+    cdef np.ndarray[np.double_t, ndim=2] k_l
+    cdef np.ndarray[np.double_t, ndim=2] k_local
+
+    for i in range(0, n_elems):
+        thick = elements[i, 3]
+        b_strip = el_props[i, 1]
+        mat_num = int(elements[i, 4])
+        row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
+        stiff_x = props[row, 1]
+        stiff_y = props[row, 2]
+        nu_x = props[row, 3]
+        nu_y = props[row, 4]
+        bulk = props[row, 5]
+        k_l = klocal_transv(
+            stiff_x=stiff_x,
+            stiff_y=stiff_y,
+            nu_x=nu_x,
+            nu_y=nu_y,
+            bulk=bulk,
+            thick=thick,
+            length=length,
+            b_strip=b_strip,
+            b_c=b_c,
+            m_i=m_i
+        )
+
+        # Transform k_local and kg_local into global coordinates
+        alpha = el_props[i, 2]
+        gamma = trans(alpha=alpha, total_m=1)
+        k_local = gamma @ k_l @ gamma.conj().T
+
+        # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
+        node_i = int(elements[i, 1])
+        node_j = int(elements[i, 2])
+        k_global_transv = assemble_single(
+            k_global=k_global_transv,
+            k_local=k_local,
+            node_i=node_i,
+            node_j=node_j,
+            n_nodes=n_nodes
+        )
+
+    return k_global_transv
+
+
+cdef np.ndarray klocal_transv(double stiff_x, double stiff_y, double nu_x, double nu_y, double bulk, double thick, double length, double b_strip, str b_c, double m_i):
+    #
+    # this routine creates the local stiffness matrix for bending terms
+    # basically the same way as in the main program, however:
+    #   only for single half-wave number m_i
+    #   membrane strains practically zero, (membrane moduli are enlarged)
+    #   for bending, only transverse terms are considered, (practically: only
+    #   keeps the i_1 term, set i_2 through i_5 to be zero)
+    # also different from the main program, here only involves one single
+    # longitudinal term m_i.
+    #
+    # input/output data
+    #   nodes, elements, props - same as elsewhere throughout this program
+    #   k_global_transv - global stiffness matrix (geometric included)
+    #
+    # Z. Li, Jul 10, 2009
+
+    cdef double e_1 = stiff_x / (1 - nu_x*nu_y) * 100000000
+    cdef double e_2 = stiff_y / (1 - nu_x*nu_y)
+    cdef double d_x = stiff_x * thick**3 / (12 * (1 - nu_x*nu_y))
+    cdef double d_y = stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
+    cdef double d_1 = nu_x * stiff_y * thick**3 / (12 * (1 - nu_x*nu_y))
+    cdef double d_xy = bulk * thick**3 / 12
+
+    cdef np.ndarray[np.double_t, ndim=2] k_local = np.zeros((8, 8))
+    cdef double u_m = m_i * np.pi
+    cdef double u_p = m_i * np.pi
+    cdef double c_1 = u_m / length
+    cdef double c_2 = u_p / length
+
+    [i_1, _, _, _, _] = bc_i1_5(b_c=b_c, m_i=m_i, m_j=m_i, length=length)
+    cdef double i_2 = 0
+    cdef double i_3 = 0
+    cdef double i_4 = 0
+    cdef double i_5 = 0
+
+    k_local[0:4, 0:4] = calc_km_mp(
+        e_1=e_1,
+        e_2=e_2,
+        c_1=c_1,
+        c_2=c_2,
+        b_strip=b_strip,
+        bulk=bulk,
+        nu_x=nu_x,
+        thick=thick,
+        i_1=i_1,
+        i_2=i_2,
+        i_3=i_3,
+        i_4=i_4,
+        i_5=i_5
+    )
+    k_local[4:8, 4:8] = calc_kf_mp(
+        d_x=d_x,
+        d_y=d_y,
+        d_1=d_1,
+        d_xy=d_xy,
+        b_strip=b_strip,
+        i_1=i_1,
+        i_2=i_2,
+        i_3=i_3,
+        i_4=i_4,
+        i_5=i_5
+    )
+    return k_local
 
 
 cdef np.ndarray calc_km_mp(double e_1, double e_2, double c_1, double c_2, double b_strip, double bulk, double nu_x, double thick, double i_1, double i_2, double i_3, double i_4, double i_5):
@@ -551,6 +731,38 @@ cdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np.
     # declare loop variables
     cdef int i
     cdef int j
+    cdef np.ndarray[np.double_t, ndim=2] k11
+    cdef np.ndarray[np.double_t, ndim=2] k12
+    cdef np.ndarray[np.double_t, ndim=2] k13
+    cdef np.ndarray[np.double_t, ndim=2] k14
+    cdef np.ndarray[np.double_t, ndim=2] k21
+    cdef np.ndarray[np.double_t, ndim=2] k22
+    cdef np.ndarray[np.double_t, ndim=2] k23
+    cdef np.ndarray[np.double_t, ndim=2] k24
+    cdef np.ndarray[np.double_t, ndim=2] k31
+    cdef np.ndarray[np.double_t, ndim=2] k32
+    cdef np.ndarray[np.double_t, ndim=2] k33
+    cdef np.ndarray[np.double_t, ndim=2] k34
+    cdef np.ndarray[np.double_t, ndim=2] k41
+    cdef np.ndarray[np.double_t, ndim=2] k42
+    cdef np.ndarray[np.double_t, ndim=2] k43
+    cdef np.ndarray[np.double_t, ndim=2] k44
+    cdef np.ndarray[np.double_t, ndim=2] kg11
+    cdef np.ndarray[np.double_t, ndim=2] kg12
+    cdef np.ndarray[np.double_t, ndim=2] kg13
+    cdef np.ndarray[np.double_t, ndim=2] kg14
+    cdef np.ndarray[np.double_t, ndim=2] kg21
+    cdef np.ndarray[np.double_t, ndim=2] kg22
+    cdef np.ndarray[np.double_t, ndim=2] kg23
+    cdef np.ndarray[np.double_t, ndim=2] kg24
+    cdef np.ndarray[np.double_t, ndim=2] kg31
+    cdef np.ndarray[np.double_t, ndim=2] kg32
+    cdef np.ndarray[np.double_t, ndim=2] kg33
+    cdef np.ndarray[np.double_t, ndim=2] kg34
+    cdef np.ndarray[np.double_t, ndim=2] kg41
+    cdef np.ndarray[np.double_t, ndim=2] kg42
+    cdef np.ndarray[np.double_t, ndim=2] kg43
+    cdef np.ndarray[np.double_t, ndim=2] kg44
 
     for i in range(0, total_m):
         for j in range(0, total_m):
@@ -667,6 +879,59 @@ cdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np.
                        4*n_nodes*j + (node_j+1) * 2 - 2:4*n_nodes*j + (node_j+1) * 2] += kg42
 
     return k_global, kg_global
+
+
+cdef assemble_single(np.ndarray k_global, np.ndarray k_local, int node_i, int node_j, int n_nodes):
+    #
+    # this routine adds the element contribution to the global stiffness matrix
+    # basically it does the same as routine 'assemble', however:
+    #   it does not care about kg_global (geom stiff matrix)
+    #   only involves single half-wave number m_i
+
+    # S. Adany, Feb 06, 2004
+    # Z. Li, Jul 10, 2009
+    #
+    # submatrices for the initial stiffness
+    cdef np.ndarray[np.double_t, ndim=2] k11 = k_local[0:2, 0:2]
+    cdef np.ndarray[np.double_t, ndim=2] k12 = k_local[0:2, 2:4]
+    cdef np.ndarray[np.double_t, ndim=2] k13 = k_local[0:2, 4:6]
+    cdef np.ndarray[np.double_t, ndim=2] k14 = k_local[0:2, 6:8]
+    cdef np.ndarray[np.double_t, ndim=2] k21 = k_local[2:4, 0:2]
+    cdef np.ndarray[np.double_t, ndim=2] k22 = k_local[2:4, 2:4]
+    cdef np.ndarray[np.double_t, ndim=2] k23 = k_local[2:4, 4:6]
+    cdef np.ndarray[np.double_t, ndim=2] k24 = k_local[2:4, 6:8]
+    cdef np.ndarray[np.double_t, ndim=2] k31 = k_local[4:6, 0:2]
+    cdef np.ndarray[np.double_t, ndim=2] k32 = k_local[4:6, 2:4]
+    cdef np.ndarray[np.double_t, ndim=2] k33 = k_local[4:6, 4:6]
+    cdef np.ndarray[np.double_t, ndim=2] k34 = k_local[4:6, 6:8]
+    cdef np.ndarray[np.double_t, ndim=2] k41 = k_local[6:8, 0:2]
+    cdef np.ndarray[np.double_t, ndim=2] k42 = k_local[6:8, 2:4]
+    cdef np.ndarray[np.double_t, ndim=2] k43 = k_local[6:8, 4:6]
+    cdef np.ndarray[np.double_t, ndim=2] k44 = k_local[6:8, 6:8]
+
+    # the additional terms for k_global are stored in k_2_matrix
+    cdef int skip = 2 * n_nodes
+    k_global[node_i * 2:node_i*2 + 2, node_i * 2:node_i*2 + 2] += k11
+    k_global[node_i * 2:node_i*2 + 2, node_j * 2:node_j*2 + 2] += k12
+    k_global[node_j * 2:node_j*2 + 2, node_i * 2:node_i*2 + 2] += k21
+    k_global[node_j * 2:node_j*2 + 2, node_j * 2:node_j*2 + 2] += k22
+
+    k_global[skip + node_i*2:skip + node_i*2 + 2, skip + node_i*2:skip + node_i*2 + 2] += k33
+    k_global[skip + node_i*2:skip + node_i*2 + 2, skip + node_j*2:skip + node_j*2 + 2] += k34
+    k_global[skip + node_j*2:skip + node_j*2 + 2, skip + node_i*2:skip + node_i*2 + 2] += k43
+    k_global[skip + node_j*2:skip + node_j*2 + 2, skip + node_j*2:skip + node_j*2 + 2] += k44
+
+    k_global[node_i * 2:node_i*2 + 2, skip + node_i*2:skip + node_i*2 + 2] += k13
+    k_global[node_i * 2:node_i*2 + 2, skip + node_j*2:skip + node_j*2 + 2] += k14
+    k_global[node_j * 2:node_j*2 + 2, skip + node_i*2:skip + node_i*2 + 2] += k23
+    k_global[node_j * 2:node_j*2 + 2, skip + node_j*2:skip + node_j*2 + 2] += k24
+
+    k_global[skip + node_i*2:skip + node_i*2 + 2, node_i * 2:node_i*2 + 2] += k31
+    k_global[skip + node_i*2:skip + node_i*2 + 2, node_j * 2:node_j*2 + 2] += k32
+    k_global[skip + node_j*2:skip + node_j*2 + 2, node_i * 2:node_i*2 + 2] += k41
+    k_global[skip + node_j*2:skip + node_j*2 + 2, node_j * 2:node_j*2 + 2] += k42
+
+    return k_global
 
 
 def spring_klocal(k_u, k_v, k_w, k_q, length, b_c, m_a, discrete, y_s):
