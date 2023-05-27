@@ -120,7 +120,85 @@ def elem_prop(nodes, elements):
     return el_props
 
 
-cpdef k_kg_local(double stiff_x, double stiff_y, double nu_x, double nu_y, double bulk, double thick, double length, double ty_1, double ty_2, double b_strip, str b_c, np.ndarray m_a):
+cpdef k_kg_global(np.ndarray nodes, np.ndarray elements, np.ndarray el_props, np.ndarray props, double length, str b_c, np.ndarray m_a):
+    cdef int total_m = len(m_a)
+    cdef int n_nodes = len(nodes)
+    cdef int n_elems = len(elements)
+    
+    # ZERO OUT THE GLOBAL MATRICES
+    cdef np.ndarray[np.double_t, ndim=2] k_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
+    cdef np.ndarray[np.double_t, ndim=2] kg_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
+
+    # Declare looping variables
+    cdef int i
+    cdef double thick
+    cdef double b_strip
+    cdef int mat_num
+    cdef int row
+    cdef double stiff_x
+    cdef double stiff_y
+    cdef double nu_x
+    cdef double nu_y
+    cdef double bulk
+    cdef int node_i
+    cdef int node_j
+    cdef double ty_1
+    cdef double ty_2
+    cdef double alpha
+
+    # ASSEMBLE THE GLOBAL STIFFNESS MATRICES
+    for i in range(0, n_elems):
+        # Generate element stiffness matrix (k_local) in local coordinates
+        # Generate geometric stiffness matrix (kg_local) in local coordinates
+        thick = elements[i, 3]
+        b_strip = el_props[i, 1]
+        mat_num = int(elements[i, 4])
+        row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
+        stiff_x = props[row, 1]
+        stiff_y = props[row, 2]
+        nu_x = props[row, 3]
+        nu_y = props[row, 4]
+        bulk = props[row, 5]
+
+        node_i = int(elements[i, 1])
+        node_j = int(elements[i, 2])
+        ty_1 = nodes[node_i, 7] * thick
+        ty_2 = nodes[node_j, 7] * thick
+
+        k_l, kg_l = k_kg_local(
+            stiff_x=stiff_x,
+            stiff_y=stiff_y,
+            nu_x=nu_x,
+            nu_y=nu_y,
+            bulk=bulk,
+            thick=thick,
+            length=length,
+            ty_1=ty_1,
+            ty_2=ty_2,
+            b_strip=b_strip,
+            b_c=b_c,
+            m_a=m_a
+        )
+
+        # Transform k_local and kg_local into global coordinates
+        alpha = el_props[i, 2]
+        [k_local, kg_local] = trans(alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a)
+
+        # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
+        [k_global, kg_global] = assemble(
+            k_global=k_global,
+            kg_global=kg_global,
+            k_local=k_local,
+            kg_local=kg_local,
+            node_i=node_i,
+            node_j=node_j,
+            n_nodes=n_nodes,
+            m_a=m_a
+        )
+        
+    return k_global, kg_global
+    
+cdef k_kg_local(double stiff_x, double stiff_y, double nu_x, double nu_y, double bulk, double thick, double length, double ty_1, double ty_2, double b_strip, str b_c, np.ndarray m_a):
     # Generate element stiffness matrix (k_local) in local coordinates
     # Generate geometric stiffness matrix (kg_local) in local coordinates
 
@@ -394,7 +472,6 @@ cdef bc_i1_5(str b_c, double m_i, double m_j, double length):
             i_2 = (m_i - 1/2)**2 * np.pi**2 * ((-1)**(m_i - 1) / (m_i - 1/2) / np.pi) / length
             i_3 = (m_j - 1/2)**2 * np.pi**2 * ((-1)**(m_j - 1) / (m_j - 1/2) / np.pi) / length
 
-
     elif b_c == 'C-G' or b_c == 'G-C':
         # For clamped-guided supported boundary condition at loaded edges
         # calculation of i_1 is the integration of y_m*Yn from 0 to length
@@ -429,7 +506,7 @@ cdef bc_i1_5(str b_c, double m_i, double m_j, double length):
     return [i_1, i_2, i_3, i_4, i_5]
 
 
-cpdef trans(float alpha, np.ndarray k_local, np.ndarray kg_local, np.ndarray m_a):
+cdef trans(float alpha, np.ndarray k_local, np.ndarray kg_local, np.ndarray m_a):
     # Transform the local stiffness into global stiffness
     # Zhanjie 2008
     # modified by Z. Li, Aug. 09, 2009
@@ -452,7 +529,7 @@ cpdef trans(float alpha, np.ndarray k_local, np.ndarray kg_local, np.ndarray m_a
     return [k_global, kg_global]
 
 
-cpdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np.ndarray kg_local, int node_i, int node_j, int n_nodes, np.ndarray m_a):
+cdef assemble(np.ndarray k_global, np.ndarray kg_global, np.ndarray k_local, np.ndarray kg_local, int node_i, int node_j, int n_nodes, np.ndarray m_a):
     # Add the element contribution to the global stiffness matrix
 
     # Outputs:

@@ -116,6 +116,67 @@ def elem_prop(nodes, elements):
     return el_props
 
 
+def k_kg_global(nodes, elements, el_props, props, length, b_c, m_a):
+    total_m = len(m_a)
+    n_nodes = len(nodes)
+    # ZERO OUT THE GLOBAL MATRICES
+    k_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
+    kg_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
+
+    # ASSEMBLE THE GLOBAL STIFFNESS MATRICES
+    for i, elem in enumerate(elements):
+        # Generate element stiffness matrix (k_local) in local coordinates
+        # Generate geometric stiffness matrix (kg_local) in local coordinates
+        thick = elem[3]
+        b_strip = el_props[i, 1]
+        mat_num = int(elem[4])
+        row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
+        mat = props[row]
+        stiff_x = mat[1]
+        stiff_y = mat[2]
+        nu_x = mat[3]
+        nu_y = mat[4]
+        bulk = mat[5]
+
+        node_i = int(elem[1])
+        node_j = int(elem[2])
+        ty_1 = nodes[node_i][7] * thick
+        ty_2 = nodes[node_j][7] * thick
+
+        k_l, kg_l = k_kg_local(
+            stiff_x=stiff_x,
+            stiff_y=stiff_y,
+            nu_x=nu_x,
+            nu_y=nu_y,
+            bulk=bulk,
+            thick=thick,
+            length=length,
+            ty_1=ty_1,
+            ty_2=ty_2,
+            b_strip=b_strip,
+            b_c=b_c,
+            m_a=m_a
+        )
+
+        # Transform k_local and kg_local into global coordinates
+        alpha = el_props[i, 2]
+        [k_local, kg_local] = trans(alpha=alpha, k_local=k_l, kg_local=kg_l, m_a=m_a)
+
+        # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
+        [k_global, kg_global] = assemble(
+            k_global=k_global,
+            kg_global=kg_global,
+            k_local=k_local,
+            kg_local=kg_local,
+            node_i=node_i,
+            node_j=node_j,
+            n_nodes=n_nodes,
+            m_a=m_a
+        )
+
+    return k_global, kg_global
+
+
 def k_kg_local(stiff_x, stiff_y, nu_x, nu_y, bulk, thick, length, ty_1, ty_2, b_strip, b_c, m_a):
     # Generate element stiffness matrix (k_local) in local coordinates
     # Generate geometric stiffness matrix (kg_local) in local coordinates
