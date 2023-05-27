@@ -219,7 +219,8 @@ cdef k_kg_local(double stiff_x, double stiff_y, double nu_x, double nu_y, double
     # 'C-C' clamped-clamped boundary condition at loaded edges
     # 'S-C' simply-clamped supported boundary condition at loaded edges
     # 'C-F' clamped-free supported boundary condition at loaded edges
-    # 'C-G' clamped-gcdef np.ndarray[np.double_t, ndim=2] uided supported boundary condition at loaded edges
+    # 'C-G' clamped-gcdef np.ndarray[np.double_t, ndim=2] uided supported boundary condition at
+    #       loaded edges
     # m_a: longitudinal terms (or half-wave numbers) for this length
 
     # Output:
