@@ -1,5 +1,5 @@
 from copy import deepcopy
-from scipy import linalg as spla
+from scipy import linalg as spla # type: ignore
 import numpy as np
 from pycufsm.analysis import analysis
 import pycufsm.cfsm
@@ -13,59 +13,63 @@ import pycufsm.cfsm
 
 
 def strip(
-    props, nodes, elements, lengths, springs, constraints, gbt_con, b_c, m_all, n_eigs, sect_props
+    props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
+    springs: np.ndarray, constraints: np.ndarray, gbt_con: dict, b_c: str, m_all: list, n_eigs: int,
+    sect_props: dict
 ):
+    """Perform a fintite strip analysis
 
-    # INPUTS
-    # props: [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
-    # nodes: [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
-    # elements: [elem# node_i node_j thick mat_num] n_elements x 5
-    # lengths: [L1 L2 L3...] 1 x n_lengths lengths to be analysed
-    # could be half-wavelengths for signature curve
-    # or physical lengths for general b.c.
-    # springs: [node# d.o.f. k_spring k_flag] where 1=x dir 2= y dir 3 = z dir 4 = q dir (twist)
-    #     flag says if k_stiff is a foundation stiffness or a total stiffness
-    # constraints:: [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
-    #     k=kept dof dof_e_node = coeff*dof_k_node_k
-    # gbt_con: gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
-    #  and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
-    #  gbt_con.o_space - choices of ST/O mode
-    #         1: ST basis
-    #         2: O space (null space of GDL) with respect to k_global
-    #         3: O space (null space of GDL) with respect to kg_global
-    #         4: O space (null space of GDL) in vector sense
-    #  gbt_con.norm - code for normalization (if normalization is done at all)
-    #         0: no normalization,
-    #         1: vector norm
-    #         2: strain energy norm
-    #         3: work norm
-    #  gbt_con.couple - coupled basis vs uncoupled basis for general
-    #             B.C. especially for non-simply supported B.C.
-    #         1: uncoupled basis, the basis will be block diagonal
-    #         2: coupled basis, the basis is fully spanned
-    #  gbt_con.orth - natural basis vs modal basis
-    #         1: natural basis
-    #         2: modal basis, axial orthogonality
-    #         3: modal basis, load dependent orthogonality
-    # b_c: ['S-S'] a string specifying boundary conditions to be analysed:
-    # 'S-S' simply-pimply supported boundary condition at loaded edges
-    # 'C-C' clamped-clamped boundary condition at loaded edges
-    # 'S-C' simply-clamped supported boundary condition at loaded edges
-    # 'C-F' clamped-free supported boundary condition at loaded edges
-    # 'C-G' clamped-guided supported boundary condition at loaded edges
-    # m_all: m_all{length#}=[longitudinal_num# ... longitudinal_num#],
-    #       longitudinal terms m for all the lengths in cell notation
-    # each cell has a vector including the longitudinal terms for this length
-    # n_eigs - the number of eigenvalues to be determined at length (default=10)
+    Args:
+        props (np.ndarray): [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
+        nodes (np.ndarray): [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
+        elements (np.ndarray): [elem# node_i node_j thick mat_num] n_elements x 5
+        lengths (np.ndarray): [L1 L2 L3...] 1 x n_lengths lengths to be analysed; 
+            could be half-wavelengths for signature curve or physical lengths for general b.c.
+        springs (np.ndarray): [node# d.o.f. k_spring k_flag] where 1=x dir 2= y dir 3 = z dir 4 = q dir (twist)
+            flag says if k_stiff is a foundation stiffness or a total stiffness
+        constraints (np.ndarray): [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
+            k=kept dof dof_e_node = coeff*dof_k_node_k
+        gbt_con (dict): gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
+            and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
+            gbt_con.o_space - choices of ST/O mode
+                    1: ST basis
+                    2: O space (null space of GDL) with respect to k_global
+                    3: O space (null space of GDL) with respect to kg_global
+                    4: O space (null space of GDL) in vector sense
+            gbt_con.norm - code for normalization (if normalization is done at all)
+                    0: no normalization,
+                    1: vector norm
+                    2: strain energy norm
+                    3: work norm
+            gbt_con.couple - coupled basis vs uncoupled basis for general
+                        B.C. especially for non-simply supported B.C.
+                    1: uncoupled basis, the basis will be block diagonal
+                    2: coupled basis, the basis is fully spanned
+            gbt_con.orth - natural basis vs modal basis
+                    1: natural basis
+                    2: modal basis, axial orthogonality
+                    3: modal basis, load dependent orthogonality
+        b_c (str): ['S-S'] a string specifying boundary conditions to be analysed:
+            'S-S' simply-pimply supported boundary condition at loaded edges
+            'C-C' clamped-clamped boundary condition at loaded edges
+            'S-C' simply-clamped supported boundary condition at loaded edges
+            'C-F' clamped-free supported boundary condition at loaded edges
+            'C-G' clamped-guided supported boundary condition at loaded edges
+        m_all (list): m_all{length#}=[longitudinal_num# ... longitudinal_num#],
+            longitudinal terms m for all the lengths in cell notation
+            each cell has a vector including the longitudinal terms for this length
+        n_eigs (int): the number of eigenvalues to be determined at length (default=10)
+        sect_props (dict): _description_
 
-    # OUTPUTS
-    # curve: buckling curve (load factor) for each length
-    # curve{i} = [ length mode# 1
-    #             length mode# 2
-    #             ...    ...
-    #             length mode#]
-    # shapes = mode shapes for each length
-    # shapes{i} = mode, mode is a matrix, each column corresponds to a mode.
+    Returns:
+        curve: buckling curve (load factor) for each length
+            curve{i} = [ length mode# 1
+                        length mode# 2
+                        ...    ...
+                        length mode#]
+        shapes: mode shapes for each length
+            shapes{i} = mode, mode is a matrix, each column corresponds to a mode.
+    """
 
     n_nodes = len(nodes)
     curve = []
@@ -222,11 +226,7 @@ def strip(
 
         # INTERNAL BOUNDARY CONDITIONS (ON THE NODES) AND USER DEFINED CONSTR.
         # Check for user defined constraints too
-        if bc_flag == 0:
-            # no user defined constraints and fixities.
-            r_u0_matrix = 0
-            nu0 = 0
-        else:
+        if bc_flag == 1:
             # size boundary conditions and user constraints for use in r_matrix format
             # d_constrained=r_user*d_unconstrained, d=nodal DOF vector (note by
             # BWS June 5 2006)

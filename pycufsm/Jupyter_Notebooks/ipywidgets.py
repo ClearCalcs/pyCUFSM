@@ -1,4 +1,4 @@
-import ipywidgets as widgets
+import ipywidgets as widgets # type: ignore
 import numpy as np
 import pycufsm.plotters as crossect
 

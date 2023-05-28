@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def prop2(coord, ends):
+def prop2(coord: np.ndarray, ends: np.ndarray) -> dict:
     # Function modified for use in CUFSM by Ben Schafer in 2004 with permission
     # of Sarawit. removed elastic buckling calcs and kept only section
     # properties
@@ -78,7 +78,7 @@ def prop2(coord, ends):
     # while len(node)>0:
     #     i =
     nodes = np.append(node[:, 0], node[:, 1])
-    nodes = set(nodes)
+    nodes = np.lib.unique(nodes)
     # j = len(nodes)-1
     # if j == n_elements:
     #     section = 'close'
@@ -302,7 +302,7 @@ def prop2(coord, ends):
         if np.abs(b2_vals / np.sqrt(area) < 1e-12):
             b2_vals = 0
     ends[:, 0:2] = (ends[:, 0:2]) - 1
-    sect_props = {
+    return {
         "A": area,
         "cx": x_centroid,
         "cy": y_centroid,
@@ -320,4 +320,3 @@ def prop2(coord, ends):
         "B2": b2_vals,
         "wn": wn_vals,
     }
-    return sect_props

@@ -1,5 +1,6 @@
 import numpy as np
-from scipy import linalg as spla
+from scipy import linalg as spla # type: ignore
+from typing import Optional, Union
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE
@@ -9,7 +10,7 @@ from scipy import linalg as spla
 # change history, have been generally retained unaltered
 
 
-def template_path(draw_table, thick, n_r=4, shift=None):
+def template_path(draw_table: list, thick: float, n_r: int = 4, shift: Optional[list] = None):
     # Brooks H. Smith
     # 17 June 2020
     # Assuming a uniform thickness, draws a section according to a path definition
@@ -21,8 +22,8 @@ def template_path(draw_table, thick, n_r=4, shift=None):
     if shift is None:
         shift = [0, 0]
 
-    nodes = []
-    elements = []
+    nodes: list = []
+    elements: list = []
     if len(draw_table[0]) == 5:
         n_r_table = True
     else:
@@ -83,7 +84,7 @@ def template_path(draw_table, thick, n_r=4, shift=None):
     return [np.array(nodes), np.array(elements)]
 
 
-def template_calc(sect):
+def template_calc(sect: dict):
     n_d = sect['n_d']
     n_b1 = sect['n_b1']
     n_b2 = sect['n_b2']
@@ -97,8 +98,8 @@ def template_calc(sect):
     # 2015 addition to allow outer dimensions and inner radii to be used
     # 2015 addition to control element discretization
 
-    nodes = []
-    elements = []
+    nodes: list = []
+    elements: list = []
 
     # CorZ=determines sign conventions for flange 1=C 2=Z
     if sect['type'] == 'Z':
@@ -355,7 +356,7 @@ def template_calc(sect):
     return [np.array(nodes), np.array(elements)]
 
 
-def template_out_to_in(sect):
+def template_out_to_in(sect: dict) -> list:
     # BWS 2015
     # reference AISI Design Manual for the lovely corner radius calcs.
     # For template calc, convert outer dimensions and inside radii to centerline
@@ -390,13 +391,13 @@ def template_out_to_in(sect):
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 
-def yield_mp(nodes, f_y, sect_props, restrained=False):
+def yield_mp(nodes: np.ndarray, f_y: float, sect_props: dict, restrained: bool = False) -> dict[str, float]:
     # BWS
     # August 2000
     # [Py,Mxx_y,Mzz_y,M11_y,M22_y]
     # May 2019 trap nan when flat plate or other properites are zero
 
-    f_yield = {'P': 0, 'Mxx': 0, 'Myy': 0, 'M11': 0, 'M22': 0}
+    f_yield: dict[str, float] = {'P': 0, 'Mxx': 0, 'Myy': 0, 'M11': 0, 'M22': 0}
 
     f_yield['P'] = f_y * sect_props['A']
     #account for the possibility of restrained bending vs. unrestrained bending
@@ -416,7 +417,7 @@ def yield_mp(nodes, f_y, sect_props, restrained=False):
     if np.max(abs(stress1)) == 0:
         f_yield['Mxx'] = 0
     else:
-        f_yield['Mxx'] = f_y / np.max(abs(stress1))
+        f_yield['Mxx'] = f_y / np.max(abs(stress1)) # type: ignore
     #Calculate stress at every point based on m_yy=1
     m_xx = 0
     m_yy = 1
@@ -431,7 +432,7 @@ def yield_mp(nodes, f_y, sect_props, restrained=False):
     if np.max(abs(stress1)) == 0:
         f_yield['Myy'] = 0
     else:
-        f_yield['Myy'] = f_y / np.max(abs(stress1))
+        f_yield['Myy'] = f_y / np.max(abs(stress1)) # type: ignore
     # %M11_y, M22_y
     # %transform coordinates of nodes into principal coordinates
     phi = sect_props['phi']
@@ -444,7 +445,7 @@ def yield_mp(nodes, f_y, sect_props, restrained=False):
     if np.max(abs(stress1)) == 0:
         f_yield['M11'] = 0
     else:
-        f_yield['M11'] = f_y / np.max(abs(stress1)) * f_yield['M11']
+        f_yield['M11'] = f_y / np.max(abs(stress1)) * f_yield['M11'] # type: ignore
 
     f_yield['M22'] = 1
     stress1 = np.zeros((1, len(nodes)))
@@ -452,11 +453,17 @@ def yield_mp(nodes, f_y, sect_props, restrained=False):
     if np.max(abs(stress1)) == 0:
         f_yield['M22'] = 0
     else:
-        f_yield['M22'] = f_y / np.max(abs(stress1)) * f_yield['M22']
+        f_yield['M22'] = f_y / np.max(abs(stress1)) * f_yield['M22'] # type: ignore
     return f_yield
 
 
-def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
+def stress_gen(
+    nodes: np.ndarray,
+    forces: dict,
+    sect_props: dict,
+    restrained: bool = False,
+    offset_basis: Union[int, list] = 0
+) -> np.ndarray:
     # BWS
     # 1998
     # offset_basis compensates for section properties that are based upon coordinate
@@ -496,35 +503,38 @@ def stress_gen(nodes, forces, sect_props, restrained=False, offset_basis=0):
     return nodes
 
 
-def doubler(node, elem):
-    # %BWS
-    # %1998 (last modified)
-    # %A function to double the number of elements to help
-    # %out the discretization of the member somewhat.
-    # %
-    # %node=[node# x z dofx dofz dofy doftheta stress]
-    # %elem=[elem# nodei nodej thickness]
-    # %
-    old_num_elem = len(elem)
-    old_num_node = len(node)
+def doubler(nodes: np.ndarray, elements: np.ndarray):
+    # BWS
+    # 1998 (last modified)
+    # A function to double the number of elements to help
+    # out the discretization of the member somewhat.
+    #
+    # nodes=[node# x z dofx dofz dofy doftheta stress]
+    # elements=[elem# nodei nodej thickness]
+    #
+    old_num_elem = len(elements)
+    old_num_node = len(nodes)
     elem_out = np.zeros((2 * old_num_elem, 5))
     node_out = np.zeros((old_num_elem + old_num_node, 8))
     # %For node_out set all the old numbers to odd numbers and fill in the
     # %new ones with even numbers.
     for i in range(old_num_node):
-        node_out[2 * i, 0] = 2 * node[i, 0]
-        node_out[2 * i, 1:8] = node[i, 1:8]
+        node_out[2 * i, 0] = 2 * nodes[i, 0]
+        node_out[2 * i, 1:8] = nodes[i, 1:8]
 
     for i in range(old_num_elem):
-        elem_out[2 * i, :] = [2 * elem[i, 0], 2 * elem[i, 1], 2*i + 1, elem[i, 3], elem[i, 4]]
-        elem_out[2*i + 1, :] = [2*i + 1, 2*i + 1, 2 * elem[i, 2], elem[i, 3], elem[i, 4]]
-        nnumi = int(elem[i, 1])
-        nnumj = int(elem[i, 2])
-        xcoord = np.mean([node[nnumi, 1], node[nnumj, 1]])
-        zcoord = np.mean([node[nnumi, 2], node[nnumj, 2]])
-        stress = np.mean([node[nnumi, 7], node[nnumj, 7]])
+        elem_out[2 * i, :] = [
+            2 * elements[i, 0], 2 * elements[i, 1], 2*i + 1, elements[i, 3], elements[i, 4]
+        ]
+        elem_out[2*i
+                 + 1, :] = [2*i + 1, 2*i + 1, 2 * elements[i, 2], elements[i, 3], elements[i, 4]]
+        nnumi = int(elements[i, 1])
+        nnumj = int(elements[i, 2])
+        xcoord = np.mean([nodes[nnumi, 1], nodes[nnumj, 1]])
+        zcoord = np.mean([nodes[nnumi, 2], nodes[nnumj, 2]])
+        stress = np.mean([nodes[nnumi, 7], nodes[nnumj, 7]])
         node_out[2*i + 1, :] = [
-            2*i + 1, xcoord, zcoord, node[nnumi, 3], node[nnumi, 4], node[nnumi, 5], node[nnumi, 6],
-            stress
+            2*i + 1, xcoord, zcoord, nodes[nnumi, 3], nodes[nnumi, 4], nodes[nnumi, 5],
+            nodes[nnumi, 6], stress
         ]
     return node_out, elem_out

@@ -1,13 +1,16 @@
 import numpy as np
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
-from matplotlib.cm import jet  # pylint: disable=no-name-in-module
-import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon # type: ignore
+from matplotlib.collections import PatchCollection # type: ignore
+from matplotlib.cm import jet  # type: ignore  # pylint: disable=no-name-in-module
+import matplotlib.pyplot as plt  # type: ignore
 import pycufsm.helpers as helpers
 
 
 ##Cross section
-def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-argument
+def crossect(
+    nodes: np.ndarray, elements: np.ndarray, springs: np.ndarray, constraints: np.ndarray,
+    flags: list[int]
+) -> None:  # pylint: disable=unused-argument
     # BWS
     # October 2001 (last modified)
     # December 2015 springs updated
@@ -16,52 +19,53 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
     # December 2015 added an additional flag for section property axes
     # plots the cross-section
     #
-    # node: [node# x z dofx dofz dofy dofrot stress] nnodes x 8;
-    # elem: [elem# nodei nodej t mat#] nelems x 4;
+    # nodes: [node# x z dofx dofz dofy dofrot stress] nnodes x 8;
+    # elements: [elem# nodei nodej t mat#] nelems x 4;
     # flags:[node# element# mat# stress# stresspic coord constraints
     #        springs origin propaxis] 1 means show
-    nodeflag = flag[0]
-    elemflag = flag[1]
-    matflag = flag[2]
-    stressflag = flag[3]
-    stresspicflag = flag[4]
-    # coordflag = flag[5]
-    constraintsflag = flag[6]
-    # springsflag = flag[7]
-    originflag = flag[8]
-    patches = []
-    # if len(flag) > 10:
-    #     propaxisflag = flag[9]
+    nodeflag = flags[0]
+    elemflag = flags[1]
+    matflag = flags[2]
+    stressflag = flags[3]
+    stresspicflag = flags[4]
+    # coordflag = flags[5]
+    constraintsflag = flags[6]
+    # springsflag = flags[7]
+    originflag = flags[8]
+    patches: list = []
+    # if len(flags) > 10:
+    #     propaxisflag = flags[9]
     # else:
     #     propaxisflag = 0
     if stresspicflag == 1:
         scale = 1
-        maxstress = max(np.abs(node[:, 7]))
+        maxstress = max(np.abs(nodes[:, 7]))
         stress = np.append(
-            node[:, 0].reshape((len(node), 1)), (node[:, 7] / maxstress).reshape((len(node), 1)),
+            nodes[:, 0].reshape((len(nodes), 1)),
+            (nodes[:, 7] / maxstress).reshape((len(nodes), 1)),
             axis=1
         )
-        maxi = np.max(np.abs(node[:, 1:3]))
+        maxi = np.max(np.abs(nodes[:, 1:3]))
         maxoffset = scale * np.max(maxi) / 10
-        stresscord = np.zeros((len(node), 3))
+        stresscord = np.zeros((len(nodes), 3))
         for i in range(len(stress)):
             stresscord[i, 0:3] = [
-                node[i, 0], node[i, 1] + maxoffset * stress[i, 1],
-                node[i, 2] - maxoffset * stress[i, 1]
+                nodes[i, 0], nodes[i, 1] + maxoffset * stress[i, 1],
+                nodes[i, 2] - maxoffset * stress[i, 1]
             ]
     #Plot the nodes
     _, ax1 = plt.subplots(constrained_layout=True, figsize=(6, 6))
-    plt.plot(node[:, 1], node[:, 2], 'bo', markersize=2)
+    plt.plot(nodes[:, 1], nodes[:, 2], 'bo', markersize=2)
     #Plot the elements
-    for i in range((len(elem))):
-        nodei = int(elem[i, 1])
-        nodej = int(elem[i, 2])
-        x_i = node[nodei, 1]
-        z_i = node[nodei, 2]
-        x_j = node[nodej, 1]
-        z_j = node[nodej, 2]
+    for i in range((len(elements))):
+        nodei = int(elements[i, 1])
+        nodej = int(elements[i, 2])
+        x_i = nodes[nodei, 1]
+        z_i = nodes[nodei, 2]
+        x_j = nodes[nodej, 1]
+        z_j = nodes[nodej, 2]
         theta = np.arctan2((z_j - z_i), (x_j - x_i))
-        thick = elem[i, 3] * 1
+        thick = elements[i, 3] * 1
         points = np.array([[x_i - np.sin(theta) * thick / 2, z_i + np.cos(theta) * thick / 2],
                            [x_j - np.sin(theta) * thick / 2, z_j + np.cos(theta) * thick / 2],
                            [x_j + np.sin(theta) * thick / 2, z_j - np.cos(theta) * thick / 2],
@@ -77,24 +81,24 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
             sxj = stresscord[nodej, 1]
             szj = stresscord[nodej, 2]
             #plot the stress in pseudo 3D
-            if node[nodei, 7] >= 0:
+            if nodes[nodei, 7] >= 0:
                 plt.plot([x_i, sxi], [z_i, szi], 'r')
             else:
                 plt.plot([x_i, sxi], [z_i, szi], 'b')
-            if node[nodej, 7] >= 0:
+            if nodes[nodej, 7] >= 0:
                 plt.plot([x_j, sxj], [z_j, szj], 'r')
             else:
                 plt.plot([x_j, sxj], [z_j, szj], 'b')
             plt.plot([sxi, sxj], [szi, szj], 'k')
             if stressflag == 1:
-                plt.text(sxi, szi, str(round(node[nodei, 7], 2)))
-                plt.text(sxj, szj, str(round(node[nodej, 7], 2)))
+                plt.text(sxi, szi, str(round(nodes[nodei, 7], 2)))
+                plt.text(sxj, szj, str(round(nodes[nodej, 7], 2)))
         #plot the element labels if wanted
         if elemflag == 1:
-            plt.text((x_i+x_j) / 2, (z_i+z_j) / 2, str(elem[i, 0] + 1), fontsize=8)
+            plt.text((x_i+x_j) / 2, (z_i+z_j) / 2, str(elements[i, 0] + 1), fontsize=8)
         #plot the materials labels if wanted
         if matflag == 1:
-            plt.text((x_i+x_j) / 2 + 10, (z_i+z_j) / 2 + 10, str(elem[i, 4]), fontsize=8)
+            plt.text((x_i+x_j) / 2 + 10, (z_i+z_j) / 2 + 10, str(elements[i, 4]), fontsize=8)
         #Plot th stress distribution in 3D if wanted
         #####___#####
     ####Patches of cross section
@@ -106,12 +110,12 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
     #plt.ylim((y_min - 25, y_max + 25))
     #Plot the node labels if wanted
     if nodeflag == 1:
-        for i in range(len(node)):
-            plt.text(node[i, 1], node[i, 2], str(node[i, 0] + 1))
-    #Plot the stress at the node if wanted
+        for i in range(len(nodes)):
+            plt.text(nodes[i, 1], nodes[i, 2], str(nodes[i, 0] + 1))
+    #Plot the stress at the nodes if wanted
     if stressflag == 1 and stresspicflag == 0:
-        for i in range(len(node)):
-            plt.text(node[i, 1], node[i, 2], str(round(node[i, 7], 2)))
+        for i in range(len(nodes)):
+            plt.text(nodes[i, 1], nodes[i, 2], str(round(nodes[i, 7], 2)))
     #Plot the origin point
     if originflag == 1:
         plt.plot(
@@ -119,32 +123,32 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
             0,
             'ko',
         )
-        xmax = np.max(np.max(node[:, 1]))
-        zmax = np.max(np.max([node[:, 2]]))
+        xmax = np.max(np.max(nodes[:, 1]))
+        zmax = np.max(np.max([nodes[:, 2]]))
         ax_len = min(xmax, zmax)
         plt.plot([0, 0.2 * ax_len], [0, 0], 'k')
         plt.text(0.22 * ax_len, 0, 'x_o')
         plt.plot([0, 0], [0, 0.2 * ax_len], 'k')
         plt.text(0, 0.22 * ax_len, 'z_o')
     if constraintsflag == 1:
-        for i in range(len(node)):
-            dofx = node[i, 3]
-            dofz = node[i, 4]
-            dofy = node[i, 5]
-            dofq = node[i, 6]
+        for i in range(len(nodes)):
+            dofx = nodes[i, 3]
+            dofz = nodes[i, 4]
+            dofy = nodes[i, 5]
+            dofq = nodes[i, 6]
             if min([dofx, dofz, dofy, dofq]) == 0:
-                plt.plot(node[i, 1], node[i, 2], 'sq')
-        if len(constraint) == 0:
+                plt.plot(nodes[i, 1], nodes[i, 2], 'sq')
+        if len(constraints) == 0:
             print('No constraints')
         else:
-            for i in range(len(constraint)):
-                nodee = constraint[i, 0]
-                nodek = constraint[i, 3]
-                plt.plot(node[nodee, 1], node[nodee, 2], 'xg')
-                plt.plot(node[nodek, 1], node[nodek, 2], 'hg')
+            for i in range(len(constraints)):
+                nodee = constraints[i, 0]
+                nodek = constraints[i, 3]
+                plt.plot(nodes[nodee, 1], nodes[nodee, 2], 'xg')
+                plt.plot(nodes[nodek, 1], nodes[nodek, 2], 'hg')
     #Plot the springs if wanted
     ####SPRINGS AND CONSTRAINTS REMAINING
-    #springsscale = 0.05*np.max(np.max(np.abs(node[:, 1:3])))
+    #springsscale = 0.05*np.max(np.max(np.abs(nodes[:, 1:3])))
     plt.gca().set_aspect('equal', adjustable='box')
     plt.axis('off')
     # plt.savefig('Validation/'+address+'/CS.png')
@@ -152,11 +156,14 @@ def crossect(node, elem, springs, constraint, flag):  # pylint: disable=unused-a
 
 
 #Cross section displacement function
-def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # pylint: disable=unused-argument
+def dispshap(
+    undef: int, nodes: np.ndarray, elements: np.ndarray, mode: np.ndarray, scalem: float,
+    springs: np.ndarray, m_a: list, b_c: str, surf_pos: float
+) -> None:  # pylint: disable=unused-argument
     #Determining Scaling Factor for the displaced shape
     ##dispmax=np.max(np.abs(mode))
     dispmax = np.max(np.abs(mode))
-    membersize = np.max(np.max(node[:, 1:2])) - np.min(np.min(node[:, 1:2]))
+    membersize = np.max(np.max(nodes[:, 1:2])) - np.min(np.min(nodes[:, 1:2]))
     scale = scalem * membersize / dispmax / 10
     #Generate and Plot
     _, axes = plt.subplots(constrained_layout=True, figsize=(6, 6))
@@ -164,18 +171,17 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
     y_max = -np.inf
     x_min = np.inf
     y_min = np.inf
-    defpoints = []
     if undef == 1:
-        for i in range(len(elem)):
-            nodei = int(elem[i, 1])
-            nodej = int(elem[i, 2])
-            x_i = node[nodei, 1]
-            x_j = node[nodej, 1]
-            z_i = node[nodei, 2]
-            z_j = node[nodej, 2]
+        for i in range(len(elements)):
+            nodei = int(elements[i, 1])
+            nodej = int(elements[i, 2])
+            x_i = nodes[nodei, 1]
+            x_j = nodes[nodej, 1]
+            z_i = nodes[nodei, 2]
+            z_j = nodes[nodej, 2]
             #PLOT undeformed geometry
             theta = np.arctan2((z_j - z_i), (x_j - x_i))
-            thick = elem[i, 3]
+            thick = elements[i, 3]
             points = np.array([[x_i - np.sin(theta) * thick / 2, z_i + np.cos(theta) * thick / 2],
                                [x_j - np.sin(theta) * thick / 2, z_j + np.cos(theta) * thick / 2],
                                [x_j + np.sin(theta) * thick / 2, z_j - np.cos(theta) * thick / 2],
@@ -195,22 +201,22 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
     #axes.add_collection(patch)
     #plt.xlim((x_min - 25, x_max + 25))
     #plt.ylim((y_min - 25, y_max + 25))
-    nnodes = len(node)
-    for i in range(len(elem)):
+    nnodes = len(nodes)
+    for i in range(len(elements)):
         #Get Element Geometry
-        nodei = int(elem[i, 1])
-        nodej = int(elem[i, 2])
-        x_i = node[nodei, 1]
-        x_j = node[nodej, 1]
-        z_i = node[nodei, 2]
-        z_j = node[nodej, 2]
+        nodei = int(elements[i, 1])
+        nodej = int(elements[i, 2])
+        x_i = nodes[nodei, 1]
+        x_j = nodes[nodej, 1]
+        z_i = nodes[nodei, 2]
+        z_j = nodes[nodej, 2]
         #Determine the global element displacements
         #dbar is the nodal displacements for the element in global
         #coordinates dbar=[u1 v1 u2 v2 w1 o1 w2 o2]
         dbar = np.zeros((8, 1))
         dbarm = np.zeros((8, 1))
         dlbarm = np.zeros((3, 9))
-        defpatches = []
+        defpatches: list = []
         for j, m_a_j in enumerate(m_a):
             dbar[0:2, 0] = mode[4*nnodes*j + 2 * (nodei+1) - 2:4*nnodes*j + 2 * (nodei+1)]
             dbar[2:4, 0] = mode[4*nnodes*j + 2 * (nodej+1) - 2:4*nnodes*j + 2 * (nodej+1)]
@@ -271,7 +277,7 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
         thetalinks = np.append(thetalinks, thetalinks[links - 1])
         #Plot the deformed geometry
         theta = np.arctan2((z_j - z_i), (x_j - x_i))
-        thick = elem[i, 3]
+        thick = elements[i, 3]
         #Deformed geomtery with appropriate thickness
         dispout = np.array([[disp[0, :] + np.sin(thetalinks) * thick / 2],
                             [disp[1, :] - np.cos(thetalinks) * thick / 2]]).T
@@ -294,7 +300,6 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
     plt.gca().set_aspect('equal', adjustable='box')
     plt.axis('off')
 
-
     # if(figure == 1):
     #     plt.savefig('Validation/'+address+'/local.png')
     # if(figure == 2):
@@ -304,10 +309,13 @@ def dispshap(undef, node, elem, mode, scalem, springs, m_a, b_c, surf_pos):  # p
     # if(figure == 4):
     #     plt.savefig('Validation/'+address+'/global1.png')
     # plt.show()
+
+
 def thecurve3(
-    curvecell, clas, filedisplay, minopt, logopt, clasopt, xmin, xmax, ymin, ymax, modedisplay,
-    fileindex, modeindex, picpoint
-):  # pylint: disable=unused-argument
+    curvecell: np.ndarray, clas: int, filedisplay: list, minopt: int, logopt: int, clasopt: int,
+    xmin: float, xmax: float, ymin: float, ymax: float, modedisplay: list, fileindex: int,
+    modeindex: int, picpoint: list
+) -> None:  # pylint: disable=unused-argument
     curve = curvecell
     marker = '.x+*sdv^<'
     color1 = 'bgky'

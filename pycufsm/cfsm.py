@@ -1,5 +1,5 @@
 from copy import deepcopy
-from scipy import linalg as spla
+from scipy import linalg as spla # type: ignore
 import numpy as np
 from pycufsm.analysis import analysis
 
@@ -12,10 +12,10 @@ from pycufsm.analysis import analysis
 
 
 def base_column(
-    nodes_base, elements, props, length, b_c, m_a, el_props, node_props, n_main_nodes,
-    n_corner_nodes, n_sub_nodes, n_global_modes, n_dist_modes, n_local_modes, dof_perm, r_x, r_z,
-    r_ys, d_y
-):
+    nodes_base: np.ndarray, elements: np.ndarray, props: np.ndarray, length: float, b_c: str, m_a: list, el_props: np.ndarray, node_props: np.ndarray, n_main_nodes: int,
+    n_corner_nodes: int, n_sub_nodes: int, n_global_modes: int, n_dist_modes: int, n_local_modes: int, dof_perm: np.ndarray, r_x: np.ndarray, r_z: np.ndarray,
+    r_ys: np.ndarray, d_y: np.ndarray
+) -> np.ndarray:
     # this routine creates base vectors for a column with length length for all the
     # specified longitudinal terms in m_a
 
@@ -87,9 +87,9 @@ def base_column(
 
 
 def base_update(
-    gbt_con, b_v_l, length, m_a, nodes, elements, props, n_global_modes, n_dist_modes,
-    n_local_modes, b_c, el_props
-):
+    gbt_con: dict, b_v_l: np.ndarray, length: float, m_a: list, nodes: np.ndarray, elements: np.ndarray, props: np.ndarray, n_global_modes: int, n_dist_modes: int,
+    n_local_modes: int, b_c: str, el_props: np.ndarray
+) -> np.ndarray:
     # this routine optionally makes orthogonalization and normalization of base vectors
 
     # assumptions
@@ -299,6 +299,7 @@ def base_update(
         if gbt_con['orth'] == 2 or gbt_con['orth'] == 3 \
             or gbt_con['o_space'] == 2 or gbt_con['o_space'] == 3 or gbt_con['o_space'] == 4:
             # indices
+            dof_index = np.zeros((4, 2))
             dof_index[0, 0] = 0
             dof_index[0, 1] = n_global_modes
             dof_index[1, 0] = n_global_modes
@@ -461,7 +462,7 @@ def base_update(
     return b_v
 
 
-def mode_select(b_v, n_global_modes, n_dist_modes, n_local_modes, gbt_con, n_dof_m, m_a):
+def mode_select(b_v: np.ndarray, n_global_modes: int, n_dist_modes: int, n_local_modes: int, gbt_con: dict, n_dof_m: int, m_a: list) -> np.ndarray:
     # this routine selects the required base vectors
     #   b_v_red forms a reduced space for the calculation, including the
     #       selected modes only
@@ -547,7 +548,7 @@ def mode_select(b_v, n_global_modes, n_dist_modes, n_local_modes, gbt_con, n_dof
     return b_v_red
 
 
-def constr_user(nodes, constraints, m_a):
+def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: list) -> np.ndarray:
     #
     # this routine creates the constraints matrix, r_user_matrix, as defined by the user
     #
@@ -630,7 +631,7 @@ def constr_user(nodes, constraints, m_a):
     return r_user_matrix
 
 
-def mode_constr(nodes, elements, node_props, main_nodes, meta_elements):
+def mode_constr(nodes: np.ndarray, elements: np.ndarray, node_props: np.ndarray, main_nodes: np.ndarray, meta_elements: np.ndarray):
     #
     # this routine creates the constraint matrices necessary for mode
     # separation/classification for each specified half-wave number m_i
@@ -676,7 +677,7 @@ def mode_constr(nodes, elements, node_props, main_nodes, meta_elements):
 
 
 def y_dofs(
-    nodes, elements, main_nodes, n_main_nodes, n_dist_modes, r_yd, r_ud, sect_props, el_props
+    nodes: np.ndarray, elements: np.ndarray, main_nodes: np.ndarray, n_main_nodes: int, n_dist_modes: int, r_yd: np.ndarray, r_ud: np.ndarray, sect_props: dict[str, float], el_props: np.ndarray
 ):
 
     # this routine creates y-DOFs of main nodes for global buckling and
@@ -804,9 +805,9 @@ def y_dofs(
 
 
 def base_vectors(
-    d_y, elements, el_props, length, m_i, node_props, n_main_nodes, n_corner_nodes, n_sub_nodes,
-    n_global_modes, n_dist_modes, n_local_modes, r_x, r_z, r_p, r_ys, dof_perm
-):
+    d_y: np.ndarray, elements: np.ndarray, el_props: np.ndarray, length: float, m_i: float, node_props: np.ndarray, n_main_nodes: int, n_corner_nodes: int, n_sub_nodes: int,
+    n_global_modes: int, n_dist_modes: int, n_local_modes: int, r_x: np.ndarray, r_z: np.ndarray, r_p: np.ndarray, r_ys: np.ndarray, dof_perm: np.ndarray
+) -> np.ndarray:
     #
     # this routine creates the base vectors for global, dist., local and other modes
     #
@@ -1024,7 +1025,7 @@ def base_vectors(
     return b_v_m
 
 
-def constr_xz_y(main_nodes, meta_elements):
+def constr_xz_y(main_nodes: np.ndarray, meta_elements: np.ndarray):
     # this routine creates the constraint matrix, Rxz, that defines relationship
     # between x, z displacements DOFs [for internal main nodes, referred also as corner nodes]
     # and the longitudinal y displacements DOFs [for all the main nodes]
@@ -1133,7 +1134,7 @@ def constr_xz_y(main_nodes, meta_elements):
     return r_x, r_z
 
 
-def constr_planar_xz(nodes, elements, props, node_props, dof_perm, m_i, length, b_c, el_props):
+def constr_planar_xz(nodes: np.ndarray, elements: np.ndarray, props: np.ndarray, node_props: np.ndarray, dof_perm: np.ndarray, m_i: float, length: float, b_c: str, el_props: np.ndarray) -> np.ndarray:
     #
     # this routine creates the constraint matrix, r_p, that defines relationship
     # between x, z DOFs of any non-corner nodes + teta DOFs of all nodes,
@@ -1197,7 +1198,7 @@ def constr_planar_xz(nodes, elements, props, node_props, dof_perm, m_i, length, 
     return r_p
 
 
-def constr_yd_yg(nodes, elements, node_props, r_ys, n_main_nodes):
+def constr_yd_yg(nodes: np.ndarray, elements: np.ndarray, node_props: np.ndarray, r_ys: np.ndarray, n_main_nodes: int) -> np.ndarray:
     #
     # this routine creates the constraint matrix, r_yd, that defines relationship
     # between base vectors for distortional buckling,
@@ -1238,7 +1239,7 @@ def constr_yd_yg(nodes, elements, node_props, r_ys, n_main_nodes):
     return r_yd
 
 
-def constr_ys_ym(nodes, main_nodes, meta_elements, node_props):
+def constr_ys_ym(nodes: np.ndarray, main_nodes: np.ndarray, meta_elements: np.ndarray, node_props: np.ndarray) -> np.ndarray:
     # this routine creates the constraint matrix, r_ys, that defines relationship
     # between y DOFs of sub-nodes,
     # and the y displacements DOFs of main nodes
@@ -1287,7 +1288,7 @@ def constr_ys_ym(nodes, main_nodes, meta_elements, node_props):
     return r_ys
 
 
-def constr_yu_yd(main_nodes, meta_elements):
+def constr_yu_yd(main_nodes: np.ndarray, meta_elements: np.ndarray) -> np.ndarray:
     #
     # this routine creates the constraint matrix, r_ud, that defines relationship
     # between y displacements DOFs of indefinite main nodes
@@ -1462,7 +1463,7 @@ def constr_yu_yd(main_nodes, meta_elements):
     return r_ud
 
 
-def base_properties(nodes, elements):
+def base_properties(nodes: np.ndarray, elements: np.ndarray):
     # this routine creates all the data for defining the base vectors from the
     # cross section properties
     #
@@ -1495,7 +1496,7 @@ def base_properties(nodes, elements):
         n_corner_nodes, n_sub_nodes, n_dist_modes, n_local_modes, dof_perm
 
 
-def meta_elems(nodes, elements):
+def meta_elems(nodes: np.ndarray, elements: np.ndarray):
     # this routine re-organises the basic input data
     #  to eliminate internal subdividing nodes
     #  to form meta-elements (corner-to-corner or corner-to-free edge)
@@ -1587,25 +1588,25 @@ def meta_elems(nodes, elements):
 
     # to eliminate disappearing elements (nodes numbers are still the original ones!)
     n_meta_elements = 0  # nr of meta-elements
-    meta_elements = []
+    meta_elements_list = []
     for m_elem_t in meta_elements_temp:
         if m_elem_t[1] != -1 and m_elem_t[2] != -1:
-            meta_elements.append(m_elem_t)
-            meta_elements[-1][0] = n_meta_elements
+            meta_elements_list.append(m_elem_t)
+            meta_elements_list[-1][0] = n_meta_elements
             n_meta_elements = n_meta_elements + 1
-    meta_elements = np.array(meta_elements)
+    meta_elements = np.array(meta_elements_list)
 
     # to create array of main-nodes
     #(first and fourth columns assign the new vs. original numbering,
     # + node_assign tells the original vs. new numbering)
     n_main_nodes = 0  # nr of main nodes
-    main_nodes = []
+    main_nodes_list = []
     for i, node in enumerate(nodes):
         if node_props[i, 2] != 0:
-            main_nodes.append([n_main_nodes, node[1], node[2], i, node_props[i, 2]])
+            main_nodes_list.append([n_main_nodes, node[1], node[2], i, node_props[i, 2]])
             node_props[i, 1] = n_main_nodes
             n_main_nodes = n_main_nodes + 1
-    main_nodes = np.array(main_nodes)
+    main_nodes = np.array(main_nodes_list)
 
     # to re-number nodes in the array meta_elements (only for main nodes, of course)
     for i, n_props in enumerate(node_props):
@@ -1643,7 +1644,7 @@ def meta_elems(nodes, elements):
     return main_nodes, meta_elements, node_props
 
 
-def mode_nr(n_main_nodes, n_corner_nodes, n_sub_nodes, main_nodes):
+def mode_nr(n_main_nodes: int, n_corner_nodes: int, n_sub_nodes: int, main_nodes: np.ndarray):
     #
     # this routine determines the number of distortional and local buckling modes
     # if GBT-like assumptions are used
@@ -1674,7 +1675,7 @@ def mode_nr(n_main_nodes, n_corner_nodes, n_sub_nodes, main_nodes):
     return n_dist_modes, n_local_modes
 
 
-def dof_ordering(node_props):
+def dof_ordering(node_props: np.ndarray) -> np.ndarray:
     # this routine re-orders the DOFs,
     # according to the need of forming shape vectors for various buckling modes
     #
@@ -1765,7 +1766,7 @@ def dof_ordering(node_props):
     return dof_perm
 
 
-def classify(props, nodes, elements, lengths, shapes, gbt_con, b_c, m_all, sect_props):
+def classify(props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray, shapes: np.ndarray, gbt_con: dict, b_c: str, m_all: list, sect_props: dict[str, float]) -> list[np.ndarray]:
     # , clas_GDLO
     # MODAL CLASSIFICATION
 
@@ -1829,7 +1830,7 @@ def classify(props, nodes, elements, lengths, shapes, gbt_con, b_c, m_all, sect_
     l_i = 0  # length_index = one
     clas = []
     while l_i < n_lengths:
-        length = lengths(l_i)
+        length = lengths[l_i]
         # longitudinal terms included in the analysis for this length
         m_a = m_all[l_i]
         b_v_l = base_column(
@@ -1870,7 +1871,7 @@ def classify(props, nodes, elements, lengths, shapes, gbt_con, b_c, m_all, sect_
         )
 
         # classification
-        clas_modes = np.zeros((len(shapes([l_i][0])), 4))
+        clas_modes = np.zeros((len(shapes[l_i, 0]), 4))
         for mod in range(0, len(shapes[l_i][0])):
             clas_modes[mod, 0:4] = mode_class(
                 b_v=b_v,
@@ -1889,8 +1890,8 @@ def classify(props, nodes, elements, lengths, shapes, gbt_con, b_c, m_all, sect_
 
 
 def mode_class(
-    b_v, displacements, n_global_modes, n_dist_modes, n_local_modes, m_a, n_dof_m, gbt_con
-):
+    b_v: np.ndarray, displacements: np.ndarray, n_global_modes: int, n_dist_modes: int, n_local_modes: int, m_a: list, n_dof_m: int, gbt_con: dict
+) -> np.ndarray:
     #
     # to determine mode contribution in the current displacement
 
@@ -1939,7 +1940,7 @@ def mode_class(
                 displacements[n_dof_m * i:n_dof_m * (i+1)]
             )
 
-            cl_gdlo = np.zeros((4, 5 * n_modes))
+            cl_gdlo = np.zeros((4, 5 * n_dof_m))
             for j in range(0, 4):
                 n_modes = dof_index[j, 1] - dof_index[i, 0]
                 cl_gdlo[i, j * n_modes:j*n_modes + n_modes] = clas[dof_index[j, 0]:dof_index[j, 1]]
@@ -1952,6 +1953,7 @@ def mode_class(
     #     clas_gdlo1 = clas_gdlo1/norm_sum*100
 
     # L2 norm
+        clas_gdlo = np.zeros((1, 5))
         for m_n in range(0, 4):
             clas_gdlo[m_n] = np.linalg.norm(cl_gdlo[m_n, :])
 
@@ -1961,7 +1963,8 @@ def mode_class(
         # coupled basis
         # classification
         clas = np.linalg.lstsq(b_v, displacements)
-        v_gdlo = np.zeros((4, (total_m+1) * n_modes))
+        v_gdlo = np.zeros((4, (total_m+1) * n_dof_m))
+        clas_gdlo = np.zeros((1, 5))
         for i in range(0, 4):
             for j in range(0, total_m):
                 n_modes = dof_index[i, 2] - dof_index[i, 1] + 1
@@ -1983,27 +1986,7 @@ def mode_class(
     return clas_gdlo
 
 
-def trans_single(alpha, k_local):
-    #
-    # this routine make the local-to-global co-ordinate transformation
-    # basically it does the same as routine 'trans', however:
-    #   it does not care about kg_local (geom stiff matrix)
-    #   only involve one half-wave number m_i
-
-    # S. Adany, Feb 06, 2004
-    # Z. Li, Jul 10, 2009
-    #
-    gamma = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
-                      [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0], [0, 0, 0, 1, 0, 0, 0, 0],
-                      [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
-                      [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
-
-    k_global = gamma @ k_local @ gamma.conj().T
-
-    return k_global
-
-
-def node_class(node_props):
+def node_class(node_props: np.ndarray):
     #this routine determines how many nodes of the various types exist
     #
     #input/output data

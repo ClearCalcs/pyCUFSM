@@ -1,6 +1,7 @@
 import numpy as np
 import pycufsm.fsm
 import pycufsm.cfsm
+from typing import Optional
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
@@ -11,7 +12,7 @@ import pycufsm.cfsm
 
 
 #Helper Function
-def gammait(phi, dbar):
+def gammait(phi: float, dbar: np.ndarray) -> np.ndarray:
     # BWS
     # 1998 (last modified)
     #
@@ -24,16 +25,16 @@ def gammait(phi, dbar):
 
 
 #Helper Function
-def gammait2(phi, disp_local):
+def gammait2(phi: float, disp_local: np.ndarray) -> np.ndarray:
     # BWS
     # 1998 last modified
     # transform local disps into global dispa
     gamma = np.array([[np.cos(phi), 0, -np.sin(phi)], [0, 1, 0], [np.sin(phi), 0, np.cos(phi)]])
-    return np.dot(np.linalg.inv(gamma), disp_local)
+    return np.dot(np.linalg.inv(gamma), disp_local) # type: ignore
 
 
 #Helper function
-def shapef(links, disp, length):
+def shapef(links: int, disp: np.ndarray, length: float) -> np.ndarray:
     # BWS
     # 1998
     #
@@ -54,7 +55,12 @@ def shapef(links, disp, length):
     return disp_local
 
 
-def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
+def lengths_recommend(
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    length_append: Optional[float] = None,
+    n_lengths: int = 50
+) -> np.ndarray:
     #
     #Z. Li, July 2010 (last modified)
     #generate the signature curve solution
@@ -77,20 +83,23 @@ def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
     )
 
     if length_append is not None:
-        lengths = np.sort(np.concatenate((lengths, [length_append])))
+        lengths = np.sort(np.concatenate((lengths, np.array([length_append]))))
 
     return lengths
 
 
-def signature_ss(props, nodes, elements, i_gbt_con, sect_props, lengths):
+def signature_ss(
+    props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, i_gbt_con: dict, sect_props: dict,
+    lengths: np.ndarray
+):
     #
     #Z. Li, July 2010 (last modified)
     #generate the signature curve solution
     #
-    i_springs = []
-    i_constraints = []
+    i_springs = np.array([])
+    i_constraints = np.array([])
     i_b_c = 'S-S'
-    i_m_all = np.ones((len(lengths), 1))
+    i_m_all = np.ones((len(lengths), 1)).tolist()
 
     isignature, icurve, ishapes = pycufsm.fsm.strip(
         props=props,
@@ -109,7 +118,15 @@ def signature_ss(props, nodes, elements, i_gbt_con, sect_props, lengths):
     return isignature, icurve, ishapes
 
 
-def m_recommend(props, nodes, elements, sect_props, length_append=None, n_lengths=50, lengths=None):
+def m_recommend(
+    props: np.ndarray,
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    sect_props: dict,
+    length_append: Optional[float] = None,
+    n_lengths: int = 50,
+    lengths: Optional[np.ndarray] = None
+):
     # Z. Li, Oct. 2010
     #Suggested longitudinal terms are calculated based on the characteristic
     #half-wave lengths of local, distortional, and global buckling from the
@@ -285,7 +302,7 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
     )
 
 
-def load_mat(mat):
+def load_mat(mat: dict) -> dict:
     cufsm_input = {}
     if 'node' in mat:
         nodes = np.array(mat['node'], dtype=np.dtype(np.double))
@@ -348,7 +365,7 @@ def load_mat(mat):
             "orth":
                 mat["GBTcon"]["orth"] if "orth" in mat["GBTcon"].dtype.names else 1
         }
-        cufsm_input['GBTcon'] = gbt_con
+        cufsm_input['GBTcon'] = gbt_con # type: ignore
     if 'shapes' in mat:
         cufsm_input['shapes'] = np.array(mat['shapes'])
     if 'clas' in mat:
