@@ -9,7 +9,7 @@ import numpy as np
 
 
 def m_sort(m_all: list) -> list:
-    """Cleans up lognitudinal terms by removing any zero terms, removing any duplicates, and sorting
+    """Cleans up longitudinal terms by removing any zero terms, removing any duplicates, and sorting
 
     Args:
         m_all (2D list): list of all longitudinal terms for each half-wavelength
@@ -18,7 +18,7 @@ def m_sort(m_all: list) -> list:
         m_all (2D list): cleaned list of all longitudinal terms for each half-wavelength
     """
     for i, m_a in enumerate(m_all):
-        # return all the nonzeros longitudinal terms in m_a as a column vector
+        # return all the nonzero longitudinal terms in m_a as a column vector
         m_a = m_a[np.nonzero(m_a)]
         m_a = np.lib.arraysetops.unique(m_a)  # remove repetitive longitudinal terms
         m_all[i] = m_a
@@ -247,16 +247,16 @@ def k_kg_local(
             'C-C' clamped-clamped boundary condition at loaded edges
             'S-C' simply-clamped supported boundary condition at loaded edges
             'C-F' clamped-free supported boundary condition at loaded edges
-            'C-G' clamped-gcdef np.ndarray[np.double_t, ndim=2] uided supported boundary condition at
-                loaded edges
+            'C-G' clamped-gcdef np.ndarray[np.double_t, ndim=2] uided supported boundary condition
+                at loaded edges
         m_a (list): longitudinal terms (or half-wave numbers) for this length
 
     Returns:
-        k_local (np.ndarray): local stiffness matrix, a total_m x total_m matrix of 8 by 8 submatrices.
-            k_local=[k_mp]total_m x total_m block matrix
+        k_local (np.ndarray): local stiffness matrix, a total_m x total_m matrix of 8 by 8 
+            submatrices. k_local=[k_mp]total_m x total_m block matrix
             each k_mp is the 8 x 8 submatrix in the DOF order [u1 v1 u2 v2 w1 theta1 w2 theta2]'
-        kg_local (np.ndarray): local geometric stiffness matrix, a total_m x total_m matrix of 8 by 8 submatrices.
-            kg_local=[kg_mp]total_m x total_m block matrix
+        kg_local (np.ndarray): local geometric stiffness matrix, a total_m x total_m matrix of 
+            8 by 8 submatrices. kg_local=[kg_mp]total_m x total_m block matrix
             each kg_mp is the 8 x 8 submatrix in the DOF order [u1 v1 u2 v2 w1 theta1
 
     Z. Li June 2008
@@ -340,7 +340,7 @@ def kglobal_transv(
     #   only one half-wave number m_i is considered,
     #   only w, teta terms are considered,
     #   plus stiff_y = nu_x = nu_y = 0 is assumed
-    #   plus the longitudinal displacements. DOFs are explicitely eliminated
+    #   plus the longitudinal displacements. DOFs are explicitly eliminated
     #   the multiplication by 'length' (member length) is not done here, must be done
     #      outside of this routine
     #
