@@ -1,7 +1,9 @@
 from typing import Optional
+
 import numpy as np
-import pycufsm.fsm
+
 import pycufsm.cfsm
+import pycufsm.fsm
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng

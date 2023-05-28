@@ -1,4 +1,5 @@
 import numpy as np
+
 try:
     try:
         # if the cython module is already built, use it

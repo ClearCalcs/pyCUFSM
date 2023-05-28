@@ -1,6 +1,8 @@
 from copy import deepcopy
-from scipy import linalg as spla  # type: ignore
+
 import numpy as np
+from scipy import linalg as spla  # type: ignore
+
 from pycufsm.analysis import analysis
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al

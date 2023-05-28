@@ -1,8 +1,11 @@
 from copy import deepcopy
-from scipy import linalg as spla  # type: ignore
+
 import numpy as np
-from pycufsm.analysis import analysis
+from scipy import linalg as spla  # type: ignore
+
 import pycufsm.cfsm
+from pycufsm.analysis import analysis
+
 # from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng

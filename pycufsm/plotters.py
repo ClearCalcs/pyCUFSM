@@ -1,8 +1,10 @@
-import numpy as np
-from matplotlib.patches import Polygon  # type: ignore
-from matplotlib.collections import PatchCollection  # type: ignore
-from matplotlib.cm import jet  # type: ignore  # pylint: disable=no-name-in-module
 import matplotlib.pyplot as plt  # type: ignore
+import numpy as np
+from matplotlib.cm import \
+    jet  # type: ignore  # pylint: disable=no-name-in-module
+from matplotlib.collections import PatchCollection  # type: ignore
+from matplotlib.patches import Polygon  # type: ignore
+
 import pycufsm.helpers as helpers
 
 
@@ -10,8 +12,8 @@ import pycufsm.helpers as helpers
 def crossect(
     nodes: np.ndarray,
     elements: np.ndarray,
-    springs: np.ndarray,
-    constraints: np.ndarray,  # pylint: disable=unused-argument
+    springs: np.ndarray,  # pylint: disable=unused-argument
+    constraints: np.ndarray,
     flags: list[int]
 ) -> None:
     # BWS
@@ -165,10 +167,10 @@ def dispshap(
     elements: np.ndarray,
     mode: np.ndarray,
     scalem: float,
-    springs: np.ndarray,
+    springs: np.ndarray,  # pylint: disable=unused-argument
     m_a: list,
     b_c: str,
-    surf_pos: float  # pylint: disable=unused-argument
+    surf_pos: float
 ) -> None:
     #Determining Scaling Factor for the displaced shape
     ##dispmax=np.max(np.abs(mode))
@@ -323,7 +325,7 @@ def dispshap(
 
 def thecurve3(
     curvecell: np.ndarray,
-    clas: int,
+    clas: int,  # pylint: disable=unused-argument
     filedisplay: list,
     minopt: int,
     logopt: int,
@@ -334,7 +336,7 @@ def thecurve3(
     ymax: float,
     modedisplay: list,
     fileindex: int,  # pylint: disable=unused-argument
-    modeindex: int,
+    modeindex: int,  # pylint: disable=unused-argument
     picpoint: list  # pylint: disable=unused-argument
 ) -> None:
     curve = curvecell

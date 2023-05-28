@@ -20,7 +20,7 @@ def m_sort(m_all: list) -> list:
     for i, m_a in enumerate(m_all):
         # return all the nonzero longitudinal terms in m_a as a column vector
         m_a = m_a[np.nonzero(m_a)]
-        m_a = np.lib.arraysetops.unique(m_a)  # remove repetitive longitudinal terms
+        m_a = np.lib.unique(m_a)  # remove repetitive longitudinal terms
         m_all[i] = m_a
     return m_all
 
@@ -1110,6 +1110,8 @@ def ym_at_ys(b_c: str, m_i: float, y_s: float, length: float) -> float:
         y_m = 1 - np.cos((m_i-0.5) * np.pi * y_s / length)
     elif b_c == 'C-G' or b_c == 'G-C':
         y_m = np.sin((m_i-0.5) * np.pi * y_s / length) * np.sin(np.pi * y_s / length / 2)
+    else:
+        raise ValueError(f"Unrecognised boundary condition '{b_c}'")
 
     return y_m
 
@@ -1138,5 +1140,7 @@ def ymprime_at_ys(b_c: str, m_i: float, y_s: float, length: float) -> float:
             * np.cos((np.pi*y_s)/(2*length)))/(2*length) \
             + (np.pi*np.cos((np.pi*y_s*(m_i - 1/2))/length) \
             * np.sin((np.pi*y_s)/(2*length))*(m_i - 1/2))/length
+    else:
+        raise ValueError(f"Unrecognised boundary condition '{b_c}'")
 
     return y_m_prime

@@ -1,4 +1,5 @@
 from typing import Optional, Union
+
 import numpy as np
 from scipy import linalg as spla  # type: ignore
 

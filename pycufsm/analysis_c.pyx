@@ -1,7 +1,7 @@
 # distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
 import cython
-import numpy as np
 cimport numpy as np
+import numpy as np
 np.import_array()
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
@@ -16,7 +16,7 @@ def m_sort(m_all):
     for i, m_a in enumerate(m_all):
         # return all the nonzeros longitudinal terms in m_a as a column vector
         m_a = m_a[np.nonzero(m_a)]
-        m_a = np.lib.arraysetops.unique(m_a)  # remove repetitive longitudinal terms
+        m_a = np.lib.unique(m_a)  # remove repetitive longitudinal terms
         m_all[i] = m_a
     return m_all
 
