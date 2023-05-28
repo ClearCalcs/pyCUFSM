@@ -1,6 +1,6 @@
-import numpy as np
-from scipy import linalg as spla # type: ignore
 from typing import Optional, Union
+import numpy as np
+from scipy import linalg as spla  # type: ignore
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE
@@ -391,7 +391,10 @@ def template_out_to_in(sect: dict) -> list:
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 
-def yield_mp(nodes: np.ndarray, f_y: float, sect_props: dict, restrained: bool = False) -> dict[str, float]:
+def yield_mp(nodes: np.ndarray,
+             f_y: float,
+             sect_props: dict,
+             restrained: bool = False) -> dict[str, float]:
     # BWS
     # August 2000
     # [Py,Mxx_y,Mzz_y,M11_y,M22_y]
@@ -417,7 +420,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: dict, restrained: bool =
     if np.max(abs(stress1)) == 0:
         f_yield['Mxx'] = 0
     else:
-        f_yield['Mxx'] = f_y / np.max(abs(stress1)) # type: ignore
+        f_yield['Mxx'] = f_y / np.max(abs(stress1))  # type: ignore
     #Calculate stress at every point based on m_yy=1
     m_xx = 0
     m_yy = 1
@@ -432,7 +435,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: dict, restrained: bool =
     if np.max(abs(stress1)) == 0:
         f_yield['Myy'] = 0
     else:
-        f_yield['Myy'] = f_y / np.max(abs(stress1)) # type: ignore
+        f_yield['Myy'] = f_y / np.max(abs(stress1))  # type: ignore
     # %M11_y, M22_y
     # %transform coordinates of nodes into principal coordinates
     phi = sect_props['phi']
@@ -445,7 +448,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: dict, restrained: bool =
     if np.max(abs(stress1)) == 0:
         f_yield['M11'] = 0
     else:
-        f_yield['M11'] = f_y / np.max(abs(stress1)) * f_yield['M11'] # type: ignore
+        f_yield['M11'] = f_y / np.max(abs(stress1)) * f_yield['M11']  # type: ignore
 
     f_yield['M22'] = 1
     stress1 = np.zeros((1, len(nodes)))
@@ -453,7 +456,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: dict, restrained: bool =
     if np.max(abs(stress1)) == 0:
         f_yield['M22'] = 0
     else:
-        f_yield['M22'] = f_y / np.max(abs(stress1)) * f_yield['M22'] # type: ignore
+        f_yield['M22'] = f_y / np.max(abs(stress1)) * f_yield['M22']  # type: ignore
     return f_yield
 
 

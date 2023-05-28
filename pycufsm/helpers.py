@@ -1,7 +1,7 @@
+from typing import Optional
 import numpy as np
 import pycufsm.fsm
 import pycufsm.cfsm
-from typing import Optional
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
@@ -30,7 +30,7 @@ def gammait2(phi: float, disp_local: np.ndarray) -> np.ndarray:
     # 1998 last modified
     # transform local disps into global dispa
     gamma = np.array([[np.cos(phi), 0, -np.sin(phi)], [0, 1, 0], [np.sin(phi), 0, np.cos(phi)]])
-    return np.dot(np.linalg.inv(gamma), disp_local) # type: ignore
+    return np.dot(np.linalg.inv(gamma), disp_local)  # type: ignore
 
 
 #Helper function
@@ -365,7 +365,7 @@ def load_mat(mat: dict) -> dict:
             "orth":
                 mat["GBTcon"]["orth"] if "orth" in mat["GBTcon"].dtype.names else 1
         }
-        cufsm_input['GBTcon'] = gbt_con # type: ignore
+        cufsm_input['GBTcon'] = gbt_con  # type: ignore
     if 'shapes' in mat:
         cufsm_input['shapes'] = np.array(mat['shapes'])
     if 'clas' in mat:

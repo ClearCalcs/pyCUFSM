@@ -36,7 +36,7 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> dict:
     #                            ends(i,3) = element's thicknesses
     #  Output Information:
     #       A              ==  cross section area
-    #       xc             ==  X coordinate of the centroid from orgin
+    #       xc             ==  X coordinate of the centroid from origin
     #       yc             ==  Y coordinate of the centroid from origin
     #       Ix             ==  moment of inertia about centroid X axes
     #       Iy             ==  moment of inertia about centroid Y axes

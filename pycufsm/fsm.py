@@ -1,5 +1,5 @@
 from copy import deepcopy
-from scipy import linalg as spla # type: ignore
+from scipy import linalg as spla  # type: ignore
 import numpy as np
 from pycufsm.analysis import analysis
 import pycufsm.cfsm
@@ -17,16 +17,16 @@ def strip(
     springs: np.ndarray, constraints: np.ndarray, gbt_con: dict, b_c: str, m_all: list, n_eigs: int,
     sect_props: dict
 ):
-    """Perform a fintite strip analysis
+    """Perform a finite strip analysis
 
     Args:
         props (np.ndarray): [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
         nodes (np.ndarray): [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
         elements (np.ndarray): [elem# node_i node_j thick mat_num] n_elements x 5
-        lengths (np.ndarray): [L1 L2 L3...] 1 x n_lengths lengths to be analysed; 
+        lengths (np.ndarray): [L1 L2 L3...] 1 x n_lengths lengths to be analyzed; 
             could be half-wavelengths for signature curve or physical lengths for general b.c.
-        springs (np.ndarray): [node# d.o.f. k_spring k_flag] where 1=x dir 2= y dir 3 = z dir 4 = q dir (twist)
-            flag says if k_stiff is a foundation stiffness or a total stiffness
+        springs (np.ndarray): [node# d.o.f. k_spring k_flag] where 1=x dir 2= y dir 3 = z dir 
+            4 = q dir (twist) flag says if k_stiff is a foundation stiffness or a total stiffness
         constraints (np.ndarray): [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
             k=kept dof dof_e_node = coeff*dof_k_node_k
         gbt_con (dict): gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
@@ -49,7 +49,7 @@ def strip(
                     1: natural basis
                     2: modal basis, axial orthogonality
                     3: modal basis, load dependent orthogonality
-        b_c (str): ['S-S'] a string specifying boundary conditions to be analysed:
+        b_c (str): ['S-S'] a string specifying boundary conditions to be analyzed:
             'S-S' simply-pimply supported boundary condition at loaded edges
             'C-C' clamped-clamped boundary condition at loaded edges
             'S-C' simply-clamped supported boundary condition at loaded edges
@@ -235,7 +235,7 @@ def strip(
             # Number of boundary conditions and user defined constraints = nu0
             nu0 = len(r_u0_matrix[0])
 
-        # %GENERATION OF cFSM CONSTRAINT MATRIX
+        # GENERATION OF cFSM CONSTRAINT MATRIX
         if cfsm_analysis == 1:
             # PERFORM ORTHOGONALIZATION IF GBT-LIKE MODES ARE ENFORCED
             b_v = pycufsm.cfsm.base_update(

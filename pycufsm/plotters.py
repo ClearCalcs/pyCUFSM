@@ -1,6 +1,6 @@
 import numpy as np
-from matplotlib.patches import Polygon # type: ignore
-from matplotlib.collections import PatchCollection # type: ignore
+from matplotlib.patches import Polygon  # type: ignore
+from matplotlib.collections import PatchCollection  # type: ignore
 from matplotlib.cm import jet  # type: ignore  # pylint: disable=no-name-in-module
 import matplotlib.pyplot as plt  # type: ignore
 import pycufsm.helpers as helpers
@@ -8,9 +8,12 @@ import pycufsm.helpers as helpers
 
 ##Cross section
 def crossect(
-    nodes: np.ndarray, elements: np.ndarray, springs: np.ndarray, constraints: np.ndarray,
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    springs: np.ndarray,
+    constraints: np.ndarray,  # pylint: disable=unused-argument
     flags: list[int]
-) -> None:  # pylint: disable=unused-argument
+) -> None:
     # BWS
     # October 2001 (last modified)
     # December 2015 springs updated
@@ -157,9 +160,16 @@ def crossect(
 
 #Cross section displacement function
 def dispshap(
-    undef: int, nodes: np.ndarray, elements: np.ndarray, mode: np.ndarray, scalem: float,
-    springs: np.ndarray, m_a: list, b_c: str, surf_pos: float
-) -> None:  # pylint: disable=unused-argument
+    undef: int,
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    mode: np.ndarray,
+    scalem: float,
+    springs: np.ndarray,
+    m_a: list,
+    b_c: str,
+    surf_pos: float  # pylint: disable=unused-argument
+) -> None:
     #Determining Scaling Factor for the displaced shape
     ##dispmax=np.max(np.abs(mode))
     dispmax = np.max(np.abs(mode))
@@ -312,10 +322,21 @@ def dispshap(
 
 
 def thecurve3(
-    curvecell: np.ndarray, clas: int, filedisplay: list, minopt: int, logopt: int, clasopt: int,
-    xmin: float, xmax: float, ymin: float, ymax: float, modedisplay: list, fileindex: int,
-    modeindex: int, picpoint: list
-) -> None:  # pylint: disable=unused-argument
+    curvecell: np.ndarray,
+    clas: int,
+    filedisplay: list,
+    minopt: int,
+    logopt: int,
+    clasopt: int,  # pylint: disable=unused-argument
+    xmin: float,
+    xmax: float,
+    ymin: float,
+    ymax: float,
+    modedisplay: list,
+    fileindex: int,  # pylint: disable=unused-argument
+    modeindex: int,
+    picpoint: list  # pylint: disable=unused-argument
+) -> None:
     curve = curvecell
     marker = '.x+*sdv^<'
     color1 = 'bgky'
