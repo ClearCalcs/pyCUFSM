@@ -15,9 +15,10 @@ from pycufsm.analysis import analysis
 
 def base_column(
     nodes_base: np.ndarray, elements: np.ndarray, props: np.ndarray, length: float, b_c: str,
-    m_a: list, el_props: np.ndarray, node_props: np.ndarray, n_main_nodes: int, n_corner_nodes: int,
-    n_sub_nodes: int, n_global_modes: int, n_dist_modes: int, n_local_modes: int,
-    dof_perm: np.ndarray, r_x: np.ndarray, r_z: np.ndarray, r_ys: np.ndarray, d_y: np.ndarray
+    m_a: np.ndarray, el_props: np.ndarray, node_props: np.ndarray, n_main_nodes: int,
+    n_corner_nodes: int, n_sub_nodes: int, n_global_modes: int, n_dist_modes: int,
+    n_local_modes: int, dof_perm: np.ndarray, r_x: np.ndarray, r_z: np.ndarray, r_ys: np.ndarray,
+    d_y: np.ndarray
 ) -> np.ndarray:
     # this routine creates base vectors for a column with length length for all the
     # specified longitudinal terms in m_a
@@ -90,7 +91,7 @@ def base_column(
 
 
 def base_update(
-    gbt_con: dict, b_v_l: np.ndarray, length: float, m_a: list, nodes: np.ndarray,
+    gbt_con: dict, b_v_l: np.ndarray, length: float, m_a: np.ndarray, nodes: np.ndarray,
     elements: np.ndarray, props: np.ndarray, n_global_modes: int, n_dist_modes: int,
     n_local_modes: int, b_c: str, el_props: np.ndarray
 ) -> np.ndarray:
@@ -468,7 +469,7 @@ def base_update(
 
 def mode_select(
     b_v: np.ndarray, n_global_modes: int, n_dist_modes: int, n_local_modes: int, gbt_con: dict,
-    n_dof_m: int, m_a: list
+    n_dof_m: int, m_a: np.ndarray
 ) -> np.ndarray:
     # this routine selects the required base vectors
     #   b_v_red forms a reduced space for the calculation, including the
@@ -555,7 +556,7 @@ def mode_select(
     return b_v_red
 
 
-def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: list) -> np.ndarray:
+def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: np.ndarray) -> np.ndarray:
     #
     # this routine creates the constraints matrix, r_user_matrix, as defined by the user
     #
@@ -1790,7 +1791,7 @@ def dof_ordering(node_props: np.ndarray) -> np.ndarray:
 
 def classify(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
-    shapes: np.ndarray, gbt_con: dict, b_c: str, m_all: list, sect_props: dict[str, float]
+    shapes: np.ndarray, gbt_con: dict, b_c: str, m_all: np.ndarray, sect_props: dict[str, float]
 ) -> list[np.ndarray]:
     # , clas_GDLO
     # MODAL CLASSIFICATION
@@ -1916,7 +1917,7 @@ def classify(
 
 def mode_class(
     b_v: np.ndarray, displacements: np.ndarray, n_global_modes: int, n_dist_modes: int,
-    n_local_modes: int, m_a: list, n_dof_m: int, gbt_con: dict
+    n_local_modes: int, m_a: np.ndarray, n_dof_m: int, gbt_con: dict
 ) -> np.ndarray:
     #
     # to determine mode contribution in the current displacement

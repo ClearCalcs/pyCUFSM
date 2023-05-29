@@ -168,7 +168,7 @@ def dispshap(
     mode: np.ndarray,
     scalem: float,
     springs: np.ndarray,  # pylint: disable=unused-argument
-    m_a: list,
+    m_a: np.ndarray,
     b_c: str,
     surf_pos: float
 ) -> None:

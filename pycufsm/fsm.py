@@ -17,8 +17,8 @@ from pycufsm.analysis import analysis
 
 def strip(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
-    springs: np.ndarray, constraints: np.ndarray, gbt_con: dict, b_c: str, m_all: list, n_eigs: int,
-    sect_props: dict
+    springs: np.ndarray, constraints: np.ndarray, gbt_con: dict, b_c: str, m_all: np.ndarray,
+    n_eigs: int, sect_props: dict
 ):
     """Perform a finite strip analysis
 
