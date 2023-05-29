@@ -4,6 +4,7 @@ import numpy as np
 
 import pycufsm.cfsm
 import pycufsm.fsm
+from pycufsm.types import Cufsm_Input, GBT_Con, MAT_File, Sect_Props
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
@@ -91,8 +92,8 @@ def lengths_recommend(
 
 
 def signature_ss(
-    props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, i_gbt_con: dict, sect_props: dict,
-    lengths: np.ndarray
+    props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, i_gbt_con: GBT_Con,
+    sect_props: Sect_Props, lengths: np.ndarray
 ):
     #
     #Z. Li, July 2010 (last modified)
@@ -124,7 +125,7 @@ def m_recommend(
     props: np.ndarray,
     nodes: np.ndarray,
     elements: np.ndarray,
-    sect_props: dict,
+    sect_props: Sect_Props,
     length_append: Optional[float] = None,
     n_lengths: int = 50,
     lengths: Optional[np.ndarray] = None
@@ -135,7 +136,7 @@ def m_recommend(
     #signature curve.
 
     #the inputs for signature curve
-    i_gbt_con = {
+    i_gbt_con: GBT_Con = {
         "glob": [0],
         "dist": [0],
         "local": [0],
@@ -179,10 +180,10 @@ def m_recommend(
     n_global_modes = 4
     n_other_modes = 2 * (len(nodes) - 1)
 
-    i_gbt_con["local"] = np.ones((n_local_modes, 1))
-    i_gbt_con["dist"] = np.zeros((n_dist_modes, 1))
-    i_gbt_con["glob"] = np.zeros((n_global_modes, 1))
-    i_gbt_con["other"] = np.zeros((n_other_modes, 1))
+    i_gbt_con["local"] = np.ones((n_local_modes, 1)).tolist()
+    i_gbt_con["dist"] = np.zeros((n_dist_modes, 1)).tolist()
+    i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
+    i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
 
     print("Running pyCUFSM local modes curve")
     isignature_local, icurve_local, ishapes_local = signature_ss(
@@ -195,10 +196,10 @@ def m_recommend(
     )
 
     print("Running pyCUFSM distortional modes curve")
-    i_gbt_con["local"] = np.zeros((n_local_modes, 1))
-    i_gbt_con["dist"] = np.ones((n_dist_modes, 1))
-    i_gbt_con["glob"] = np.zeros((n_global_modes, 1))
-    i_gbt_con["other"] = np.zeros((n_other_modes, 1))
+    i_gbt_con["local"] = np.zeros((n_local_modes, 1)).tolist()
+    i_gbt_con["dist"] = np.ones((n_dist_modes, 1)).tolist()
+    i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
+    i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
     isignature_dist, icurve_dist, ishapes_dist = signature_ss(
         props=props,
         nodes=nodes,
@@ -304,8 +305,28 @@ def m_recommend(
     )
 
 
-def load_mat(mat: dict) -> dict:
-    cufsm_input = {}
+def load_mat(mat: MAT_File) -> Cufsm_Input:
+    cufsm_input: Cufsm_Input = {
+        'nodes': np.array([]),
+        'elements': np.array([]),
+        'lengths': np.array([]),
+        'props': np.array([]),
+        'constraints': np.array([]),
+        'springs': np.array([]),
+        'curve': np.array([]),
+        'shapes': np.array([]),
+        'clas': '',
+        'GBTcon': {
+            'glob': [],
+            'dist': [],
+            'local': [],
+            'other': [],
+            'o_space': 0,
+            'norm': 0,
+            'couple': 0,
+            'orth': 0
+        }
+    }
     if 'node' in mat:
         nodes = np.array(mat['node'], dtype=np.dtype(np.double))
         for i in range(len(nodes)):
@@ -345,7 +366,7 @@ def load_mat(mat: dict) -> dict:
     if 'curve' in mat:
         cufsm_input['curve'] = np.array(mat['curve'])
     if 'GBTcon' in mat:
-        gbt_con = {
+        gbt_con: GBT_Con = {
             "glob":
                 mat["GBTcon"]["glob"].flatten()[0].flatten()
                 if "glob" in mat["GBTcon"].dtype.names else [0],
@@ -367,7 +388,7 @@ def load_mat(mat: dict) -> dict:
             "orth":
                 mat["GBTcon"]["orth"] if "orth" in mat["GBTcon"].dtype.names else 1
         }
-        cufsm_input['GBTcon'] = gbt_con  # type: ignore
+        cufsm_input['GBTcon'] = gbt_con
     if 'shapes' in mat:
         cufsm_input['shapes'] = np.array(mat['shapes'])
     if 'clas' in mat:

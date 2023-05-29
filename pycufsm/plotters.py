@@ -1,3 +1,5 @@
+from typing import List
+
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 from matplotlib.cm import \
@@ -14,7 +16,7 @@ def crossect(
     elements: np.ndarray,
     springs: np.ndarray,  # pylint: disable=unused-argument
     constraints: np.ndarray,
-    flags: list[int]
+    flags: List[int]
 ) -> None:
     # BWS
     # October 2001 (last modified)

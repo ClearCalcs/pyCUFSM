@@ -3,6 +3,8 @@ from typing import Optional, Union
 import numpy as np
 from scipy import linalg as spla  # type: ignore
 
+from pycufsm.types import Forces, Sect_Geom, Sect_Props
+
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE
 #
@@ -12,14 +14,22 @@ from scipy import linalg as spla  # type: ignore
 
 
 def template_path(draw_table: list, thick: float, n_r: int = 4, shift: Optional[list] = None):
-    # Brooks H. Smith
-    # 17 June 2020
-    # Assuming a uniform thickness, draws a section according to a path definition
-    # draw_table = matrix of the form [[theta, dist, rad, n_s]], where:
-    #              theta = starting angle, dist = length of straight segment,
-    #              rad = radius of curved segment, n_s = number of mesh elements in straight
-    # thick = thickness
-    # n_r = number of mesh elements in curved segments
+    """Assuming a uniform thickness, draws a section according to a path definition
+
+    Args:
+        draw_table (list): matrix of the form [[theta, dist, rad, n_s]], where:
+            theta = starting angle, dist = length of straight segment,
+            rad = radius of curved segment, n_s = number of mesh elements in straight
+        thick (float): thickness
+        n_r (int, optional): number of mesh elements in curved segments. Defaults to 4.
+        shift (Optional[list], optional): amount to shift cross-section. Defaults to None.
+
+    Returns:
+        nodes (np.ndarray): standard nodes matrix
+        elements (np.ndarray): standard elements matrix
+
+    B Smith, Jun 2020
+    """
     if shift is None:
         shift = [0, 0]
 
@@ -85,19 +95,28 @@ def template_path(draw_table: list, thick: float, n_r: int = 4, shift: Optional[
     return [np.array(nodes), np.array(elements)]
 
 
-def template_calc(sect: dict):
+def template_calc(sect: Sect_Geom):
+    """Converts overall geometry parameters for C or Z sections into valid
+    nodes and elements matrices. Facilitates easier geometry creation
+
+    Args:
+        sect (Sect_Geom): overall section geometry of C or Z section
+
+    Returns:
+        nodes (np.ndarray): standard nodes matrix
+        elements (np.ndarray): standard elements matrix
+
+    BWS Aug 2000
+    BWS, 2015 modification to allow for l_1=l_2=0 and creation of a track with same template
+    BWS, 2015 addition to allow outer dimensions and inner radii to be used
+    BWS, 2015 addition to control element discretization
+    """
     n_d = sect['n_d']
     n_b1 = sect['n_b1']
     n_b2 = sect['n_b2']
     n_l1 = sect['n_l1']
     n_l2 = sect['n_l2']
     n_r = sect['n_r']
-
-    # BWS
-    # August 23, 2000
-    # 2015 modification to allow for l_1=l_2=0 and creation of a track with same template
-    # 2015 addition to allow outer dimensions and inner radii to be used
-    # 2015 addition to control element discretization
 
     nodes: list = []
     elements: list = []
@@ -357,12 +376,21 @@ def template_calc(sect: dict):
     return [np.array(nodes), np.array(elements)]
 
 
-def template_out_to_in(sect: dict) -> list:
-    # BWS 2015
-    # reference AISI Design Manual for the lovely corner radius calcs.
-    # For template calc, convert outer dimensions and inside radii to centerline
-    # dimensions throughout
-    # convert the inner radii to centerline if nonzero
+def template_out_to_in(sect: Sect_Geom) -> list:
+    """For template calc, convert outer dimensions and inside radii to centerline
+    dimensions throughout convert the inner radii to centerline if nonzero.
+    Reference AISI Design Manual for the lovely corner radius calcs.
+
+    Args:
+        sect (Sect_Geom): _description_
+
+    Returns:
+        list: _description_
+
+    BWS, 2015
+    
+    """
+    #
     if sect['type'] == 'C':
         b_1 = sect['b_1']
         b_2 = sect['b_2']
@@ -370,9 +398,9 @@ def template_out_to_in(sect: dict) -> list:
         b_1 = sect['b_1']
         b_2 = sect['b_2']
 
-    thick = sect['t']
+    thick: float = sect['t']
     if sect['r_out'] == 0:
-        rad = 0
+        rad: float = 0
     else:
         rad = sect['r_out'] - thick/2
     depth = sect['d'] - thick/2 - rad - rad - thick/2
@@ -392,16 +420,25 @@ def template_out_to_in(sect: dict) -> list:
     return [depth, b_1, l_1, b_2, l_2, rad, thick]
 
 
-def yield_mp(nodes: np.ndarray,
-             f_y: float,
-             sect_props: dict,
-             restrained: bool = False) -> dict[str, float]:
-    # BWS
-    # August 2000
-    # [Py,Mxx_y,Mzz_y,M11_y,M22_y]
-    # May 2019 trap nan when flat plate or other properites are zero
+def yield_mp(
+    nodes: np.ndarray, f_y: float, sect_props: Sect_Props, restrained: bool = False
+) -> Forces:
+    """Determine yield strengths in bending and axial loading
 
-    f_yield: dict[str, float] = {'P': 0, 'Mxx': 0, 'Myy': 0, 'M11': 0, 'M22': 0}
+    Args:
+        nodes (np.ndarray): _description_
+        f_y (float): _description_
+        sect_props (Sect_Props): _description_
+        restrained (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        forces (Forces): Yield bending and axial strengths
+            {Py,Mxx_y,Mzz_y,M11_y,M22_y}
+
+    BWS, Aug 2000
+    BWS, May 2019 trap nan when flat plate or other properites are zero
+    """
+    f_yield: Forces = {'P': 0, 'Mxx': 0, 'Myy': 0, 'M11': 0, 'M22': 0}
 
     f_yield['P'] = f_y * sect_props['A']
     #account for the possibility of restrained bending vs. unrestrained bending
@@ -463,17 +500,30 @@ def yield_mp(nodes: np.ndarray,
 
 def stress_gen(
     nodes: np.ndarray,
-    forces: dict,
-    sect_props: dict,
+    forces: Forces,
+    sect_props: Sect_Props,
     restrained: bool = False,
     offset_basis: Union[int, list] = 0
 ) -> np.ndarray:
-    # BWS
-    # 1998
-    # offset_basis compensates for section properties that are based upon coordinate
-    # [0, 0] being something other than the centreline of elements. For example,
-    # if section properties are based upon the outer perimeter, then
-    # offset_basis=[-thickness/2, -thickness/2]
+    """Generates stresses on nodes based upon applied loadings
+
+    Args:
+        nodes (np.ndarray): _description_
+        forces (Forces): _description_
+        sect_props (Sect_Props): _description_
+        restrained (bool, optional): _description_. Defaults to False.
+        offset_basis (Union[int, list], optional): offset_basis compensates for section properties 
+            that are based upon coordinate
+            [0, 0] being something other than the centreline of elements. For example,
+            if section properties are based upon the outer perimeter, then
+            offset_basis=[-thickness/2, -thickness/2]. Defaults to 0.
+
+    Returns:
+        np.ndarray: _description_
+
+    BWS, 1998
+    B Smith, Aug 2020
+    """
     if isinstance(offset_basis, float) or isinstance(offset_basis, int):
         offset_basis = [offset_basis, offset_basis]
 
@@ -508,14 +558,18 @@ def stress_gen(
 
 
 def doubler(nodes: np.ndarray, elements: np.ndarray):
-    # BWS
-    # 1998 (last modified)
-    # A function to double the number of elements to help
-    # out the discretization of the member somewhat.
-    #
-    # nodes=[node# x z dofx dofz dofy doftheta stress]
-    # elements=[elem# nodei nodej thickness]
-    #
+    """A function to double the number of elements to help
+    out the discretization of the member somewhat.
+
+    Args:
+        nodes (np.ndarray): [node# x z dofx dofz dofy doftheta stress]
+        elements (np.ndarray):[elem# nodei nodej thickness]
+
+    Returns:
+        _type_: _description_
+
+    BWS, 1998 (last modified)
+    """
     old_num_elem = len(elements)
     old_num_node = len(nodes)
     elem_out = np.zeros((2 * old_num_elem, 5))

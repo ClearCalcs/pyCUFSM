@@ -1,70 +1,60 @@
 import numpy as np
 
+from pycufsm.types import Sect_Props
 
-def prop2(coord: np.ndarray, ends: np.ndarray) -> dict:
-    # Function modified for use in CUFSM by Ben Schafer in 2004 with permission
-    # of Sarawit. removed elastic buckling calcs and kept only section
-    # properties
-    #
-    # August 2005: additional modifications, program only handles
-    # singly-branched open sections, or single cell closed sections, arbitrary
-    # section designation added for other types.
-    #
-    # December 2006 bug fixes to b1_vals b2_vals
-    #
-    # December 2015 extended to not crash on disconnected and arbitrary sections
-    #
-    #  Compute cross section properties
-    # ----------------------------------------------------------------------------
-    #  Written by:
-    #       Andrew thicknesses. Sarawit
-    #       last revised:   Wed 10/25/01
-    #
-    #  Function purpose:
-    #       This function computes the cross section properties: area, centroid,
-    #       moment of inertia, torsional constant, shear center, warping constant,
-    #       b1_vals, b2_vals, elastic critical buckling load and the deformed buckling shape
-    #
-    #  Dictionary of Variables
-    #     Input Information:
-    #       coord(i,1:2)   ==  node i's coordinates
-    #                            coord(i,1) = X coordinate
-    #                            coord(i,2) = Y coordinate
-    #       ends(i,1:2)    ==  subelement i's nodal information
-    #                            ends(i,1) = start node #
-    #                            ends(i,2) = finish node #
-    #                            ends(i,3) = element's thicknesses
-    #  Output Information:
-    #       A              ==  cross section area
-    #       xc             ==  X coordinate of the centroid from origin
-    #       yc             ==  Y coordinate of the centroid from origin
-    #       Ix             ==  moment of inertia about centroid X axes
-    #       Iy             ==  moment of inertia about centroid Y axes
-    #       Ixy            ==  product of inertia about centroid
-    #       Iz             ==  polar moment of inertia about centroid
-    #       theta          ==  rotation angle for the principal axes
-    #       I1             ==  principal moment of inertia about centroid 1 axes
-    #       I2             ==  principal moment of inertia about centroid 2 axes
-    #       J              ==  torsional constant
-    #       xo             ==  X coordinate of the shear center from origin
-    #       yo             ==  Y coordinate of the shear center from origin
-    #       Cw             ==  warping constant
-    #       B1             ==  int(y*(x^2+y^2),s,0,lengths)   *BWS, x,y=prin. crd.
-    #       B2             ==  int(x*(x^2+y^2),s,0,lengths)
-    #                          where: x = x_1+s/lengths*(x_2-x_1)
-    #                                 y = y_1+s/lengths*(y_2-y_1)
-    #                                 lengths = length of the element
-    #       Pe(i)          ==  buckling mode i's elastic critical buckling load
-    #       dcoord         ==  node i's coordinates of the deformed buckling shape
-    #                            coord(i,1,mode) = X coordinate
-    #                            coord(i,2,mode) = Y coordinate
-    #                          where: mode = buckling mode number
-    #
-    #  Note:
-    #     J,xo,yo,Cw,B1,B2,Pe,dcoord is not computed for close-section
-    #
-    # ----------------------------------------------------------------------------
-    #
+
+def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
+    """Function modified for use in CUFSM by Ben Schafer in 2004 with permission
+    of Sarawit. removed elastic buckling calcs and kept only section
+    properties.
+    
+    Compute cross section properties
+        This function computes the cross section properties: area, centroid,
+        moment of inertia, torsional constant, shear center, warping constant,
+        b1_vals, b2_vals, elastic critical buckling load and the deformed buckling shape
+
+    Args:
+        coord (np.ndarray): node i's coordinates
+            coord(i,1) = X coordinate
+            coord(i,2) = Y coordinate
+        ends (np.ndarray): subelement i's nodal information
+            ends(i,1) = start node #
+            ends(i,2) = finish node #
+            ends(i,3) = element's thicknesses
+
+    Returns:
+        sect_props (Sect_Props): Dictionary of section properties:
+            A              ==  cross section area
+            xc             ==  X coordinate of the centroid from origin
+            yc             ==  Y coordinate of the centroid from origin
+            Ix             ==  moment of inertia about centroid X axes
+            Iy             ==  moment of inertia about centroid Y axes
+            Ixy            ==  product of inertia about centroid
+            Iz             ==  polar moment of inertia about centroid
+            theta          ==  rotation angle for the principal axes
+            I1             ==  principal moment of inertia about centroid 1 axes
+            I2             ==  principal moment of inertia about centroid 2 axes
+            J              ==  torsional constant
+            xo             ==  X coordinate of the shear center from origin
+            yo             ==  Y coordinate of the shear center from origin
+            Cw             ==  warping constant
+            B1             ==  int(y*(x^2+y^2),s,0,lengths)   *BWS, x,y=prin. crd.
+            B2             ==  int(x*(x^2+y^2),s,0,lengths)
+                                where: x = x_1+s/lengths*(x_2-x_1)
+                                    y = y_1+s/lengths*(y_2-y_1)
+                                    lengths = length of the element
+
+        Note:
+        J,xo,yo,Cw,B1,B2,Pe,dcoord is not computed for close-section
+
+    Andrew T. Sarawit, Wed 10/25/01
+    BWS, 2004
+    BWS, Aug 2005: additional modifications, program only handles
+        singly-branched open sections, or single cell closed sections, arbitrary
+        section designation added for other types.
+    BWS, Dec 2006 bug fixes to b1_vals b2_vals
+    BWS, Dec 2015 extended to not crash on disconnected and arbitrary sections
+    """
     # find n_elements  == total number of elements
     #      n_nodes == total number of nodes
     #      j     == total number of 2 element joints

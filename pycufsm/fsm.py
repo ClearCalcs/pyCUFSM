@@ -5,6 +5,7 @@ from scipy import linalg as spla  # type: ignore
 
 import pycufsm.cfsm
 from pycufsm.analysis import analysis
+from pycufsm.types import GBT_Con, Sect_Props
 
 # from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
@@ -17,8 +18,8 @@ from pycufsm.analysis import analysis
 
 def strip(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
-    springs: np.ndarray, constraints: np.ndarray, gbt_con: dict, b_c: str, m_all: np.ndarray,
-    n_eigs: int, sect_props: dict
+    springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: str, m_all: np.ndarray,
+    n_eigs: int, sect_props: Sect_Props
 ):
     """Perform a finite strip analysis
 
@@ -32,7 +33,7 @@ def strip(
             4 = q dir (twist) flag says if k_stiff is a foundation stiffness or a total stiffness
         constraints (np.ndarray): [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
             k=kept dof dof_e_node = coeff*dof_k_node_k
-        gbt_con (dict): gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
+        gbt_con (GBT_Con): gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
             and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
             gbt_con.o_space - choices of ST/O mode
                     1: ST basis
@@ -58,11 +59,11 @@ def strip(
             'S-C' simply-clamped supported boundary condition at loaded edges
             'C-F' clamped-free supported boundary condition at loaded edges
             'C-G' clamped-guided supported boundary condition at loaded edges
-        m_all (list): m_all{length#}=[longitudinal_num# ... longitudinal_num#],
+        m_all (np.ndarray): m_all{length#}=[longitudinal_num# ... longitudinal_num#],
             longitudinal terms m for all the lengths in cell notation
             each cell has a vector including the longitudinal terms for this length
         n_eigs (int): the number of eigenvalues to be determined at length (default=10)
-        sect_props (dict): _description_
+        sect_props (Sect_Props): _description_
 
     Returns:
         curve: buckling curve (load factor) for each length

@@ -1,9 +1,11 @@
 from copy import deepcopy
+from typing import List
 
 import numpy as np
 from scipy import linalg as spla  # type: ignore
 
 from pycufsm.analysis import analysis
+from pycufsm.types import GBT_Con, Sect_Props
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
@@ -91,7 +93,7 @@ def base_column(
 
 
 def base_update(
-    gbt_con: dict, b_v_l: np.ndarray, length: float, m_a: np.ndarray, nodes: np.ndarray,
+    gbt_con: GBT_Con, b_v_l: np.ndarray, length: float, m_a: np.ndarray, nodes: np.ndarray,
     elements: np.ndarray, props: np.ndarray, n_global_modes: int, n_dist_modes: int,
     n_local_modes: int, b_c: str, el_props: np.ndarray
 ) -> np.ndarray:
@@ -468,7 +470,7 @@ def base_update(
 
 
 def mode_select(
-    b_v: np.ndarray, n_global_modes: int, n_dist_modes: int, n_local_modes: int, gbt_con: dict,
+    b_v: np.ndarray, n_global_modes: int, n_dist_modes: int, n_local_modes: int, gbt_con: GBT_Con,
     n_dof_m: int, m_a: np.ndarray
 ) -> np.ndarray:
     # this routine selects the required base vectors
@@ -689,7 +691,7 @@ def mode_constr(
 
 def y_dofs(
     nodes: np.ndarray, elements: np.ndarray, main_nodes: np.ndarray, n_main_nodes: int,
-    n_dist_modes: int, r_yd: np.ndarray, r_ud: np.ndarray, sect_props: dict[str, float],
+    n_dist_modes: int, r_yd: np.ndarray, r_ud: np.ndarray, sect_props: Sect_Props,
     el_props: np.ndarray
 ):
 
@@ -1791,8 +1793,8 @@ def dof_ordering(node_props: np.ndarray) -> np.ndarray:
 
 def classify(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
-    shapes: np.ndarray, gbt_con: dict, b_c: str, m_all: np.ndarray, sect_props: dict[str, float]
-) -> list[np.ndarray]:
+    shapes: np.ndarray, gbt_con: GBT_Con, b_c: str, m_all: np.ndarray, sect_props: Sect_Props
+) -> List[np.ndarray]:
     # , clas_GDLO
     # MODAL CLASSIFICATION
 
@@ -1917,7 +1919,7 @@ def classify(
 
 def mode_class(
     b_v: np.ndarray, displacements: np.ndarray, n_global_modes: int, n_dist_modes: int,
-    n_local_modes: int, m_a: np.ndarray, n_dof_m: int, gbt_con: dict
+    n_local_modes: int, m_a: np.ndarray, n_dof_m: int, gbt_con: GBT_Con
 ) -> np.ndarray:
     #
     # to determine mode contribution in the current displacement
