@@ -301,7 +301,6 @@ cdef k_kg_local(double stiff_x, double stiff_y, double nu_x, double nu_y, double
     modified by Z. Li, June 2010
     klocal and kglocal merged by B Smith, May 2023
     """
-
     cdef double e_1 = stiff_x / (1 - nu_x*nu_y)
     cdef double e_2 = stiff_y / (1 - nu_x*nu_y)
     cdef double d_x = stiff_x * thick**3 / (12 * (1 - nu_x*nu_y))
