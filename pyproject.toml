@@ -44,6 +44,9 @@ packages = [
 ]
 py-modules = ["_custom_build"]
 
+[tool.setuptools.package-data]
+pycufsm = "py.typed"
+
 [tool.setuptools.cmdclass]
 build_py = "_custom_build.build_py"
 
