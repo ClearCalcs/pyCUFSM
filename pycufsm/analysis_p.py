@@ -836,14 +836,17 @@ def trans(alpha: float, total_m: int) -> np.ndarray:
     Zhanjie 2008
     modified by Z. Li, Aug. 09, 2009
     """
-    gamma = np.zeros((8 * total_m, 8 * total_m))
 
     gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
                     [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0], [0, 0, 0, 1, 0, 0, 0, 0],
                     [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
                     [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
 
+    if total_m == 1:
+        return gam
+
     # extend to multi-m
+    gamma = np.zeros((8 * total_m, 8 * total_m))
     for i in range(0, total_m):
         gamma[8 * i:8 * (i+1), 8 * i:8 * (i+1)] = gam
 

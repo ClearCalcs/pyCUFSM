@@ -8,6 +8,7 @@ from matplotlib.collections import PatchCollection  # type: ignore
 from matplotlib.patches import Polygon  # type: ignore
 
 import pycufsm.helpers as helpers
+from pycufsm.analysis import analysis
 
 
 ##Cross section
@@ -240,7 +241,8 @@ def dispshap(
                                 + 2 * (nodej+1)]
             #Transform dbar into local coordinates
             phi = np.arctan2(-(z_j - z_i), (x_j - x_i))
-            disp = helpers.gammait(phi, dbar)
+            gamma = analysis.trans(phi, 1)
+            disp = np.dot(gamma, dbar)
             #Determine additional displacements in each element
             links = 10
             length = np.sqrt((x_j - x_i)**2 + (z_j - z_i)**2)

@@ -879,13 +879,15 @@ cpdef np.ndarray trans(float alpha, int total_m):
     Zhanjie 2008
     modified by Z. Li, Aug. 09, 2009
     """
-    cdef np.ndarray[np.double_t, ndim=2] gamma = np.zeros((8 * total_m, 8 * total_m), dtype=np.double)
-
     cdef np.ndarray[np.double_t, ndim=2] gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
                     [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0], [0, 0, 0, 1, 0, 0, 0, 0],
                     [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
                     [0, 0, np.sin(alpha), 0, 0, 0, np.cos(alpha), 0], [0, 0, 0, 0, 0, 0, 0, 1]], dtype=np.double)
 
+    if total_m == 1:
+        return gam
+        
+    cdef np.ndarray[np.double_t, ndim=2] gamma = np.zeros((8 * total_m, 8 * total_m), dtype=np.double)
     # extend to multi-m
     cdef int i
     for i in range(0, total_m):

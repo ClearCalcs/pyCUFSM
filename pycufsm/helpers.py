@@ -14,20 +14,6 @@ from pycufsm.types import Cufsm_Input, GBT_Con, MAT_File, Sect_Props
 # change history, have been generally retained unaltered
 
 
-#Helper Function
-def gammait(phi: float, dbar: np.ndarray) -> np.ndarray:
-    # BWS
-    # 1998 (last modified)
-    #
-    # transform global coordinates into local coordinates
-    gamma = np.array([[np.cos(phi), 0, 0, 0, -np.sin(phi), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
-                      [0, 0, np.cos(phi), 0, 0, 0, -np.sin(phi), 0], [0, 0, 0, 1, 0, 0, 0, 0],
-                      [np.sin(phi), 0, 0, 0, np.cos(phi), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
-                      [0, 0, np.sin(phi), 0, 0, 0, np.cos(phi), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
-    return np.dot(gamma, dbar)
-
-
-#Helper Function
 def gammait2(phi: float, disp_local: np.ndarray) -> np.ndarray:
     # BWS
     # 1998 last modified
@@ -36,7 +22,6 @@ def gammait2(phi: float, disp_local: np.ndarray) -> np.ndarray:
     return np.dot(np.linalg.inv(gamma), disp_local)  # type: ignore
 
 
-#Helper function
 def shapef(links: int, disp: np.ndarray, length: float) -> np.ndarray:
     # BWS
     # 1998
