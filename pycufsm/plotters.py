@@ -2,8 +2,6 @@ from typing import List
 
 import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
-from matplotlib.cm import \
-    jet  # type: ignore  # pylint: disable=no-name-in-module
 from matplotlib.collections import PatchCollection  # type: ignore
 from matplotlib.patches import Polygon  # type: ignore
 
@@ -114,7 +112,7 @@ def crossect(
         #Plot th stress distribution in 3D if wanted
         #####___#####
     ####Patches of cross section
-    PatchCollection(patches, cmap=jet, alpha=0.4)
+    PatchCollection(patches, cmap="jet", alpha=0.4)
     #colors = np.zeros(len(patches))
     #patch.set_array(np.array(colors))
     #plt.add_collection(patch)
@@ -324,7 +322,7 @@ def dispshap(
             #defpatches = defpatches.append(polygon)
             axes.add_artist(polygon)
         plt.plot([disp[0, 0], disp[0, links]], [disp[1, 0], disp[1, links]], 'bo', markersize=2)
-    PatchCollection(defpatches, cmap=jet, alpha=0.4)
+    PatchCollection(defpatches, cmap="jet", alpha=0.4)
     # dcolors = 100*np.random.rand(len(patches))
     # def_patch.set_array(np.array(dcolors))
     #axes.add_collection(def_patch)
