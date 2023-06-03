@@ -139,8 +139,8 @@ def base_update(
                     1: natural basis
                     2: modal basis, axial orthogonality
                     3: modal basis, load dependent orthogonality
-        b_v_l (np.ndarray): natural base vectors for length (each column corresponds to a certain mode)
-            for each half-wave number m_i
+        b_v_l (np.ndarray): natural base vectors for length (each column corresponds to a 
+            certain mode) for each half-wave number m_i
                     columns 1..n_global_modes: global modes
                     columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
                     columns (n_global_modes+n_dist_modes+1)
@@ -685,7 +685,8 @@ def mode_constr(
     Args:
         nodes (np.ndarray): standard parameter
         elements (np.ndarray): standard parameter
-        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, 
+            nodes type]
         main_nodes (np.ndarray): array of
             [nr, x, z, orig nodes nr, nr of adj meta-elements, m_i-el_i-1, m_i-el_i-2, ...]
         meta_elements (np.ndarray): array of
@@ -1186,7 +1187,8 @@ def constr_planar_xz(
         nodes (np.ndarray): standard parameter
         elements (np.ndarray): standard parameter
         props (np.ndarray): standard parameter
-        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, 
+            nodes type]
         dof_perm (np.ndarray): permutation matrix, so that
             (orig-displacements-vect) = (dof_perm) � (new-displacements - vector)
         m_i (float): _description_
@@ -1261,7 +1263,8 @@ def constr_yd_yg(
     Args:
         nodes (np.ndarray): standard parameter
         elements (np.ndarray): standard parameter
-        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, 
+            nodes type]
         r_ys (np.ndarray): constraint matrix, see function 'constr_ys_ym'
         n_main_nodes (int): nr of main nodes
 
@@ -1309,7 +1312,8 @@ def constr_ys_ym(
             [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
         meta_elements (np.ndarray): array of
             [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
-        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, 
+            nodes type]
 
     Returns:
         r_ys (np.ndarray): constraint matrix for y DOFs of sub-nodes
@@ -1757,7 +1761,8 @@ def dof_ordering(node_props: np.ndarray) -> np.ndarray:
          separately when forming Ry constraint matrix
 
     Args:
-        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, 
+            nodes type]
 
     Returns:
         dof_perm (np.ndarray): permutation matrix, so that
@@ -2076,7 +2081,8 @@ def node_class(node_props: np.ndarray):
       sub-node numbers are the original one, of course
 
     Args:
-        node_props (np.ndarray): array of [original node nr, new node nr, nr of adj elems, node type]
+        node_props (np.ndarray): array of [original node nr, new node nr, nr of adj elems, 
+            node type]
 
     Returns:
         n_main_nodes (int): number of main nodes

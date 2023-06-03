@@ -165,6 +165,7 @@ def k_kg_global(
     """
     total_m = len(m_a)
     n_nodes = len(nodes)
+    n_elems = len(elements)
     # ZERO OUT THE GLOBAL MATRICES
     k_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
     kg_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
@@ -359,6 +360,7 @@ def kglobal_transv(
     Z. Li, Jul 10, 2009
     """
     n_nodes = len(nodes)
+    n_elems = len(elements)
     k_global_transv = np.zeros((4 * n_nodes, 4 * n_nodes))
 
     for i in range(0, n_elems):
