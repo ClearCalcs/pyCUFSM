@@ -1,6 +1,10 @@
+from typing import Optional
+
 import numpy as np
-import pycufsm.fsm
+
 import pycufsm.cfsm
+import pycufsm.fsm
+from pycufsm.types import Cufsm_MAT_File, GBT_Con, PyCufsm_Input, Sect_Props
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
@@ -10,36 +14,35 @@ import pycufsm.cfsm
 # change history, have been generally retained unaltered
 
 
-#Helper Function
-def gammait(phi, dbar):
-    # BWS
-    # 1998 (last modified)
-    #
-    # transform global coordinates into local coordinates
-    gamma = np.array([[np.cos(phi), 0, 0, 0, -np.sin(phi), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
-                      [0, 0, np.cos(phi), 0, 0, 0, -np.sin(phi), 0], [0, 0, 0, 1, 0, 0, 0, 0],
-                      [np.sin(phi), 0, 0, 0, np.cos(phi), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
-                      [0, 0, np.sin(phi), 0, 0, 0, np.cos(phi), 0], [0, 0, 0, 0, 0, 0, 0, 1]])
-    return np.dot(gamma, dbar)
+def gammait2(phi: float, disp_local: np.ndarray) -> np.ndarray:
+    """transform local displacements into global displacements
 
+    Args:
+        phi (float): angle
+        disp_local (np.ndarray): local displacements
 
-#Helper Function
-def gammait2(phi, disp_local):
-    # BWS
-    # 1998 last modified
-    # transform local disps into global dispa
+    Returns:
+        np.ndarray: global displacements
+
+    BWS, 1998
+    """
     gamma = np.array([[np.cos(phi), 0, -np.sin(phi)], [0, 1, 0], [np.sin(phi), 0, np.cos(phi)]])
-    return np.dot(np.linalg.inv(gamma), disp_local)
+    return np.dot(np.linalg.inv(gamma), disp_local)  # type: ignore
 
 
-#Helper function
-def shapef(links, disp, length):
-    # BWS
-    # 1998
-    #
-    # links: the number of additional line segments used to show the disp shape
-    # disp: the vector of nodal displacements
-    # length: the actual length of the element
+def shapef(links: int, disp: np.ndarray, length: float) -> np.ndarray:
+    """Apply displacements using shape function
+
+    Args:
+        links (int): the number of additional line segments used to show the disp shape
+        disp (np.ndarray): the vector of nodal displacements
+        length (float): the actual length of the element
+
+    Returns:
+        np.ndarray: applied displacements
+
+    BWS, 1998
+    """
     inc = 1 / (links)
     x_disps = np.linspace(inc, 1 - inc, links - 1)
     disp_local = np.zeros((3, len(x_disps)))
@@ -54,12 +57,27 @@ def shapef(links, disp, length):
     return disp_local
 
 
-def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
-    #
-    #Z. Li, July 2010 (last modified)
-    #generate the signature curve solution
-    # Function split by Brooks Smith; this part only finds recommended lengths
-    #
+def lengths_recommend(
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    length_append: Optional[float] = None,
+    n_lengths: int = 50
+) -> np.ndarray:
+    """generate the signature curve solution, part 1: find recommended lengths
+
+    Args:
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        length_append (Optional[float], optional): Any additional specific length to include 
+            in the half-wavelengths. Defaults to None.
+        n_lengths (int, optional): number of half-wavelengths to include. Defaults to 50.
+
+    Returns:
+        np.ndarray: recommended lengths
+
+    Z. Li, July 2010 (last modified)
+    Function split by B Smith; this part only finds recommended lengths
+    """
     min_el_length = 1000000  #Minimum element length
     max_el_length = 0  #Maximum element length
     min_el_thick = elements[0][3]  #Minimum element thickness
@@ -77,20 +95,36 @@ def lengths_recommend(nodes, elements, length_append=None, n_lengths=50):
     )
 
     if length_append is not None:
-        lengths = np.sort(np.concatenate((lengths, [length_append])))
+        lengths = np.sort(np.concatenate((lengths, np.array([length_append]))))
 
     return lengths
 
 
-def signature_ss(props, nodes, elements, i_gbt_con, sect_props, lengths):
-    #
-    #Z. Li, July 2010 (last modified)
-    #generate the signature curve solution
-    #
-    i_springs = []
-    i_constraints = []
+def signature_ss(
+    props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, i_gbt_con: GBT_Con,
+    sect_props: Sect_Props, lengths: np.ndarray
+):
+    """generate the signature curve solution, part 2: actually solve the signature curve
+
+    Args:
+        props (np.ndarray): standard parameter
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        i_gbt_con (GBT_Con): cFSM configuration options
+        sect_props (Sect_Props): section properties
+        lengths (np.ndarray): half-wavelengths
+
+    Returns:
+        signature: signature curve,
+        curve: all the curve results,
+        shapes: deformed shapes at each point
+    
+    Z. Li, July 2010 (last modified)
+    """
+    i_springs = np.array([])
+    i_constraints = np.array([])
     i_b_c = 'S-S'
-    i_m_all = np.ones((len(lengths), 1))
+    i_m_all = np.ones((len(lengths), 1)).tolist()
 
     isignature, icurve, ishapes = pycufsm.fsm.strip(
         props=props,
@@ -109,14 +143,36 @@ def signature_ss(props, nodes, elements, i_gbt_con, sect_props, lengths):
     return isignature, icurve, ishapes
 
 
-def m_recommend(props, nodes, elements, sect_props, length_append=None, n_lengths=50, lengths=None):
-    # Z. Li, Oct. 2010
-    #Suggested longitudinal terms are calculated based on the characteristic
-    #half-wave lengths of local, distortional, and global buckling from the
-    #signature curve.
+def m_recommend(
+    props: np.ndarray,
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    sect_props: Sect_Props,
+    length_append: Optional[float] = None,
+    n_lengths: int = 50,
+    lengths: Optional[np.ndarray] = None
+):
+    """Suggested longitudinal terms are calculated based on the characteristic
+    half-wave lengths of local, distortional, and global buckling from the
+    signature curve.
 
-    #the inputs for signature curve
-    i_gbt_con = {
+    Args:
+        props (np.ndarray): standard parameter
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        sect_props (Sect_Props): section properties
+        length_append (Optional[float], optional): any additional half-wavelength to include. 
+            Defaults to None.
+        n_lengths (int, optional): number of half-wavelengths. Defaults to 50.
+        lengths (Optional[np.ndarray], optional): specific half-wavelengths to use. 
+            Defaults to None.
+
+    Returns:
+        _type_: _description_
+    
+    Z. Li, Oct. 2010
+    """
+    i_gbt_con: GBT_Con = {
         "glob": [0],
         "dist": [0],
         "local": [0],
@@ -160,10 +216,10 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
     n_global_modes = 4
     n_other_modes = 2 * (len(nodes) - 1)
 
-    i_gbt_con["local"] = np.ones((n_local_modes, 1))
-    i_gbt_con["dist"] = np.zeros((n_dist_modes, 1))
-    i_gbt_con["glob"] = np.zeros((n_global_modes, 1))
-    i_gbt_con["other"] = np.zeros((n_other_modes, 1))
+    i_gbt_con["local"] = np.ones((n_local_modes, 1)).tolist()
+    i_gbt_con["dist"] = np.zeros((n_dist_modes, 1)).tolist()
+    i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
+    i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
 
     print("Running pyCUFSM local modes curve")
     isignature_local, icurve_local, ishapes_local = signature_ss(
@@ -176,10 +232,10 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
     )
 
     print("Running pyCUFSM distortional modes curve")
-    i_gbt_con["local"] = np.zeros((n_local_modes, 1))
-    i_gbt_con["dist"] = np.ones((n_dist_modes, 1))
-    i_gbt_con["glob"] = np.zeros((n_global_modes, 1))
-    i_gbt_con["other"] = np.zeros((n_other_modes, 1))
+    i_gbt_con["local"] = np.zeros((n_local_modes, 1)).tolist()
+    i_gbt_con["dist"] = np.ones((n_dist_modes, 1)).tolist()
+    i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
+    i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
     isignature_dist, icurve_dist, ishapes_dist = signature_ss(
         props=props,
         nodes=nodes,
@@ -285,8 +341,37 @@ def m_recommend(props, nodes, elements, sect_props, length_append=None, n_length
     )
 
 
-def load_mat(mat):
-    cufsm_input = {}
+def load_mat(mat: Cufsm_MAT_File) -> PyCufsm_Input:
+    """load Matlab CUFSM data from a MAT file
+
+    Args:
+        mat (Cufsm_MAT_File): dicionary of data read from a MAT file (as generated by 
+            scipy.io.loadmat())
+
+    Returns:
+        PyCufsm_Input: cleaned data ready for pyCUFSM input
+    """
+    cufsm_input: PyCufsm_Input = {
+        'nodes': np.array([]),
+        'elements': np.array([]),
+        'lengths': np.array([]),
+        'props': np.array([]),
+        'constraints': np.array([]),
+        'springs': np.array([]),
+        'curve': np.array([]),
+        'shapes': np.array([]),
+        'clas': '',
+        'GBTcon': {
+            'glob': [],
+            'dist': [],
+            'local': [],
+            'other': [],
+            'o_space': 0,
+            'norm': 0,
+            'couple': 0,
+            'orth': 0
+        }
+    }
     if 'node' in mat:
         nodes = np.array(mat['node'], dtype=np.dtype(np.double))
         for i in range(len(nodes)):
@@ -326,7 +411,7 @@ def load_mat(mat):
     if 'curve' in mat:
         cufsm_input['curve'] = np.array(mat['curve'])
     if 'GBTcon' in mat:
-        gbt_con = {
+        gbt_con: GBT_Con = {
             "glob":
                 mat["GBTcon"]["glob"].flatten()[0].flatten()
                 if "glob" in mat["GBTcon"].dtype.names else [0],

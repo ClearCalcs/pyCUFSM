@@ -3,6 +3,7 @@
 # in the Metric unit system
 
 import numpy as np
+
 from pycufsm.fsm import strip
 from pycufsm.preprocess import stress_gen
 
@@ -34,8 +35,8 @@ def __main__():
     ]
 
     # No special springs or constraints
-    springs = []
-    constraints = []
+    springs = np.array([])
+    constraints = np.array([])
 
     # Values here correspond to signature curve basis and orthogonal based upon geometry
     gbt_con = {
