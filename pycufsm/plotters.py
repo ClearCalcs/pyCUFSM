@@ -11,7 +11,6 @@ import pycufsm.helpers as helpers
 from pycufsm.analysis import analysis
 
 
-##Cross section
 def crossect(
     nodes: np.ndarray,
     elements: np.ndarray,
@@ -19,18 +18,23 @@ def crossect(
     constraints: np.ndarray,
     flags: List[int]
 ) -> None:
-    # BWS
-    # October 2001 (last modified)
-    # December 2015 springs updated
-    # December 2015 origin updated to also show axes
-    # December 2015 added stress distribution into this plot instead of separate
-    # December 2015 added an additional flag for section property axes
-    # plots the cross-section
-    #
-    # nodes: [node# x z dofx dofz dofy dofrot stress] nnodes x 8;
-    # elements: [elem# nodei nodej t mat#] nelems x 4;
-    # flags:[node# element# mat# stress# stresspic coord constraints
-    #        springs origin propaxis] 1 means show
+    """plot cross-section
+
+    Args:
+        nodes (np.ndarray): [node# x z dofx dofz dofy dofrot stress] nnodes x 8;
+        elements (np.ndarray): [elem# nodei nodej t mat#] nelems x 4;
+        springs (np.ndarray): _description_
+        flags (List[int]): [node# element# mat# stress# stresspic coord constraints
+            springs origin propaxis] 1 means show
+
+    BWS
+    October 2001 (last modified)
+    December 2015 springs updated
+    December 2015 origin updated to also show axes
+    December 2015 added stress distribution into this plot instead of separate
+    December 2015 added an additional flag for section property axes
+    plots the cross-section
+    """
     nodeflag = flags[0]
     elemflag = flags[1]
     matflag = flags[2]
@@ -163,7 +167,6 @@ def crossect(
     plt.show()
 
 
-#Cross section displacement function
 def dispshap(
     undef: int,
     nodes: np.ndarray,
@@ -175,6 +178,18 @@ def dispshap(
     b_c: str,
     surf_pos: float
 ) -> None:
+    """Cross section displacement function
+
+    Args:
+        undef (int): _description_
+        nodes (np.ndarray): _description_
+        elements (np.ndarray): _description_
+        mode (np.ndarray): _description_
+        scalem (float): _description_
+        springs (np.ndarray): _description_
+        b_c (str): _description_
+        surf_pos (float): _description_
+    """
     #Determining Scaling Factor for the displaced shape
     ##dispmax=np.max(np.abs(mode))
     dispmax = np.max(np.abs(mode))
@@ -343,6 +358,20 @@ def thecurve3(
     modeindex: int,  # pylint: disable=unused-argument
     picpoint: list  # pylint: disable=unused-argument
 ) -> None:
+    """_summary_
+
+    Args:
+        curvecell (np.ndarray): _description_
+        clas (int): _description_
+        minopt (int): _description_
+        logopt (int): _description_
+        clasopt (int): _description_
+        xmax (float): _description_
+        ymin (float): _description_
+        ymax (float): _description_
+        modedisplay (list): _description_
+        fileindex (int): _description_
+    """
     curve = curvecell
     marker = '.x+*sdv^<'
     color1 = 'bgky'

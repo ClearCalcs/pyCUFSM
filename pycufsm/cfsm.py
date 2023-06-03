@@ -22,41 +22,57 @@ def base_column(
     n_local_modes: int, dof_perm: np.ndarray, r_x: np.ndarray, r_z: np.ndarray, r_ys: np.ndarray,
     d_y: np.ndarray
 ) -> np.ndarray:
-    # this routine creates base vectors for a column with length length for all the
-    # specified longitudinal terms in m_a
+    """this routine creates base vectors for a column with length length for all the
+    specified longitudinal terms in m_a
 
-    # assumptions
-    #   orthogonalization is not performed unless the user wants
-    #   orthogonalization is done by solving the eigen-value problem within each sub-space
-    #   normalization is not done
+    assumptions
+        orthogonalization is not performed unless the user wants
+        orthogonalization is done by solving the eigen-value problem within each sub-space
+        normalization is not done
 
-    # input data
-    #   nodes, elements, props - basic data
-    #   b_c: ['S-S'] a string specifying boundary conditions to be analyzed:
-    #'S-S' simply-pimply supported boundary condition at loaded edges
-    #'C-C' clamped-clamped boundary condition at loaded edges
-    #'S-C' simply-clamped supported boundary condition at loaded edges
-    #'C-F' clamped-free supported boundary condition at loaded edges
-    #'C-bulk' clamped-guided supported boundary condition at loaded edges
-    #   m_a - longitudinal terms (half-wave numbers)
+    Args:
+        nodes_base (np.ndarray): standard nodes parameter, but with zero stresses
+        elements (np.ndarray): standard parameter
+        props (np.ndarray): standard parameter
+        length (float): half-wavelength
+        b_c (str): ['S-S'] a string specifying boundary conditions to be analyzed:
+            'S-S' simply-pimply supported boundary condition at loaded edges
+            'C-C' clamped-clamped boundary condition at loaded edges
+            'S-C' simply-clamped supported boundary condition at loaded edges
+            'C-F' clamped-free supported boundary condition at loaded edges
+            'C-bulk' clamped-guided supported boundary condition at loaded edges
+        m_a (np.ndarray): longitudinal terms (half-wave numbers)
+        el_props (np.ndarray): standard parameter
+        node_props (np.ndarray): _description_
+        n_main_nodes (int): _description_
+        n_corner_nodes (int): _description_
+        n_sub_nodes (int): _description_
+        n_global_modes (int): _description_
+        n_dist_modes (int): _description_
+        n_local_modes (int): _description_
+        dof_perm (np.ndarray): _description_
+        r_x (np.ndarray): _description_
+        r_z (np.ndarray): _description_
+        r_ys (np.ndarray): _description_
+        d_y (np.ndarray): _description_
 
-    # output data
-    #   b_v_l - base vectors (each column corresponds to a certain mode)
-    #   assemble for each half-wave number m_i on its diagonal
-    #   b_v_l = diag(b_v_m)
-    #   for each half-wave number m_i, b_v_m
-    #           columns 1..n_global_modes: global modes
-    #           columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
-    #           columns (n_global_modes+n_dist_modes+1)
-    #                    ..(n_global_modes+n_dist_modes+n_local_modes): local modes
-    #           columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof: other modes
-    #   n_global_modes, n_dist_modes, n_local_modes - number of bulk, D, L modes, respectively
-    #
-
-    # S. Adany, Aug 28, 2006
-    # B. Schafer, Aug 29, 2006
-    # Z. Li, Dec 22, 2009
-    # Z. Li, June 2010
+    Returns:
+        b_v_l (np.ndarray): base vectors (each column corresponds to a certain mode)
+            assemble for each half-wave number m_i on its diagonal
+            b_v_l = diag(b_v_m)
+            for each half-wave number m_i, b_v_m
+                    columns 1..n_global_modes: global modes
+                    columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
+                    columns (n_global_modes+n_dist_modes+1)
+                            ..(n_global_modes+n_dist_modes+n_local_modes): local modes
+                    columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof: other modes
+            n_global_modes, n_dist_modes, n_local_modes - number of bulk, D, L modes, respectively
+    
+    S. Adany, Aug 28, 2006
+    B. Schafer, Aug 29, 2006
+    Z. Li, Dec 22, 2009
+    Z. Li, June 2010
+    """
 
     # construct the base for all the longitudinal terms
     n_nodes = len(nodes_base)
@@ -97,50 +113,58 @@ def base_update(
     elements: np.ndarray, props: np.ndarray, n_global_modes: int, n_dist_modes: int,
     n_local_modes: int, b_c: str, el_props: np.ndarray
 ) -> np.ndarray:
-    # this routine optionally makes orthogonalization and normalization of base vectors
+    """this routine optionally makes orthogonalization and normalization of base vectors
 
-    # assumptions
-    #   orthogonalization is done by solving the EV problem for each sub-space
-    #   three options for normalization is possible, set by 'gbt_con['norm']' parameter
+    assumptions
+        orthogonalization is done by solving the EV problem for each sub-space
+        three options for normalization is possible, set by 'gbt_con['norm']' parameter
 
-    # input data
-    #   gbt_con['o_space'] - by gbt_con, choices of ST/O mode
-    #         1: ST basis
-    #         2: O space (null space of GDL) with respect to k_global
-    #         3: O space (null space of GDL) with respect to kg_global
-    #         4: O space (null space of GDL) in vector sense
-    #   gbt_con['norm'] - by gbt_con, code for normalization (if normalization is done at all)
-    #         0: no normalization,
-    #         1: vector norm
-    #         2: strain energy norm
-    #         3: work norm
-    #   b_v_l - natural base vectors for length (each column corresponds to a certain mode)
-    #   for each half-wave number m_i
-    #           columns 1..n_global_modes: global modes
-    #           columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
-    #           columns (n_global_modes+n_dist_modes+1)
-    #                    ..(n_global_modes+n_dist_modes+n_local_modes): local modes
-    #           columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof_m: other modes
-    #   length - length
-    #   m_a, nodes, elements, props - as usual
-    #   n_global_modes, n_dist_modes, n_local_modes - nr of modes
-    #   b_c - boundary condition, 'S-S','C-C',...etc., as usual
-    #   gbt_con['couple'] - by gbt_con, coupled basis vs uncoupled basis for general B.C.
-    #             especially for non-simply supported B.C.
-    #         1: uncoupled basis, the basis will be block diagonal
-    #         2: coupled basis, the basis is fully spanned
-    #   gbt_con['orth'] - by gbt_con, natural basis vs modal basis
-    #         1: natural basis
-    #         2: modal basis, axial orthogonality
-    #         3: modal basis, load dependent orthogonality
+    Args:
+        gbt_con (GBT_Con): 
+            gbt_con['o_space'] - by gbt_con, choices of ST/O mode
+                    1: ST basis
+                    2: O space (null space of GDL) with respect to k_global
+                    3: O space (null space of GDL) with respect to kg_global
+                    4: O space (null space of GDL) in vector sense
+            gbt_con['norm'] - by gbt_con, code for normalization (if normalization is done at all)
+                    0: no normalization,
+                    1: vector norm
+                    2: strain energy norm
+                    3: work norm
+            gbt_con['couple'] - by gbt_con, coupled basis vs uncoupled basis for general B.C.
+                        especially for non-simply supported B.C.
+                    1: uncoupled basis, the basis will be block diagonal
+                    2: coupled basis, the basis is fully spanned
+            gbt_con['orth'] - by gbt_con, natural basis vs modal basis
+                    1: natural basis
+                    2: modal basis, axial orthogonality
+                    3: modal basis, load dependent orthogonality
+        b_v_l (np.ndarray): natural base vectors for length (each column corresponds to a certain mode)
+            for each half-wave number m_i
+                    columns 1..n_global_modes: global modes
+                    columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
+                    columns (n_global_modes+n_dist_modes+1)
+                            ..(n_global_modes+n_dist_modes+n_local_modes): local modes
+                    columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof_m: other modes
+        length (float): _description_
+        m_a (np.ndarray): _description_
+        nodes (np.ndarray): _description_
+        elements (np.ndarray): _description_
+        props (np.ndarray): _description_
+        n_global_modes (int): _description_
+        n_dist_modes (int): _description_
+        n_local_modes (int): _description_
+        b_c (str): _description_
+        el_props (np.ndarray): _description_
 
-    # output data
-    #   b_v - output base vectors (maybe natural, orthogonal or normalized,
-    #         depending on the selected options)
+    Returns:
+        b_v (np.ndarray): output base vectors (maybe natural, orthogonal or normalized,
+            depending on the selected options)
 
-    # S. Adany, Oct 11, 2006
-    # Z. Li modified on Jul 10, 2009
-    # Z. Li, June 2010
+    S. Adany, Oct 11, 2006
+    Z. Li modified on Jul 10, 2009
+    Z. Li, June 2010    
+    """
 
     n_nodes = len(nodes[:, 1])
     n_dof_m = 4 * n_nodes
@@ -473,40 +497,39 @@ def mode_select(
     b_v: np.ndarray, n_global_modes: int, n_dist_modes: int, n_local_modes: int, gbt_con: GBT_Con,
     n_dof_m: int, m_a: np.ndarray
 ) -> np.ndarray:
-    # this routine selects the required base vectors
-    #   b_v_red forms a reduced space for the calculation, including the
-    #       selected modes only
-    #   b_v_red itself is the final constraint matrix for the selected modes
-    #
-    #
-    # input data
-    #   b_v - base vectors (each column corresponds to a certain mode)
-    #           columns 1..n_global_modes: global modes
-    #           columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
-    #           columns (n_global_modes+n_dist_modes+1)
-    #                    ..(n_global_modes+n_dist_modes+n_local_modes): local modes
-    #           columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof: other modes
-    #   n_global_modes, n_dist_modes, n_local_modes - number of global, distortional
-    #                    and local buckling modes, respectively
-    #   gbt_con['glob'] - indicator which global modes are selected
-    #   gbt_con['dist'] - indicator which dist. modes are selected
-    #   gbt_con['local'] - indicator whether local modes are selected
-    #   gbt_con['other'] - indicator whether other modes are selected
-    #   n_dof_m: 4*n_nodes, total DOF for a single longitudinal term
+    """this routine selects the required base vectors
+        b_v_red forms a reduced space for the calculation, including the
+            selected modes only
+        b_v_red itself is the final constraint matrix for the selected modes
 
-    # output data
-    #   b_v_red - reduced base vectors (each column corresponds to a certain mode)
+        note:
+        for all if_* indicator: 1 if selected, 0 if eliminated
 
-    #
-    # note:
-    #   for all if_* indicator: 1 if selected, 0 if eliminated
-    #
-    #
-    # S. Adany, Mar 22, 2004
-    # BWS May 2004
-    # modifed on Jul 10, 2009 by Z. Li for general b_c
-    # Z. Li, June 2010
+    Args:
+        b_v (np.ndarray): base vectors (each column corresponds to a certain mode)
+            columns 1..n_global_modes: global modes
+            columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
+            columns (n_global_modes+n_dist_modes+1)
+                    ..(n_global_modes+n_dist_modes+n_local_modes): local modes
+            columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof: other modes
+        n_global_modes (int): _description_
+        n_dist_modes (int): _description_
+        n_local_modes (int): _description_
+        gbt_con (GBT_Con): gbt_con['glob'] - indicator which global modes are selected
+            gbt_con['dist'] - indicator which dist. modes are selected
+            gbt_con['local'] - indicator whether local modes are selected
+            gbt_con['other'] - indicator whether other modes are selected
+        n_dof_m (int): 4*n_nodes, total DOF for a single longitudinal term
+        m_a (np.ndarray): _description_
 
+    Returns:
+        b_v_red (np.ndarray): reduced base vectors (each column corresponds to a certain mode)
+    
+    S. Adany, Mar 22, 2004
+    BWS May 2004
+    modifed on Jul 10, 2009 by Z. Li for general b_c
+    Z. Li, June 2010
+    """
     n_m = int(
         sum(gbt_con['glob']) + sum(gbt_con['dist']) + sum(gbt_con['local']) + sum(gbt_con['other'])
     )
@@ -559,22 +582,21 @@ def mode_select(
 
 
 def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: np.ndarray) -> np.ndarray:
-    #
-    # this routine creates the constraints matrix, r_user_matrix, as defined by the user
-    #
-    #
-    # input/output data
-    #   nodes - same as elsewhere throughout this program
-    #   constraints - same as 'constraints' throughout this program
-    #   m_a - longitudinal terms to be included for this length
+    """this routine creates the constraints matrix, r_user_matrix, as defined by the user
 
-    #   r_user_matrix - the constraints matrix (in other words: base vectors) so that
-    #               displ_orig = r_user_matrix * displ_new
+    Args:
+        nodes (np.ndarray): same as elsewhere throughout this program
+        constraints (np.ndarray): same as 'constraints' throughout this program
+        m_a (np.ndarray): longitudinal terms to be included for this length
 
-    # S. Adany, Feb 26, 2004
-    # Z. Li, Aug 18, 2009 for general b.c.
-    # Z. Li, June 2010
+    Returns:
+        r_user_matrix (np.ndarray): the constraints matrix (in other words: base vectors) so that
+            displ_orig = r_user_matrix * displ_new
 
+    S. Adany, Feb 26, 2004
+    Z. Li, Aug 18, 2009 for general b.c.
+    Z. Li, June 2010
+    """
     n_nodes = len(nodes[:, 1])
     n_dof_m = 4 * n_nodes
     dof_reg = np.ones((n_dof_m, 1))
@@ -645,35 +667,40 @@ def mode_constr(
     nodes: np.ndarray, elements: np.ndarray, node_props: np.ndarray, main_nodes: np.ndarray,
     meta_elements: np.ndarray
 ):
-    #
-    # this routine creates the constraint matrices necessary for mode
-    # separation/classification for each specified half-wave number m_i
-    #
-    # assumptions
-    #   GBT-like assumptions are used
-    #   the cross-section must not be closed and must not contain closed parts
-    #
-    #   must check whether 'Warp' works well for any open section !!!
-    #
-    #
-    # input/output data
-    #   nodes, elements, props  - same as elsewhere throughout this program
-    #   main_nodes [main nodes] - array of
-    #         [nr, x, z, orig nodes nr, nr of adj meta-elements, m_i-el_i-1, m_i-el_i-2, ...]
-    #   meta_elements [meta-elements] - array of
-    #         [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
-    #   node_props - array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
-    #
-    #
-    # notes:
-    #   m-el_i-? is positive if the starting nodes of m-el_i-? coincides with
-    #      the given m-nodes, otherwise negative
-    #   nodes types: 1-corner, 2-edge, 3-sub
-    #   sub-nodes numbers are the original one, of course
-    #
-    # S. Adany, Mar 10, 2004
-    # Z. Li, Jul 10, 2009
+    """this routine creates the constraint matrices necessary for mode
+    separation/classification for each specified half-wave number m_i
+    
+    assumptions
+      GBT-like assumptions are used
+      the cross-section must not be closed and must not contain closed parts
+    
+      must check whether 'Warp' works well for any open section !!!
 
+    notes:
+      m-el_i-? is positive if the starting nodes of m-el_i-? coincides with
+         the given m-nodes, otherwise negative
+      nodes types: 1-corner, 2-edge, 3-sub
+      sub-nodes numbers are the original one, of course
+
+    Args:
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        main_nodes (np.ndarray): array of
+            [nr, x, z, orig nodes nr, nr of adj meta-elements, m_i-el_i-1, m_i-el_i-2, ...]
+        meta_elements (np.ndarray): array of
+            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
+
+    Returns:
+        r_x (np.ndarray): constaint matrices for x dofs
+        r_z (np.ndarray): constaint matrices for z dofs
+        r_ys (np.ndarray): constaint matrices for y dofs of sub-nodes
+        r_yd (np.ndarray): constaint matrices for y dofs of main nodes for distortional buckling
+        r_ys (np.ndarray): constaint matrices for y dofs of indefinite (?independent?) main nodes
+
+    S. Adany, Mar 10, 2004
+    Z. Li, Jul 10, 2009
+    """
     # to create r_x and r_z constraint matrices
     [r_x, r_z] = constr_xz_y(main_nodes, meta_elements)
     #
@@ -694,31 +721,32 @@ def y_dofs(
     n_dist_modes: int, r_yd: np.ndarray, r_ud: np.ndarray, sect_props: Sect_Props,
     el_props: np.ndarray
 ):
+    """this routine creates y-DOFs of main nodes for global buckling and
+    distortional buckling, however:
+       only involves single half-wave number m_i
+    
+    assumptions
+      GBT-like assumptions are used
+      the cross-section must not be closed and must not contain closed parts
 
-    # this routine creates y-DOFs of main nodes for global buckling and
-    # distortional buckling, however:
-    #    only involves single half-wave number m_i
-    #
-    # assumptions
-    #   GBT-like assumptions are used
-    #   the cross-section must not be closed and must not contain closed parts
+    Args:
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        main_nodes (np.ndarray): nodes of 'meta' cross-section
+        n_main_nodes (int): _description_
+        n_dist_modes (int): _description_
+        r_yd (np.ndarray): constrain matrices
+        r_ud (np.ndarray): constrain matrices
+        sect_props (Sect_Props): _description_
+        el_props (np.ndarray): _description_
 
-    # input data
-    #   nodes, elements - same as elsewhere throughout this program
-    #   main_nodes [main nodes] - nodes of 'meta' cross-section
-    #   n_main_nodes, n_corner_nodes, n_sub_nodes
-    #          - number of main nodes, corner nodes and sub-nodes, respectively
-    #   n_dist_modes, n_local_modes - number of distortional and local buckling modes, respectively
-    #   r_yd, r_ud - constraint matrices
-    #
-    # output data
-    #   d_y - y-DOFs of main nodes for global buckling and distortional buckling
-    #   (each column corresponds to a certain mode)
-    #
-    #
-    # S. Adany, Mar 10, 2004, modified Aug 29, 2006
-    # Z. Li, Dec 22, 2009
+    Returns:
+        d_y (np.ndarray): y-DOFs of main nodes for global buckling and distortional buckling
+            (each column corresponds to a certain mode)
 
+    S. Adany, Mar 10, 2004, modified Aug 29, 2006
+    Z. Li, Dec 22, 2009
+    """
     w_o = np.zeros((len(nodes), 2))
     w_o[int(elements[0, 1]), 0] = int(elements[0, 1])
     w_no = 0
@@ -825,46 +853,39 @@ def base_vectors(
     n_global_modes: int, n_dist_modes: int, n_local_modes: int, r_x: np.ndarray, r_z: np.ndarray,
     r_p: np.ndarray, r_ys: np.ndarray, dof_perm: np.ndarray
 ) -> np.ndarray:
-    #
-    # this routine creates the base vectors for global, dist., local and other modes
-    #
-    # assumptions
-    #   GBT-like assumptions are used
-    #   the cross-section must not be closed and must not contain closed parts
-    #
-    #   must check whether 'Warp' works well for any open section !!!
-    #
-    #
-    # input data
-    #   elements, el_props - same as elsewhere throughout this program
-    #   length, m_i - member length and number of half-waves, respectively
-    #   main_nodes [main nodes] - nodes of 'meta' cross-section
-    #   meta_elements [meta-elements] - elements of 'meta' cross-section
-    #   node_props - some properties of the nodes
-    #   n_main_nodes, n_corner_nodes, n_sub_nodes
-    #           - number of main nodes, corner nodes and sub-nodes, respectively
-    #   n_dist_modes, n_local_modes - number of distortional and local buckling modes, respectively
-    #   r_x, r_z, r_p, r_ys, - constraint matrices
-    #   dof_perm - permutation matrix to re-order the DOFs
-    #
-    # output data
-    #   n_other_modes - nr of other modes
-    #   b_v_m - base vectors for single half-wave number m_i
-    #            (each column corresponds to a certain mode)
-    #           columns 1..n_global_modes: global modes
-    #           columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
-    #           columns (n_global_modes+n_dist_modes+1)
-    #                    ..(n_global_modes+n_dist_modes+n_local_modes): local modes
-    #           columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof: other modes
-    #
-    # note:
-    #   more details on the input variables can be found in the routines called
-    #      in this routine
-    #
+    """this routine creates the base vectors for global, dist., local and other modes
+    
+    assumptions
+      GBT-like assumptions are used
+      the cross-section must not be closed and must not contain closed parts
+    
+      must check whether 'Warp' works well for any open section !!!
 
-    # S. Adany, Mar 10, 2004, modified Aug 29, 2006
-    # Z. Li, Dec 22, 2009
+    Args:
+        d_y (np.ndarray): _description_
+        elements (np.ndarray): standard parameter
+        el_props (np.ndarray): standard parameter
+        length (float): element length
+        m_i (float): number of half-waves
+        node_props (np.ndarray): some properties of the nodes
+        n_main_nodes (int): number of nodes of given type
+        n_corner_nodes (int): number of nodes of given type
+        n_sub_nodes (int): number of nodes of given type
+        n_global_modes (int): number of given modes
+        n_dist_modes (int): number of given modes
+        n_local_modes (int): number of given modes
+        r_x (np.ndarray): constraint matrix
+        r_z (np.ndarray): constraint matrix
+        r_p (np.ndarray): constraint matrix
+        r_ys (np.ndarray): constraint matrix
+        dof_perm (np.ndarray):permutation matrix to re-order the DOFs
 
+    Returns:
+        np.ndarray: _description_
+
+    S. Adany, Mar 10, 2004, modified Aug 29, 2006
+    Z. Li, Dec 22, 2009
+    """
     # DATA PREPARATION
     k_m = m_i * np.pi / length
     n_node_props = len(node_props)
@@ -1043,31 +1064,32 @@ def base_vectors(
 
 
 def constr_xz_y(main_nodes: np.ndarray, meta_elements: np.ndarray):
-    # this routine creates the constraint matrix, Rxz, that defines relationship
-    # between x, z displacements DOFs [for internal main nodes, referred also as corner nodes]
-    # and the longitudinal y displacements DOFs [for all the main nodes]
-    # if GBT-like assumptions are used
-    #
-    # to make this routine length-independent, Rxz is not multiplied here by
-    # (1/k_m), thus it has to be multiplied outside of this routine!
-    #
-    # additional assumption: cross section is opened!
-    #
-    #
-    # input/output data
-    #   main_nodes [main nodes] - array of
-    #            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
-    #   meta_elements [meta-elements] - array of
-    #            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
-    #
-    #   note:
-    #   m-el_i-? is positive if the starting nodes of m-el_i-? coincides with
-    #   the given m-nodes, otherwise negative
-    #
-    # S. Adany, Feb 05, 2004
-    #
-    #
-    # to calculate some data of main elements (stored in meta_elements_data)
+    """this routine creates the constraint matrix, Rxz, that defines relationship
+    between x, z displacements DOFs [for internal main nodes, referred also as corner nodes]
+    and the longitudinal y displacements DOFs [for all the main nodes]
+    if GBT-like assumptions are used
+    
+    to make this routine length-independent, Rxz is not multiplied here by
+    (1/k_m), thus it has to be multiplied outside of this routine!
+    
+    additional assumption: cross section is opened!
+
+    note:
+        m-el_i-? is positive if the starting nodes of m-el_i-? coincides with
+        the given m-nodes, otherwise negative
+
+    Args:
+        main_nodes (np.ndarray): array of
+            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
+        meta_elements (np.ndarray): array of
+            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
+
+    Returns:
+        r_x (np.ndarray): x dof restraints
+        r_z (np.ndarray): z dof restraints
+
+    S. Adany, Feb 05, 2004
+    """
     meta_elements_data = np.zeros((len(meta_elements), 5))
     for i, m_elem in enumerate(meta_elements):
         node1 = int(m_elem[1])
@@ -1155,22 +1177,31 @@ def constr_planar_xz(
     nodes: np.ndarray, elements: np.ndarray, props: np.ndarray, node_props: np.ndarray,
     dof_perm: np.ndarray, m_i: float, length: float, b_c: str, el_props: np.ndarray
 ) -> np.ndarray:
-    #
-    # this routine creates the constraint matrix, r_p, that defines relationship
-    # between x, z DOFs of any non-corner nodes + teta DOFs of all nodes,
-    # and the x, z displacements DOFs of corner nodes
-    # if GBT-like assumptions are used
-    #
-    #
-    # input/output data
-    #   nodes, elements, props  - same as elsewhere throughout this program
-    #   node_props - array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
-    #   dof_perm - permutation matrix, so that
-    #            (orig-displacements-vect) = (dof_perm) � (new-displacements - vector)
-    #
-    # S. Adany, Feb 06, 2004
-    # Z. Li, Jul 10, 2009
-    #
+    """this routine creates the constraint matrix, r_p, that defines relationship
+    between x, z DOFs of any non-corner nodes + teta DOFs of all nodes,
+    and the x, z displacements DOFs of corner nodes
+    if GBT-like assumptions are used
+
+    Args:
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        props (np.ndarray): standard parameter
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        dof_perm (np.ndarray): permutation matrix, so that
+            (orig-displacements-vect) = (dof_perm) � (new-displacements - vector)
+        m_i (float): _description_
+        length (float): element length
+        b_c (str): standard parameter
+        el_props (np.ndarray): standard parameter
+
+    Returns:
+        r_p (np.ndarray):constraint matrix, r_p, that defines relationship
+            between x, z DOFs of any non-corner nodes + teta DOFs of all nodes,
+            and the x, z displacements DOFs of corner nodes
+
+    S. Adany, Feb 06, 2004
+    Z. Li, Jul 10, 2009
+    """
     # to count corner-, edge- and sub-nodes
     n_node_props = len(node_props)
     n_corner_nodes = 0
@@ -1222,21 +1253,23 @@ def constr_yd_yg(
     nodes: np.ndarray, elements: np.ndarray, node_props: np.ndarray, r_ys: np.ndarray,
     n_main_nodes: int
 ) -> np.ndarray:
-    #
-    # this routine creates the constraint matrix, r_yd, that defines relationship
-    # between base vectors for distortional buckling,
-    # and base vectors for global buckling,
-    # but for y DOFs of main nodes only
-    #
-    #
-    # input/output data
-    #   nodes, elements - same as elsewhere throughout this program
-    #   node_props - array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
-    #   r_ys - constrain matrix, see function 'constr_ys_ym'
-    #   n_main_nodes - nr of main nodes
-    #
-    # S. Adany, Mar 04, 2004
-    #
+    """this routine creates the constraint matrix, r_yd, that defines relationship
+    between base vectors for distortional buckling,
+    and base vectors for global buckling,
+    but for y DOFs of main nodes only
+
+    Args:
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        r_ys (np.ndarray): constraint matrix, see function 'constr_ys_ym'
+        n_main_nodes (int): nr of main nodes
+
+    Returns:
+        r_yd (np.ndarray): constraint matrix for y DOFs in distortional buckling
+
+    S. Adany, Mar 04, 2004
+    """
     n_nodes = len(nodes)
     a_matrix = np.zeros((n_nodes, n_nodes))
     for elem in elements:
@@ -1265,22 +1298,24 @@ def constr_yd_yg(
 def constr_ys_ym(
     nodes: np.ndarray, main_nodes: np.ndarray, meta_elements: np.ndarray, node_props: np.ndarray
 ) -> np.ndarray:
-    # this routine creates the constraint matrix, r_ys, that defines relationship
-    # between y DOFs of sub-nodes,
-    # and the y displacements DOFs of main nodes
-    # by linear interpolation
-    #
-    #
-    # input/output data
-    #   nodes - same as elsewhere throughout this program
-    #   main_nodes [main nodes] - array of
-    #            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
-    #   meta_elements [meta-elements] - array of
-    #            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
-    #   node_props - array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
-    #
-    # S. Adany, Feb 06, 2004
-    #
+    """this routine creates the constraint matrix, r_ys, that defines relationship
+    between y DOFs of sub-nodes,
+    and the y displacements DOFs of main nodes
+    by linear interpolation
+
+    Args:
+        nodes (np.ndarray): standard parameter
+        main_nodes (np.ndarray): array of
+            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
+        meta_elements (np.ndarray): array of
+            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+
+    Returns:
+        r_ys (np.ndarray): constraint matrix for y DOFs of sub-nodes
+    
+    S. Adany, Feb 06, 2004
+    """
     n_sub_nodes = 0
     for n_prop in node_props:
         if n_prop[3] == 3:
@@ -1314,31 +1349,31 @@ def constr_ys_ym(
 
 
 def constr_yu_yd(main_nodes: np.ndarray, meta_elements: np.ndarray) -> np.ndarray:
-    #
-    # this routine creates the constraint matrix, r_ud, that defines relationship
-    # between y displacements DOFs of indefinite main nodes
-    # and the y displacements DOFs of definite main nodes
-    # (definite main nodes = those main nodes which unambiguously define the y displacements pattern
-    #  indefinite main nodes = those nodes the y DOF of which can be calculated
-    #                          from the y DOF of definite main nodes
-    #  note: for open sections with one single branch only there are no indefinite nodes)
-    #
-    # important assumption: cross section is opened!
-    #
-    #
-    # input/output data
-    #   main_nodes [main nodes] - array of
-    #            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
-    #   meta_elements [meta-elements] - array of
-    #            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
-    #
-    #   note:
-    #   m-el_i-? is positive if the starting nodes of m-el_i-? coincides with
-    #   the given m-nodes, otherwise negative
-    #
-    # S. Adany, Mar 10, 2004
-    #
-    #
+    """this routine creates the constraint matrix, r_ud, that defines relationship
+    between y displacements DOFs of indefinite main nodes
+    and the y displacements DOFs of definite main nodes
+    (definite main nodes = those main nodes which unambiguously define the y displacements pattern
+     indefinite main nodes = those nodes the y DOF of which can be calculated
+                             from the y DOF of definite main nodes
+     note: for open sections with one single branch only there are no indefinite nodes)
+    
+    important assumption: cross section is opened!
+
+    note:
+        m-el_i-? is positive if the starting nodes of m-el_i-? coincides with
+        the given m-nodes, otherwise negative
+
+    Args:
+        main_nodes (np.ndarray): array of
+            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
+        meta_elements (np.ndarray): array of
+            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
+
+    Returns:
+        r_ud (np.ndarray): constraint matrix between definite and indefinite main nodes
+
+    S. Adany, Mar 10, 2004
+    """
     # to calculate some data of main elements (stored in meta_elements_data)
     meta_elements_data = np.zeros((len(meta_elements), 5))
     for i, m_elem in enumerate(meta_elements):
@@ -1489,29 +1524,34 @@ def constr_yu_yd(main_nodes: np.ndarray, meta_elements: np.ndarray) -> np.ndarra
 
 
 def base_properties(nodes: np.ndarray, elements: np.ndarray):
-    # this routine creates all the data for defining the base vectors from the
-    # cross section properties
-    #
-    # input data
-    #   nodes, elements- basic data#
-    # output data
-    #   main_nodes <main nodes> - array of
-    #           [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
-    #   meta_elements <meta-elements> - array of
-    #           [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
-    #   node_props - array of [original nodes nr, new nodes nr, nr of adj elements,
-    #   nodes type]
-    #   n_global_modes, n_dist_modes, n_local_modes, n_other_modes
-    #            - number of bulk, D, L, O modes, respectively
-    #   n_main_nodes, n_corner_nodes, n_sub_nodes
-    #            - number of main nodes, corner nodes and sub-nodes, respectively
-    #   dof_perm - permutation matrix, so that
-    #            (orig-displacements-vect) = (dof_perm) � (new-displacements-vector)
-    #
-    # S. Adany, Aug 28, 2006
-    # B. Schafer, Aug 29, 2006
-    # Z. Li, Dec 22, 2009
+    """this routine creates all the data for defining the base vectors from the
+    cross section properties
 
+    Args:
+        nodes (np.ndarray): standard parameters
+        elements (np.ndarray): standard parameters
+
+    Returns:
+        main_nodes (np.ndarray): array of
+            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
+        meta_elements (np.ndarray): array of
+            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
+        node_props (np.ndarray): array of 
+            [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+        n_global_modes (int): number of global (bulk) modes
+        n_dist_modes (int): number of distortional modes
+        n_local_modes (int): number of local modes
+        n_other_modes (int): number of other modes
+        n_main_nodes (int): number of main nodes
+        n_corner_nodes (int): number of corner nodes
+        n_sub_nodes (int): number of sub-nodes
+        dof_perm (np.ndarray): permutation matrix, so that
+            (orig-displacements-vect) = (dof_perm) � (new-displacements-vector)
+    
+    S. Adany, Aug 28, 2006
+    B. Schafer, Aug 29, 2006
+    Z. Li, Dec 22, 2009
+    """
     [main_nodes, meta_elements, node_props] = meta_elems(nodes=nodes, elements=elements)
     [n_main_nodes, n_corner_nodes, n_sub_nodes] = node_class(node_props=node_props)
     [n_dist_modes, n_local_modes] = mode_nr(n_main_nodes, n_corner_nodes, n_sub_nodes, main_nodes)
@@ -1522,29 +1562,33 @@ def base_properties(nodes: np.ndarray, elements: np.ndarray):
 
 
 def meta_elems(nodes: np.ndarray, elements: np.ndarray):
-    # this routine re-organises the basic input data
-    #  to eliminate internal subdividing nodes
-    #  to form meta-elements (corner-to-corner or corner-to-free edge)
-    #  to identify main nodes (corner nodes and free edge nodes)
-    #
-    # important assumption: cross section is opened!
-    #
-    # input/output data
-    #   nodes, elements - same as elsewhere throughout this program
-    #   main_nodes <main nodes> - array of
-    #            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
-    #   meta_elements <meta-elements> - array of
-    #            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
-    #   node_props - array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
-    #
-    # note:
-    #   m-el_i-? is positive if the starting nodes of m-el_i-? coincides with
-    #      the given m-nodes, otherwise negative
-    #   nodes types: 1-corner, 2-edge, 3-sub
-    #   sub-nodes numbers are the original ones, of course
-    #
-    # S. Adany, Feb 06, 2004
-    #
+    """this routine re-organises the basic input data
+    to eliminate internal subdividing nodes
+    to form meta-elements (corner-to-corner or corner-to-free edge)
+    to identify main nodes (corner nodes and free edge nodes)
+
+    important assumption: cross section is opened!
+
+    note:
+      m-el_i-? is positive if the starting nodes of m-el_i-? coincides with
+         the given m-nodes, otherwise negative
+      nodes types: 1-corner, 2-edge, 3-sub
+      sub-nodes numbers are the original ones, of course
+
+    Args:
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+
+    Returns:
+        main_nodes (np.ndarray): main nodes (i.e. corner and free edge nodes) array of
+            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]?
+        meta_elements (np.ndarray): elements connecting main nodes array of
+            [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
+        node_props (np.ndarray): properties of main nodes array of 
+            [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+    
+    S. Adany, Feb 06, 2004
+    """
     n_nodes = len(nodes)
     #
     # to count nr of elements connecting to each nodes
@@ -1670,20 +1714,22 @@ def meta_elems(nodes: np.ndarray, elements: np.ndarray):
 
 
 def mode_nr(n_main_nodes: int, n_corner_nodes: int, n_sub_nodes: int, main_nodes: np.ndarray):
-    #
-    # this routine determines the number of distortional and local buckling modes
-    # if GBT-like assumptions are used
-    #
-    #
-    # input/output data
-    #   n_main_nodes, n_sub_nodes - number of main nodes and sub_nodes, respectively
-    #   main_nodes [main nodes] - array of
-    #            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
-    #   n_dist_modes, n_local_modes - number of distortional and local buckling modes, respectively
-    #
-    # S. Adany, Feb 09, 2004
-    #
-    #
+    """this routine determines the number of distortional and local buckling modes
+    if GBT-like assumptions are used
+
+    Args:
+        n_main_nodes (int): number of main nodes
+        n_corner_nodes (int): number of corner nodes
+        n_sub_nodes (int): number of sub nodes
+        main_nodes (np.ndarray): array of
+            [nr, x, z, orig nodes nr, nr of adj meta-elements, m-el_i-1, m-el_i-2, ...]
+
+    Returns:
+        n_dist_modes (int): number of distortional modes
+        n_local_modes (int): number of local modes
+
+    S. Adany, Feb 09, 2004
+    """
     # to count the number of distortional modes
     n_dist_modes = n_main_nodes - 4
     for i in range(0, n_main_nodes):
@@ -1701,23 +1747,24 @@ def mode_nr(n_main_nodes: int, n_corner_nodes: int, n_sub_nodes: int, main_nodes
 
 
 def dof_ordering(node_props: np.ndarray) -> np.ndarray:
-    # this routine re-orders the DOFs,
-    # according to the need of forming shape vectors for various buckling modes
-    #
-    # input/output data
-    #   node_props - array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
-    #   dof_perm - permutation matrix, so that
-    #            (orig-displacements-vect) = (dof_perm) � (new-displacements-vector)
-    #
-    # notes:
-    # (1)  nodes types: 1-corner, 2-edge, 3-sub
-    # (2)  the re-numbering of long. displacements. DOFs of main nodes, which may be
-    #      necessary for dist. buckling, is not included here but handled
-    #      separately when forming Ry constraint matrix
-    #
-    # S. Adany, Feb 06, 2004
-    #
-    #
+    """this routine re-orders the DOFs,
+    according to the need of forming shape vectors for various buckling modes
+    
+    notes:
+    (1)  nodes types: 1-corner, 2-edge, 3-sub
+    (2)  the re-numbering of long. displacements. DOFs of main nodes, which may be
+         necessary for dist. buckling, is not included here but handled
+         separately when forming Ry constraint matrix
+
+    Args:
+        node_props (np.ndarray): array of [original nodes nr, new nodes nr, nr of adj elements, nodes type]
+
+    Returns:
+        dof_perm (np.ndarray): permutation matrix, so that
+            (orig-displacements-vect) = (dof_perm) � (new-displacements-vector)
+
+    S. Adany, Feb 06, 2004
+    """
     # to count corner-, edge- and sub-nodes
     n_node_props = len(node_props)
     n_corner_nodes = 0
@@ -1795,27 +1842,30 @@ def classify(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
     shapes: np.ndarray, gbt_con: GBT_Con, b_c: str, m_all: np.ndarray, sect_props: Sect_Props
 ) -> List[np.ndarray]:
-    # , clas_GDLO
-    # MODAL CLASSIFICATION
+    """modal classificaiton
 
-    # input
-    # props: [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x nmats
-    # nodes: [nodes# x z dof_x dof_z dof_y dofrot stress] n_nodes x 8
-    # elements: [elements# node_i node_j thick mat_num] n_elements x 5
-    # lengths: lengths to be analyzed
-    # shapes: array of mode shapes dof x lengths x mode
-    # method:
-    #   method = 1 = vector norm
-    #   method = 2 = strain energy norm
-    #   method = 3 = work norm
-    #
-    #
-    # output
-    # clas: array or # classification
+    Args:
+        props (np.ndarray): [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x nmats
+        nodes (np.ndarray): [nodes# x z dof_x dof_z dof_y dofrot stress] n_nodes x 8
+        elements (np.ndarray): [elements# node_i node_j thick mat_num] n_elements x 5
+        lengths (np.ndarray): lengths to be analysed
+        shapes (np.ndarray): array of mode shapes dof x lengths x mode
+        gbt_con (GBT_Con): _description_
+            method:
+                method = 1 = vector norm
+                method = 2 = strain energy norm
+                method = 3 = work norm
+        b_c (str): _description_
+        m_all (np.ndarray): _description_
+        sect_props (Sect_Props): _description_
 
-    # BWS August 29, 2006
-    # modified SA, Oct 10, 2006
-    # Z.Li, June 2010
+    Returns:
+        clas (List[np.ndarray]): array of # classification
+    
+    BWS August 29, 2006
+    modified SA, Oct 10, 2006
+    Z.Li, June 2010
+    """
     n_nodes = len(nodes)
     n_dof_m = 4 * n_nodes
 
@@ -1921,31 +1971,34 @@ def mode_class(
     b_v: np.ndarray, displacements: np.ndarray, n_global_modes: int, n_dist_modes: int,
     n_local_modes: int, m_a: np.ndarray, n_dof_m: int, gbt_con: GBT_Con
 ) -> np.ndarray:
-    #
-    # to determine mode contribution in the current displacement
+    """to determine mode contribution in the current displacement
 
-    # input data
-    #   b_v - base vectors (each column corresponds to a certain mode)
-    #           columns 1..n_global_modes: global modes
-    #           columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
-    #           columns (n_global_modes+n_dist_modes+1)
-    #                    ..(n_global_modes+n_dist_modes+n_local_modes): local modes
-    #           columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof: other modes
-    #   displacements - vector of nodal displacements
-    #   n_global_modes, n_dist_modes, n_local_modes
-    #            - number of global, distortional and local buckling modes, respectively
-    #   gbt_con['couple'] - by gbt_con, coupled basis vs uncoupled basis for general B.C.
-    #                       especially for non-simply supported B.C.
-    #         1: uncoupled basis, the basis will be block diagonal
-    #         2: coupled basis, the basis is fully spanned
+    Args:
+        b_v (np.ndarray): base vectors (each column corresponds to a certain mode)
+            columns 1..n_global_modes: global modes
+            columns (n_global_modes+1)..(n_global_modes+n_dist_modes): dist. modes
+            columns (n_global_modes+n_dist_modes+1)
+                    ..(n_global_modes+n_dist_modes+n_local_modes): local modes
+            columns (n_global_modes+n_dist_modes+n_local_modes+1)..n_dof: other modes
+        displacements (np.ndarray): vector of nodal displacements
+        n_global_modes (int): number of modes
+        n_dist_modes (int): number of modes
+        n_local_modes (int): number of modes
+        m_a (np.ndarray): _description_
+        n_dof_m (int): _description_
+        gbt_con (GBT_Con): _description_
+            gbt_con['couple'] - by gbt_con, coupled basis vs uncoupled basis for general B.C.
+                especially for non-simply supported B.C.
+                1: uncoupled basis, the basis will be block diagonal
+                2: coupled basis, the basis is fully spanned
 
-    # output data
-    #   clas_gdlo - array with the contributions of the modes in percentage
-    #               elem1: global, elem2: dist, elem3: local, elem4: other
-
-    # S. Adany, Mar 10, 2004
-    # Z. Li, June 2010
-
+    Returns:
+        clas_gdlo (np.ndarray): array with the contributions of the modes in percentage
+            elem1: global, elem2: dist, elem3: local, elem4: other
+    
+    S. Adany, Mar 10, 2004
+    Z. Li, June 2010
+    """
     total_m = len(m_a)  # Total number of longitudinal terms m_i
     # indices
     dof_index = np.zeros((4, 2))
@@ -2016,18 +2069,22 @@ def mode_class(
 
 
 def node_class(node_props: np.ndarray):
-    #this routine determines how many nodes of the various types exist
-    #
-    #input/output data
-    #   node_props - array of [original node nr, new node nr, nr of adj elems, node type]
-    #   nmno,ncno,nsno - number of main nodes, corner nodes and sub-nodes, respectively
-    #
-    #notes:
-    #   node types in node_props: 1-corner, 2-edge, 3-sub
-    #   sub-node numbers are the original one, of course
-    #
-    # S. Adany, Feb 09, 2004
+    """this routine determines how many nodes of the various types exist
 
+    notes:
+      node types in node_props: 1-corner, 2-edge, 3-sub
+      sub-node numbers are the original one, of course
+
+    Args:
+        node_props (np.ndarray): array of [original node nr, new node nr, nr of adj elems, node type]
+
+    Returns:
+        n_main_nodes (int): number of main nodes
+        n_corner_nodes (int): number of corner nodes
+        n_sub_nodes (int): number of sub-nodes
+    
+    S. Adany, Feb 09, 2004
+    """
     #to count corner-, edge- and sub-nodes
     n_corner_nodes = 0
     n_edge_nodes = 0

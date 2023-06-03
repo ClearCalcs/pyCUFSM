@@ -66,8 +66,8 @@ Sect_Geom = TypedDict(
     }
 )
 
-MAT_File = TypedDict(
-    'MAT_File',
+Cufsm_MAT_File = TypedDict(
+    'Cufsm_MAT_File',
     {
         'node': list,
         'elem': list,
@@ -83,8 +83,8 @@ MAT_File = TypedDict(
     }
 )
 
-Cufsm_Input = TypedDict(
-    'Cufsm_Input', {
+PyCufsm_Input = TypedDict(
+    'PyCufsm_Input', {
         'nodes': np.ndarray,
         'elements': np.ndarray,
         'lengths': np.ndarray,

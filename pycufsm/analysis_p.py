@@ -170,24 +170,23 @@ def k_kg_global(
     kg_global = np.zeros((4 * n_nodes * total_m, 4 * n_nodes * total_m))
 
     # ASSEMBLE THE GLOBAL STIFFNESS MATRICES
-    for i, elem in enumerate(elements):
+    for i in range(0, n_elems):
         # Generate element stiffness matrix (k_local) in local coordinates
         # Generate geometric stiffness matrix (kg_local) in local coordinates
-        thick = elem[3]
+        thick = elements[i, 3]
         b_strip = el_props[i, 1]
-        mat_num = int(elem[4])
+        mat_num = int(elements[i, 4])
         row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
-        mat = props[row]
-        stiff_x = mat[1]
-        stiff_y = mat[2]
-        nu_x = mat[3]
-        nu_y = mat[4]
-        bulk = mat[5]
+        stiff_x = props[row, 1]
+        stiff_y = props[row, 2]
+        nu_x = props[row, 3]
+        nu_y = props[row, 4]
+        bulk = props[row, 5]
 
-        node_i = int(elem[1])
-        node_j = int(elem[2])
-        ty_1 = nodes[node_i][7] * thick
-        ty_2 = nodes[node_j][7] * thick
+        node_i = int(elements[i, 1])
+        node_j = int(elements[i, 2])
+        ty_1 = nodes[node_i, 7] * thick
+        ty_2 = nodes[node_j, 7] * thick
 
         k_l, kg_l = k_kg_local(
             stiff_x=stiff_x,
@@ -362,17 +361,16 @@ def kglobal_transv(
     n_nodes = len(nodes)
     k_global_transv = np.zeros((4 * n_nodes, 4 * n_nodes))
 
-    for i, elem in enumerate(elements):
-        thick = elem[3]
+    for i in range(0, n_elems):
+        thick = elements[i, 3]
         b_strip = el_props[i, 1]
-        mat_num = int(elem[4])
+        mat_num = int(elements[i, 4])
         row = int((np.argwhere(props[:, 0] == mat_num)).reshape(1))
-        mat = props[row]
-        stiff_x = mat[1]
-        stiff_y = mat[2]
-        nu_x = mat[3]
-        nu_y = mat[4]
-        bulk = mat[5]
+        stiff_x = props[row, 1]
+        stiff_y = props[row, 2]
+        nu_x = props[row, 3]
+        nu_y = props[row, 4]
+        bulk = props[row, 5]
         k_l = klocal_transv(
             stiff_x=stiff_x,
             stiff_y=stiff_y,
@@ -392,8 +390,8 @@ def kglobal_transv(
         k_local = gamma @ k_l @ gamma.conj().T
 
         # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
-        node_i = int(elem[1])
-        node_j = int(elem[2])
+        node_i = int(elements[i, 1])
+        node_j = int(elements[i, 2])
         k_global_transv = assemble_single(
             k_global=k_global_transv,
             k_local=k_local,
@@ -836,7 +834,6 @@ def trans(alpha: float, total_m: int) -> np.ndarray:
     Zhanjie 2008
     modified by Z. Li, Aug. 09, 2009
     """
-
     gam = np.array([[np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0],
                     [0, 0, np.cos(alpha), 0, 0, 0, -np.sin(alpha), 0], [0, 0, 0, 1, 0, 0, 0, 0],
                     [np.sin(alpha), 0, 0, 0, np.cos(alpha), 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0],
