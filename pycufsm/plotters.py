@@ -1,9 +1,9 @@
 from typing import List
 
-import matplotlib.pyplot as plt  # type: ignore
+import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.collections import PatchCollection  # type: ignore
-from matplotlib.patches import Polygon  # type: ignore
+from matplotlib.collections import PatchCollection
+from matplotlib.patches import Polygon
 
 import pycufsm.helpers as helpers
 from pycufsm.analysis import analysis

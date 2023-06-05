@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from scipy import linalg as spla  # type: ignore
@@ -13,7 +13,10 @@ from pycufsm.types import Forces, Sect_Geom, Sect_Props
 # change history, have been generally retained unaltered
 
 
-def template_path(draw_table: list, thick: float, n_r: int = 4, shift: Optional[list] = None):
+def template_path(draw_table: list,
+                  thick: float,
+                  n_r: int = 4,
+                  shift: Optional[list] = None) -> Tuple[np.ndarray, np.ndarray]:
     """Assuming a uniform thickness, draws a section according to a path definition
 
     Args:
@@ -92,10 +95,10 @@ def template_path(draw_table: list, thick: float, n_r: int = 4, shift: Optional[
     for i in range(0, len(nodes) - 1):
         elements.append(np.array([i, i, i + 1, thick, 0]))
 
-    return [np.array(nodes), np.array(elements)]
+    return np.array(nodes), np.array(elements)
 
 
-def template_calc(sect: Sect_Geom):
+def template_calc(sect: Sect_Geom) -> Tuple[np.ndarray, np.ndarray]:
     """Converts overall geometry parameters for C or Z sections into valid
     nodes and elements matrices. Facilitates easier geometry creation
 
@@ -373,7 +376,7 @@ def template_calc(sect: Sect_Geom):
     for i in range(0, len(nodes) - 1):
         elements.append(np.array([i, i, i + 1, thick, 0]))
 
-    return [np.array(nodes), np.array(elements)]
+    return np.array(nodes), np.array(elements)
 
 
 def template_out_to_in(sect: Sect_Geom) -> list:
@@ -557,7 +560,7 @@ def stress_gen(
     return nodes
 
 
-def doubler(nodes: np.ndarray, elements: np.ndarray):
+def doubler(nodes: np.ndarray, elements: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """A function to double the number of elements to help
     out the discretization of the member somewhat.
 

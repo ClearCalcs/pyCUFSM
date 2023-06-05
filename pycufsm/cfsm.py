@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 from scipy import linalg as spla  # type: ignore
@@ -666,7 +666,7 @@ def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: np.ndarray) -> 
 def mode_constr(
     nodes: np.ndarray, elements: np.ndarray, node_props: np.ndarray, main_nodes: np.ndarray,
     meta_elements: np.ndarray
-):
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """this routine creates the constraint matrices necessary for mode
     separation/classification for each specified half-wave number m_i
     
@@ -721,7 +721,7 @@ def y_dofs(
     nodes: np.ndarray, elements: np.ndarray, main_nodes: np.ndarray, n_main_nodes: int,
     n_dist_modes: int, r_yd: np.ndarray, r_ud: np.ndarray, sect_props: Sect_Props,
     el_props: np.ndarray
-):
+) -> Tuple[np.ndarray, int]:
     """this routine creates y-DOFs of main nodes for global buckling and
     distortional buckling, however:
        only involves single half-wave number m_i
@@ -805,7 +805,7 @@ def y_dofs(
     n_global_modes = 4
     ind = np.ones(4)
     for i in range(0, 4):
-        if np.nonzero(d_y[:, i]) == []:
+        if len(np.nonzero(d_y[:, i])) == 0:
             ind[i] = 0
             n_global_modes = n_global_modes - 1
 
@@ -1064,7 +1064,7 @@ def base_vectors(
     return b_v_m
 
 
-def constr_xz_y(main_nodes: np.ndarray, meta_elements: np.ndarray):
+def constr_xz_y(main_nodes: np.ndarray, meta_elements: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """this routine creates the constraint matrix, Rxz, that defines relationship
     between x, z displacements DOFs [for internal main nodes, referred also as corner nodes]
     and the longitudinal y displacements DOFs [for all the main nodes]
@@ -1527,7 +1527,9 @@ def constr_yu_yd(main_nodes: np.ndarray, meta_elements: np.ndarray) -> np.ndarra
     return r_ud
 
 
-def base_properties(nodes: np.ndarray, elements: np.ndarray):
+def base_properties(
+    nodes: np.ndarray, elements: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int, int, int, int, int, np.ndarray]:
     """this routine creates all the data for defining the base vectors from the
     cross section properties
 
@@ -1542,13 +1544,11 @@ def base_properties(nodes: np.ndarray, elements: np.ndarray):
             [nr, main-nodes-1, main-nodes-2, nr of sub-nodes, sub-no-1, sub-nod-2, ...]
         node_props (np.ndarray): array of 
             [original nodes nr, new nodes nr, nr of adj elements, nodes type]
-        n_global_modes (int): number of global (bulk) modes
-        n_dist_modes (int): number of distortional modes
-        n_local_modes (int): number of local modes
-        n_other_modes (int): number of other modes
         n_main_nodes (int): number of main nodes
         n_corner_nodes (int): number of corner nodes
         n_sub_nodes (int): number of sub-nodes
+        n_dist_modes (int): number of distortional modes
+        n_local_modes (int): number of local modes
         dof_perm (np.ndarray): permutation matrix, so that
             (orig-displacements-vect) = (dof_perm) � (new-displacements-vector)
     
@@ -1565,7 +1565,8 @@ def base_properties(nodes: np.ndarray, elements: np.ndarray):
         n_corner_nodes, n_sub_nodes, n_dist_modes, n_local_modes, dof_perm
 
 
-def meta_elems(nodes: np.ndarray, elements: np.ndarray):
+def meta_elems(nodes: np.ndarray,
+               elements: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """this routine re-organises the basic input data
     to eliminate internal subdividing nodes
     to form meta-elements (corner-to-corner or corner-to-free edge)
@@ -1717,7 +1718,8 @@ def meta_elems(nodes: np.ndarray, elements: np.ndarray):
     return main_nodes, meta_elements, node_props
 
 
-def mode_nr(n_main_nodes: int, n_corner_nodes: int, n_sub_nodes: int, main_nodes: np.ndarray):
+def mode_nr(n_main_nodes: int, n_corner_nodes: int, n_sub_nodes: int,
+            main_nodes: np.ndarray) -> Tuple[int, int]:
     """this routine determines the number of distortional and local buckling modes
     if GBT-like assumptions are used
 
@@ -2073,7 +2075,7 @@ def mode_class(
     return clas_gdlo
 
 
-def node_class(node_props: np.ndarray):
+def node_class(node_props: np.ndarray) -> Tuple[int, int, int]:
     """this routine determines how many nodes of the various types exist
 
     notes:

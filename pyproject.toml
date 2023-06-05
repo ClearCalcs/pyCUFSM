@@ -62,6 +62,21 @@ disable = [
     "logging-fstring-interpolation"
 ]
 
+[tool.mypy]
+packages = "pycufsm"
+python_version = "3.8"
+strict = true
+allow_any_generics = true
+implicit_reexport = true
+exclude = ['gui_widgets\.py']
+
+[[tool.mypy.overrides]]
+module = [
+    "matplotlib.*",
+    "ipywidgets"
+]
+ignore_missing_imports = true
+
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true
 allow_multiline_dictionary_keys = false

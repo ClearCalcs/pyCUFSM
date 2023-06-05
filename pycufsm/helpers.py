@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -103,7 +103,7 @@ def lengths_recommend(
 def signature_ss(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, i_gbt_con: GBT_Con,
     sect_props: Sect_Props, lengths: np.ndarray
-):
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """generate the signature curve solution, part 2: actually solve the signature curve
 
     Args:
@@ -151,7 +151,8 @@ def m_recommend(
     length_append: Optional[float] = None,
     n_lengths: int = 50,
     lengths: Optional[np.ndarray] = None
-):
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Suggested longitudinal terms are calculated based on the characteristic
     half-wave lengths of local, distortional, and global buckling from the
     signature curve.
@@ -322,7 +323,7 @@ def m_recommend(
         im_pm_all.append(im_pm_all_temp)
 
     #m_a_recommend = analysis.m_sort(im_pm_all)
-    m_a_recommend = im_pm_all
+    m_a_recommend = np.array(im_pm_all)
 
     return (
         m_a_recommend,
