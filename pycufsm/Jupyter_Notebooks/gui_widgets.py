@@ -1,12 +1,15 @@
-import ipywidgets as widgets  # type: ignore
+from typing import List, Tuple
+
+import ipywidgets as widgets
 import numpy as np
+
 import pycufsm.plotters as crossect
 
 
-def prevals():
-    springs = []
-    constraints = []
-    flag = np.array([1, 0, 0, 0, 1, 0, 0, 0, 0, 0])
+def prevals() -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[int]]:
+    springs = np.array([])
+    constraints = np.array([])
+    flag = [1, 0, 0, 0, 1, 0, 0, 0, 0, 0]
     props = np.array([[0, 29500, 29500, 0.3, 0.3, 29500 / (2 * (1+0.3))]])
     nodes = np.array([
         [0, 2.5, 0.773, 1, 1, 1, 1, 1],
@@ -47,11 +50,13 @@ def prevals():
 
 class Preprocess:
 
-    def wprops(self, props, m):
+    def wprops(self, props: np.ndarray,
+               m: int) -> Tuple[widgets.VBox, widgets.Button, widgets.Button, list]:
+        self.m = m
         matTitle = widgets.Label(value="Material Properties")
         mattext = ["mat#", "Ex", "Ey", "vx", "vy", "G"]
-        prop = [[] for i in range(self.m)]
-        self.mitems = [[] for i in range(self.m)]
+        prop: List[widgets.GridBox] = [[] for i in range(self.m)]
+        self.mitems: List[widgets.FloatText] = [[] for i in range(self.m)]
         self.ADDMAT = widgets.Button(
             description="Add Material", layout=widgets.Layout(border="solid 1px black")
         )
@@ -96,6 +101,7 @@ class Preprocess:
         return self.rowm, self.ADDMAT, self.DELMAT, self.mitems
 
     def wnodes(self, nodes, n):
+        self.nodes = nodes
         nodTitle = widgets.Label(value="Nodes")
         nodetext = ["Node#", "x", "y", "xdof", "zdof", "ydof", "qdof", "stress"]
         node = [[] for i in range(self.n)]
@@ -145,6 +151,7 @@ class Preprocess:
         return self.rnode, self.ADDNODE, self.DELNODE, self.nitems
 
     def welems(self, elements, e):
+        self.elements = elements
         elTitle = widgets.Label(value="Elements")
         elemtext = ["Element#", "Nodei", "Nodej", "t", "Mat#"]
         elem = [[] for i in range(self.e)]
