@@ -1,14 +1,17 @@
-# This example presents a very simple Zed section,
-# solved for pure bending about the X-axis,
-# in the Metric unit system
+from typing import Dict
 
 import numpy as np
 
 from pycufsm.fsm import strip
 from pycufsm.preprocess import stress_gen
+from pycufsm.types import GBT_Con, Sect_Props
+
+# This example presents a very simple Zed section,
+# solved for pure bending about the X-axis,
+# in the Metric unit system
 
 
-def __main__():
+def __main__() -> Dict[str, np.ndarray]:
     # Define an isotropic material with E = 203,000 MPa and nu = 0.3
     props = np.array([[0, 203000, 203000, 0.3, 0.3, 203000 / (2 * (1+0.3))]])
 
@@ -28,18 +31,18 @@ def __main__():
     # These lengths will generally provide sufficient accuracy for
     # local, distortional, and global buckling modes
     # Length units are millimetres
-    lengths = [
+    lengths = np.array([
         10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
         250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000,
         2500, 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 9000, 10000
-    ]
+    ])
 
     # No special springs or constraints
     springs = np.array([])
     constraints = np.array([])
 
     # Values here correspond to signature curve basis and orthogonal based upon geometry
-    gbt_con = {
+    gbt_con: GBT_Con = {
         'glob': [0],
         'dist': [0],
         'local': [0],
@@ -61,7 +64,7 @@ def __main__():
 
     # Set the section properties for this simple section
     # Normally, these might be calculated by an external package
-    sect_props = {
+    sect_props: Sect_Props = {
         'cx': 0,
         'cy': 150,
         'x0': 0,
@@ -72,7 +75,12 @@ def __main__():
         'Ixy': -4151084,
         'Iyy': 2177529,
         'I11': 16154036,
-        'I22': 944639
+        'I22': 944639,
+        'Cw': 0,
+        'J': 0,
+        'B1': 0,
+        'B2': 0,
+        'wn': np.array([])
     }
 
     # Generate the stress points assuming 500 MPa yield and X-axis bending

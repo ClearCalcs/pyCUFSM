@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
@@ -144,7 +146,7 @@ def elem_prop(nodes: np.ndarray, elements: np.ndarray) -> np.ndarray:
 def k_kg_global(
     nodes: np.ndarray, elements: np.ndarray, el_props: np.ndarray, props: np.ndarray, length: float,
     b_c: str, m_a: np.ndarray
-):
+) -> Tuple[np.ndarray, np.ndarray]:
     """Generates element stiffness matrix (k_global) in global coordinates
     Generate geometric stiffness matrix (kg_global) in global coordinates
 
@@ -228,7 +230,7 @@ def k_kg_global(
 def k_kg_local(
     stiff_x: float, stiff_y: float, nu_x: float, nu_y: float, bulk: float, thick: float,
     length: float, ty_1: float, ty_2: float, b_strip: float, b_c: str, m_a: np.ndarray
-):
+) -> Tuple[np.ndarray, np.ndarray]:
     """Generate element stiffness matrix (k_local) in local coordinates
     Generate geometric stiffness matrix (kg_local) in local coordinates
 
@@ -855,7 +857,7 @@ def trans(alpha: float, total_m: int) -> np.ndarray:
 def assemble(
     k_global: np.ndarray, kg_global: np.ndarray, k_local: np.ndarray, kg_local: np.ndarray,
     node_i: int, node_j: int, n_nodes: int, m_a: np.ndarray
-):
+) -> Tuple[np.ndarray, np.ndarray]:
     """Add the element contribution to the global stiffness matrix
 
     Args:
@@ -1001,7 +1003,7 @@ def assemble(
 
 def assemble_single(
     k_global: np.ndarray, k_local: np.ndarray, node_i: int, node_j: int, n_nodes: int
-):
+) -> np.ndarray:
     """this routine adds the element contribution to the global stiffness matrix
     basically it does the same as routine 'assemble', however:
     it does not care about kg_global (geom stiff matrix)
@@ -1125,7 +1127,8 @@ def spring_klocal(
     return k_local
 
 
-def bc_i1_5_atpoint(b_c: str, m_i: float, m_j: float, length: float, y_s: float):
+def bc_i1_5_atpoint(b_c: str, m_i: float, m_j: float, length: float,
+                    y_s: float) -> Tuple[float, float]:
     """Calculate the value of the longitudinal shape functions for discrete springs
 
 
@@ -1268,6 +1271,7 @@ def ym_at_ys(b_c: str, m_i: float, y_s: float, length: float) -> float:
     
     BWS in 2015
     """
+    y_m: float
     if b_c == 'S-S':
         y_m = np.sin(m_i * np.pi * y_s / length)
     elif b_c == 'C-C':
@@ -1302,6 +1306,7 @@ def ymprime_at_ys(b_c: str, m_i: float, y_s: float, length: float) -> float:
 
     BWS in 2015
     """
+    y_m_prime: float
     if b_c == 'S-S':
         y_m_prime = (np.pi * m_i * np.cos((np.pi * m_i * y_s) / length)) / length
     elif b_c == 'C-C':

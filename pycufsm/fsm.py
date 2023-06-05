@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Tuple
 
 import numpy as np
 from scipy import linalg as spla  # type: ignore
@@ -20,7 +21,7 @@ def strip(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
     springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: str, m_all: np.ndarray,
     n_eigs: int, sect_props: Sect_Props
-):
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Perform a finite strip analysis
 
     Args:
@@ -201,7 +202,7 @@ def strip(
                 node_j = spring[2]
                 if node_j == 0 or spring[7] == 0:  # spring is to ground
                     # handle the spring to ground during assembly
-                    alpha = 0  # use global coordinates for spring
+                    alpha: float = 0  # use global coordinates for spring
                 else:  # spring is between nodes
                     x_i = nodes[node_i, 1]
                     y_i = nodes[node_i, 2]
@@ -214,7 +215,10 @@ def strip(
                         alpha = 0  # use global coordinates for spring
                     else:
                         # local orientation for spring
-                        alpha = np.arctan2(d_y, d_x)
+                        # np.arctan2() function is mis-typed in numpy - given floats,
+                        # it DOES return a float.It does not always return an array
+                        alpha = np.arctan2(d_y, d_x)  # type: ignore
+
                 gamma = analysis.trans(alpha=alpha, total_m=total_m)
                 k_s = gamma @ ks_l @ gamma.conj().T
 
