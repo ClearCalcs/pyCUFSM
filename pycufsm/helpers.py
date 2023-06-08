@@ -1,10 +1,13 @@
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
 import pycufsm.cfsm
 import pycufsm.fsm
-from pycufsm.types import Cufsm_MAT_File, GBT_Con, PyCufsm_Input, Sect_Props
+from pycufsm.types import (
+    B_C, Analysis_Config, Cfsm_Config, Cufsm_MAT_File, GBT_Con, New_Constraint, New_Element,
+    New_Node_Props, New_Props, New_Spring, PyCufsm_Input, Sect_Props
+)
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
 # Ported to Python by Brooks Smith MEng, PE, CPEng
@@ -440,3 +443,241 @@ def load_mat(mat: Cufsm_MAT_File) -> PyCufsm_Input:
     if 'clas' in mat:
         cufsm_input['clas'] = mat['clas']
     return cufsm_input
+
+
+def inputs_new_to_old(
+    props: Dict[str, New_Props],
+    nodes: np.ndarray,
+    lengths: Dict[int, List[int]],
+    elements: List[New_Element],
+    springs: Optional[List[New_Spring]] = None,
+    constraints: Optional[List[New_Constraint]] = None,
+    node_props: Optional[Dict[int, New_Node_Props]] = None,
+    analysis_config: Optional[Analysis_Config] = None,
+    cfsm_config: Optional[Cfsm_Config] = None,
+    sect_props: Optional[Sect_Props] = None
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, GBT_Con, B_C,
+           np.ndarray, int, Optional[Sect_Props]]:
+    """Converts new format of inputs to old (original CUFSM) format
+
+    Args:
+        props (dict[str, dict[str, float]]): 
+            {"mat_name": {E_x: float, E_y: float, nu_x: float, nu_y: float, bulk: float}}
+        nodes (np.ndarray)): 
+            [[x, y]]
+        lengths (dict[int, list[int]]): 
+            {length: list[int]}     # [m_a]
+        elements (list[dict]): 
+            [{
+                nodes: str|list[int],   # "all" or [node1, node2, node3, ...]
+                t: float,               # thickness
+                mat: str                # "mat_name"
+            )].
+            nodes: "all" is a special indicator that all nodes should be connected sequentially
+            If nodes is given as an array, any number of nodal indices may be listed in order
+        springs (list of dicts, optional): 
+            [{
+                node: int,      # node # 
+                dof: str,       # "x"|"y"|"z"|"q" - "q" is the twist dof
+                k_x: float,     # x stiffness
+                k_y: float,     # y stiffness
+                k_z: float,     # z stiffness
+                k_q: float,     # q stiffness
+                k_type: str,    # "foundation"|"paired"|"discrete" - stiffness type
+                y_s: float,     # location of discrete spring
+            }]
+            Defaults to None.
+        constraints (list of dicts, optional): 
+            [{
+                elim_node: int,     # node #
+                elim_dof: str,      # "x"|"y"|"z"|"q" - "q" is the twist dof 
+                coeff: float,       # elim_dof = coeff * keep_dof
+                keep_node: int,     # node #
+                keep_dof: str       # "x"|"y"|"z"|"q" - "q" is the twist dof
+            }]
+            Defaults to None.
+        analysis_config (dict, optional): 
+            {
+                b_c: str,           # "S-S"|"C-C"|"S-C"|"C-F"|"C-G" - boundary condition type
+                n_eigs: int         # number of eigenvalues to consider
+            }
+            Defaults to None, and taken as {b_c: "S-S", n_eigs: 10} if so.
+            Boundary condition types (at loaded edges):
+                'S-S' simple-simple
+                'C-C' clamped-clamped
+                'S-C' simple-clamped
+                'C-F' clamped-free
+                'C-G' clamped-guided
+        cfsm_config (dict, optional): _description_. 
+            {
+                glob_modes: list(int),      # list of 1's (inclusion) and 0's (exclusion) for 
+                    each mode from the analysis
+                dist_modes: list(int),      # list of 1's (inclusion) and 0's (exclusion) for 
+                    each mode from the analysis
+                local_modes: list(int),     # list of 1's (inclusion) and 0's (exclusion) for 
+                    each mode from the analysis
+                other_modes: list(int),     # list of 1's (inclusion) and 0's (exclusion) for 
+                    each mode from the analysis
+                null_space: str,            # "ST"|"k_global"|"kg_global"|"vector"
+                normalization: str,         # "none"|"vector"|"strain_energy"|"work"
+                coupled: bool,              # coupled basis vs uncoupled basis for general B.C.
+                orthogonality: str          # "natural"|"modal_axial"|"modal_load" - natural or 
+                    modal basis
+            }
+            Defaults to None, in which case no cFSM analysis is performed
+            null_space:
+                "ST": ST basis
+                "k_global": null space of GDL with respect to k_global
+                "kg_global": null space of GDL with respect to kg_global
+                "vector": null space of GDL in vector sense
+            coupled:        basis for general B.C. especially for non-simply supported B.C.s
+                uncoupled basis = the basis will be block diagonal
+                coupled basis = the basis is fully spanned
+            orthogonality:      natural basis vs modal basis
+                "natural": natural basis
+                "modal_axial": modal basis, axial orthogonality
+                "modal_load": modal basis, load dependent orthogonality
+        sect_props (Sect_Props, optional): _description_. Defaults to None.
+
+    Returns:
+        _type_: _description_
+        props: [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
+        nodes: [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
+        elements: [elem# node_i node_j thick mat_num] n_elements x 5
+        lengths: [L1 L2 L3...] 1 x n_lengths lengths to be analysed
+        could be half-wavelengths for signature curve
+        or physical lengths for general b.c.
+        springs: [node# d.o.f. k_spring k_flag] where 1=x dir 2= y dir 3 = z dir 4 = q dir (twist)
+            flag says if k_stiff is a foundation stiffness or a total stiffness
+        constraints:: [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
+            k=kept dof dof_e_node = coeff*dof_k_node_k
+        gbt_con: gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
+        and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
+        gbt_con.o_space - choices of ST/O mode
+                1: ST basis
+                2: O space (null space of GDL) with respect to k_global
+                3: O space (null space of GDL) with respect to kg_global
+                4: O space (null space of GDL) in vector sense
+        gbt_con.norm - code for normalization (if normalization is done at all)
+                0: no normalization,
+                1: vector norm
+                2: strain energy norm
+                3: work norm
+        gbt_con.couple - coupled basis vs uncoupled basis for general
+                    B.C. especially for non-simply supported B.C.
+                1: uncoupled basis, the basis will be block diagonal
+                2: coupled basis, the basis is fully spanned
+        gbt_con.orth - natural basis vs modal basis
+                1: natural basis
+                2: modal basis, axial orthogonality
+                3: modal basis, load dependent orthogonality
+        b_c: ['S-S'] a string specifying boundary conditions to be analysed:
+        'S-S' simply-pimply supported boundary condition at loaded edges
+        'C-C' clamped-clamped boundary condition at loaded edges
+        'S-C' simply-clamped supported boundary condition at loaded edges
+        'C-F' clamped-free supported boundary condition at loaded edges
+        'C-G' clamped-guided supported boundary condition at loaded edges
+        m_all: m_all{length#}=[longitudinal_num# ... longitudinal_num#],
+            longitudinal terms m for all the lengths in cell notation
+        each cell has a vector including the longitudinal terms for this length
+        n_eigs - the number of eigenvalues to be determined at length (default=10)
+    """
+    # Convert props
+    props_old: list = []
+    mat_index: Dict[str, int] = {}
+    i: int = 0
+    for mat_name, mat in props.items():
+        mat_index[mat_name] = i
+        props_old.append([i, mat["E_x"], mat["E_y"], mat["nu_x"], mat["nu_y"], mat["bulk"]])
+
+    # Convert nodes
+    nodes_old: list = []
+    if node_props is None:
+        node_props = {}
+    for i, node in enumerate(nodes):
+        if i in node_props:
+            dof_x = int(node_props[i]["dof_x"]) if "dof_x" in node_props[i] else 1
+            dof_y = int(node_props[i]["dof_y"]) if "dof_y" in node_props[i] else 1
+            dof_z = int(node_props[i]["dof_z"]) if "dof_z" in node_props[i] else 1
+            dof_q = int(node_props[i]["dof_q"]) if "dof_q" in node_props[i] else 1
+            stress = node_props[i]["stress"] if "stress" in node_props[i] else 0.0
+            nodes_old.append([i, node[0], node[1], dof_x, dof_y, dof_z, dof_q, stress])
+        else:
+            nodes_old.append([i, node[0], node[1], 1, 1, 1, 1, 0])
+
+    # Convert elements
+    elements_old: list = []
+    for i, elem in enumerate(elements):
+        if isinstance(elem["nodes"], str) and elem["nodes"] == "all":
+            elem["nodes"] = list(range(len(nodes)))
+        for node1, node2 in zip(elem["nodes"][0:], elem["nodes"][1:]):
+            elements_old.append([i, node1, node2, elem["t"], mat_index[elem["mat"]]])
+
+    # Convert lengths and m_all
+    lengths_old: List[int] = []
+    m_all_old: List[List[int]] = []
+    for length, m_a in lengths.items():
+        lengths_old.append(length)
+        m_all_old.append(m_a)
+
+    # Convert springs
+    springs_old: list = []
+    if springs is None:
+        springs = []
+    for spring in springs:
+        springs_old.append([
+            spring["node"], spring["node_pair"] if spring["k_type"] == "node_pair" else -1,
+            spring["k_x"], spring["k_y"], spring["k_z"], spring["k_q"],
+            0 if spring["k_type"] == "foundation" else 1,
+            int(spring["discrete"]), spring["y"]
+        ])
+
+    # Convert constraints
+    dof_conv = {"x": 1, "y": 2, "z": 3, "q": 4}
+    constraints_old: list = []
+    if constraints is None:
+        constraints = []
+    for constraint in constraints:
+        constraints_old.append([
+            constraint["elim_node"], dof_conv[constraint["elim_dof"]], constraint["coeff"],
+            constraint["keep_node"], dof_conv[constraint["keep_dof"]]
+        ])
+
+    # Convert configurations
+    if analysis_config is not None:
+        b_c_old = analysis_config["b_c"]
+        n_eigs_old = analysis_config["n_eigs"]
+    else:
+        b_c_old = "S-S"
+        n_eigs_old = 10
+    if cfsm_config is not None:
+        o_space_conv = {"ST": 1, "k_global": 2, "kg_global": 3, "vector": 4}
+        norm_conv = {"none": 0, "vector": 1, "strain_energy": 2, "work": 3}
+        orth_conv = {"natural": 1, "modal_axial": 2, "modal_load": 3}
+        gbt_con_old: GBT_Con = {
+            "glob": cfsm_config["glob_modes"],
+            "dist": cfsm_config["dist_modes"],
+            "local": cfsm_config["local_modes"],
+            "other": cfsm_config["other_modes"],
+            "o_space": o_space_conv[cfsm_config["null_space"]],
+            "norm": norm_conv[cfsm_config["normalization"]],
+            "couple": 2 if cfsm_config["coupled"] else 1,
+            "orth": orth_conv[cfsm_config["orthogonality"]]
+        }
+    else:
+        gbt_con_old = {
+            "glob": [0],
+            "dist": [0],
+            "local": [0],
+            "other": [0],
+            "o_space": 1,
+            "norm": 0,
+            "couple": 1,
+            "orth": 2,
+        }
+
+    return np.array(props_old), np.array(nodes_old), np.array(elements_old), np.array(
+        lengths_old
+    ), np.array(springs_old), np.array(constraints_old), gbt_con_old, b_c_old, np.array(
+        m_all_old
+    ), n_eigs_old, sect_props

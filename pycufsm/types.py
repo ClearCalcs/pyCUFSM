@@ -1,14 +1,16 @@
-from typing import Any, List
+from typing import Any, List, Literal, Union
 
 import numpy as np
 from typing_extensions import TypedDict
 
+B_C = Literal["S-S", "C-C", "S-C", "C-F", "C-G"]  # pylint: disable=invalid-name
+
 GBT_Con = TypedDict(
     'GBT_Con', {
-        'glob': List[int],
-        'dist': List[int],
-        'local': List[int],
-        'other': List[int],
+        'glob': List[Literal[0, 1]],
+        'dist': List[Literal[0, 1]],
+        'local': List[Literal[0, 1]],
+        'other': List[Literal[0, 1]],
         'o_space': int,
         'couple': int,
         'orth': int,
@@ -95,5 +97,84 @@ PyCufsm_Input = TypedDict(
         'shapes': np.ndarray,
         'clas': str,
         'GBTcon': GBT_Con
+    }
+)
+
+New_Props = TypedDict(
+    'New_Props', {
+        'E_x': float,
+        'E_y': float,
+        'nu_x': float,
+        'nu_y': float,
+        'bulk': float
+    }
+)
+
+New_Element = TypedDict(
+    'New_Element',
+    {
+        'nodes': Union[str, List[int]],  # "all" or [node1, node2, node3, ...]
+        't': float,  # thickness
+        'mat': str  # "mat_name"
+    }
+)
+
+New_Spring = TypedDict(
+    'New_Spring',
+    {
+        'node': int,  # node # 
+        'k_x': float,  # x stiffness
+        'k_y': float,  # y stiffness
+        'k_z': float,  # z stiffness
+        'k_q': float,  # q stiffness
+        'k_type': Literal["foundation", "total",
+                          "node_pair"],  # "foundation"|"total"|"node_pair" - stiffness type,
+        'node_pair': int,  # node number to which to pair (if relevant)
+        'discrete': bool,
+        'y': float,  # location of discrete spring
+    }
+)
+
+New_Constraint = TypedDict(
+    'New_Constraint',
+    {
+        'elim_node': int,  # node #
+        'elim_dof': Literal["x", "y", "z", "q"],  # "q" is the twist dof 
+        'coeff': float,  # elim_dof = coeff * keep_dof
+        'keep_node': int,  # node #
+        'keep_dof': Literal["x", "y", "z", "q"],  # "q" is the twist dof
+    }
+)
+
+New_Node_Props = TypedDict(
+    'New_Node_Props',
+    {
+        'dof_x': bool,  # defaults to True
+        'dof_y': bool,  # defaults to True
+        'dof_z': bool,  # defaults to True
+        'dof_q': bool,  # defaults to True
+        'stress': float,  # defaults to 0.0
+    }
+)
+
+Analysis_Config = TypedDict(
+    'Analysis_Config',
+    {
+        'b_c': B_C,  # boundary condition type
+        'n_eigs': int,  # number of eigenvalues to consider
+    }
+)
+
+Cfsm_Config = TypedDict(
+    'Cfsm_Config',
+    {
+        'glob_modes': List[Literal[0, 1]],  # list of 1's (inclusion) and 0's (exclusion)
+        'dist_modes': List[Literal[0, 1]],  # list of 1's (inclusion) and 0's (exclusion)
+        'local_modes': List[Literal[0, 1]],  # list of 1's (inclusion) and 0's (exclusion)
+        'other_modes': List[Literal[0, 1]],  # list of 1's (inclusion) and 0's (exclusion)
+        'null_space': Literal["ST", "k_global", "kg_global", "vector"],
+        'normalization': Literal["none", "vector", "strain_energy", "work"],
+        'coupled': bool,  # coupled basis vs uncoupled basis for general B.C.
+        'orthogonality': Literal["natural", "modal_axial", "modal_load"],  # natural or modal basis
     }
 )
