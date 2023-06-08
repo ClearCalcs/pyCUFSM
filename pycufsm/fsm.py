@@ -200,9 +200,10 @@ def strip(
                 # Transform k_s into global coordinates
                 node_i = spring[1]
                 node_j = spring[2]
-                if node_j == 0 or spring[7] == 0:  # spring is to ground
+                if node_j == -1 or spring[7] == 0:  # spring is to ground
                     # handle the spring to ground during assembly
                     alpha: float = 0  # use global coordinates for spring
+                    node_j = -1
                 else:  # spring is between nodes
                     x_i = nodes[node_i, 1]
                     y_i = nodes[node_i, 2]

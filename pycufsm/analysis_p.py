@@ -1206,7 +1206,7 @@ def spring_assemble(
 
             k_global[4*n_nodes*i + (node_i+1) * 2 - 1:4*n_nodes*i + (node_i+1) * 2,
                      4*n_nodes*j + (node_i+1) * 2 - 1:4*n_nodes*j + (node_i+1) * 2] += k11
-            if node_j != 0:
+            if node_j != -1:
                 k_global[4*n_nodes*i + (node_i+1) * 2 - 1:4*n_nodes*i + (node_i+1) * 2,
                          4*n_nodes*j + (node_j+1) * 2 - 1:4*n_nodes*j + (node_j+1) * 2] += k12
                 k_global[4*n_nodes*i + (node_j+1) * 2 - 1:4*n_nodes*i + (node_j+1) * 2,
@@ -1217,7 +1217,7 @@ def spring_assemble(
             k_global[4*n_nodes*i + skip + (node_i+1) * 2 - 1:4*n_nodes*i + skip + (node_i+1) * 2,
                      4*n_nodes*j + skip + (node_i+1) * 2 - 1:4*n_nodes*j + skip
                      + (node_i+1) * 2] += k33
-            if node_j != 0:
+            if node_j != -1:
                 k_global[4*n_nodes*i + skip + (node_i+1) * 2 - 1:4*n_nodes*i + skip
                          + (node_i+1) * 2, 4*n_nodes*j + skip + (node_j+1) * 2 - 1:4*n_nodes*j
                          + skip + (node_j+1) * 2] += k34
@@ -1230,7 +1230,7 @@ def spring_assemble(
 
             k_global[4*n_nodes*i + (node_i+1) * 2 - 1:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
                      + skip + (node_i+1) * 2 - 1:4*n_nodes*j + skip + (node_i+1) * 2] += k13
-            if node_j != 0:
+            if node_j != -1:
                 k_global[4*n_nodes*i + (node_i+1) * 2 - 1:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
                          + skip + (node_j+1) * 2 - 1:4*n_nodes*j + skip + (node_j+1) * 2] += k14
                 k_global[4*n_nodes*i + (node_j+1) * 2 - 1:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
@@ -1240,7 +1240,7 @@ def spring_assemble(
 
             k_global[4*n_nodes*i + skip + (node_i+1) * 2 - 1:4*n_nodes*i + skip + (node_i+1) * 2,
                      4*n_nodes*j + (node_i+1) * 2 - 1:4*n_nodes*j + (node_i+1) * 2] += k31
-            if node_j != 0:
+            if node_j != -1:
                 k_global[4*n_nodes*i + skip + (node_i+1) * 2 - 1:4*n_nodes*i + skip
                          + (node_i+1) * 2,
                          4*n_nodes*j + (node_j+1) * 2 - 1:4*n_nodes*j + (node_j+1) * 2] += k32
