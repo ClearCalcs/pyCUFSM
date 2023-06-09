@@ -448,16 +448,15 @@ def load_mat(mat: Cufsm_MAT_File) -> PyCufsm_Input:
 def inputs_new_to_old(
     props: Dict[str, New_Props],
     nodes: np.ndarray,
-    lengths: Dict[int, List[int]],
+    lengths: Dict[float, List[int]],
     elements: List[New_Element],
     springs: Optional[List[New_Spring]] = None,
     constraints: Optional[List[New_Constraint]] = None,
     node_props: Optional[Dict[int, New_Node_Props]] = None,
     analysis_config: Optional[Analysis_Config] = None,
-    cfsm_config: Optional[Cfsm_Config] = None,
-    sect_props: Optional[Sect_Props] = None
+    cfsm_config: Optional[Cfsm_Config] = None
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, GBT_Con, B_C,
-           np.ndarray, int, Optional[Sect_Props]]:
+           np.ndarray, int]:
     """Converts new format of inputs to old (original CUFSM) format
 
     Args:
@@ -540,47 +539,46 @@ def inputs_new_to_old(
         sect_props (Sect_Props, optional): _description_. Defaults to None.
 
     Returns:
-        _type_: _description_
-        props: [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
-        nodes: [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
-        elements: [elem# node_i node_j thick mat_num] n_elements x 5
-        lengths: [L1 L2 L3...] 1 x n_lengths lengths to be analysed
-        could be half-wavelengths for signature curve
-        or physical lengths for general b.c.
-        springs: [node# d.o.f. k_spring k_flag] where 1=x dir 2= y dir 3 = z dir 4 = q dir (twist)
-            flag says if k_stiff is a foundation stiffness or a total stiffness
-        constraints:: [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
+        props (np.ndarray): [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
+        nodes (np.ndarray): [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
+        elements (np.ndarray): [elem# node_i node_j thick mat_num] n_elements x 5
+        lengths (np.ndarray): [L1 L2 L3...] 1 x n_lengths lengths to be analyzed; 
+            could be half-wavelengths for signature curve or physical lengths for general b.c.
+        springs (np.ndarray): [node# d.o.f. k_spring k_flag] where 1=x dir 2= y dir 3 = z dir 
+            4 = q dir (twist) flag says if k_stiff is a foundation stiffness or a total stiffness
+        constraints (np.ndarray): [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
             k=kept dof dof_e_node = coeff*dof_k_node_k
-        gbt_con: gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
-        and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
-        gbt_con.o_space - choices of ST/O mode
-                1: ST basis
-                2: O space (null space of GDL) with respect to k_global
-                3: O space (null space of GDL) with respect to kg_global
-                4: O space (null space of GDL) in vector sense
-        gbt_con.norm - code for normalization (if normalization is done at all)
-                0: no normalization,
-                1: vector norm
-                2: strain energy norm
-                3: work norm
-        gbt_con.couple - coupled basis vs uncoupled basis for general
-                    B.C. especially for non-simply supported B.C.
-                1: uncoupled basis, the basis will be block diagonal
-                2: coupled basis, the basis is fully spanned
-        gbt_con.orth - natural basis vs modal basis
-                1: natural basis
-                2: modal basis, axial orthogonality
-                3: modal basis, load dependent orthogonality
-        b_c: ['S-S'] a string specifying boundary conditions to be analysed:
-        'S-S' simply-pimply supported boundary condition at loaded edges
-        'C-C' clamped-clamped boundary condition at loaded edges
-        'S-C' simply-clamped supported boundary condition at loaded edges
-        'C-F' clamped-free supported boundary condition at loaded edges
-        'C-G' clamped-guided supported boundary condition at loaded edges
-        m_all: m_all{length#}=[longitudinal_num# ... longitudinal_num#],
+        gbt_con (GBT_Con): gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
+            and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
+            gbt_con.o_space - choices of ST/O mode
+                    1: ST basis
+                    2: O space (null space of GDL) with respect to k_global
+                    3: O space (null space of GDL) with respect to kg_global
+                    4: O space (null space of GDL) in vector sense
+            gbt_con.norm - code for normalization (if normalization is done at all)
+                    0: no normalization,
+                    1: vector norm
+                    2: strain energy norm
+                    3: work norm
+            gbt_con.couple - coupled basis vs uncoupled basis for general
+                        B.C. especially for non-simply supported B.C.
+                    1: uncoupled basis, the basis will be block diagonal
+                    2: coupled basis, the basis is fully spanned
+            gbt_con.orth - natural basis vs modal basis
+                    1: natural basis
+                    2: modal basis, axial orthogonality
+                    3: modal basis, load dependent orthogonality
+        b_c (str): ['S-S'] a string specifying boundary conditions to be analyzed:
+            'S-S' simply-pimply supported boundary condition at loaded edges
+            'C-C' clamped-clamped boundary condition at loaded edges
+            'S-C' simply-clamped supported boundary condition at loaded edges
+            'C-F' clamped-free supported boundary condition at loaded edges
+            'C-G' clamped-guided supported boundary condition at loaded edges
+        m_all (np.ndarray): m_all{length#}=[longitudinal_num# ... longitudinal_num#],
             longitudinal terms m for all the lengths in cell notation
-        each cell has a vector including the longitudinal terms for this length
-        n_eigs - the number of eigenvalues to be determined at length (default=10)
+            each cell has a vector including the longitudinal terms for this length
+        n_eigs (int): the number of eigenvalues to be determined at length (default=10)
+        sect_props (Sect_Props): _description_
     """
     # Convert props
     props_old: list = []
@@ -614,7 +612,7 @@ def inputs_new_to_old(
             elements_old.append([i, node1, node2, elem["t"], mat_index[elem["mat"]]])
 
     # Convert lengths and m_all
-    lengths_old: List[int] = []
+    lengths_old: List[float] = []
     m_all_old: List[List[int]] = []
     for length, m_a in lengths.items():
         lengths_old.append(length)
@@ -678,6 +676,5 @@ def inputs_new_to_old(
 
     return np.array(props_old), np.array(nodes_old), np.array(elements_old), np.array(
         lengths_old
-    ), np.array(springs_old), np.array(constraints_old), gbt_con_old, b_c_old, np.array(
-        m_all_old
-    ), n_eigs_old, sect_props
+    ), np.array(springs_old), np.array(constraints_old
+                                       ), gbt_con_old, b_c_old, np.array(m_all_old), n_eigs_old

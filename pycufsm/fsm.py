@@ -1,12 +1,16 @@
 from copy import deepcopy
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy import linalg as spla  # type: ignore
 
 import pycufsm.cfsm
 from pycufsm.analysis import analysis
-from pycufsm.types import GBT_Con, Sect_Props
+from pycufsm.helpers import inputs_new_to_old
+from pycufsm.types import (
+    B_C, Analysis_Config, Cfsm_Config, GBT_Con, New_Constraint, New_Element, New_Node_Props,
+    New_Props, New_Spring, Sect_Props
+)
 
 # from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
@@ -19,7 +23,7 @@ from pycufsm.types import GBT_Con, Sect_Props
 
 def strip(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
-    springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: str, m_all: np.ndarray,
+    springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: B_C, m_all: np.ndarray,
     n_eigs: int, sect_props: Sect_Props
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Perform a finite strip analysis
@@ -169,12 +173,10 @@ def strip(
             m_a=m_a
         )
 
-        # %ADD SPRING CONTRIBUTIONS TO STIFFNESS
-        # %Prior to version 4.3 this was the springs method
-        #     %     if ~isempty(springs) %springs variable exists
-        #     %         [k_global]=addspring(k_global,springs,n_nodes,length,b_c,m_a)
-        #     %     end
-        # %Now from version 4.3 this is the new springs method
+        # ADD SPRING CONTRIBUTIONS TO STIFFNESS
+        # Prior to version 4.3 the springs format was [node# dof k_stiffness k_type]
+        #   where k_type indicated either a foundation or total stiffness
+        # Now from version 4.3 this is the new springs method
         if len(springs) != 0:
             # springs variable exists
             for spring in springs:
@@ -378,3 +380,45 @@ def strip(
         shapes.append(modes_full)
 
     return signature.flatten(), np.array(curve), np.array(shapes)
+
+
+def strip_new(
+    props: Dict[str, New_Props],
+    nodes: np.ndarray,
+    lengths: Dict[float, List[int]],
+    elements: List[New_Element],
+    sect_props: Sect_Props,
+    springs: Optional[List[New_Spring]] = None,
+    constraints: Optional[List[New_Constraint]] = None,
+    node_props: Optional[Dict[int, New_Node_Props]] = None,
+    analysis_config: Optional[Analysis_Config] = None,
+    cfsm_config: Optional[Cfsm_Config] = None
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    (
+        props_old, nodes_old, elements_old, lengths_old, springs_old, constraints_old, gbt_con_old,
+        b_c_old, m_all_old, n_eigs_old
+    ) = inputs_new_to_old(
+        props=props,
+        nodes=nodes,
+        lengths=lengths,
+        elements=elements,
+        springs=springs,
+        constraints=constraints,
+        node_props=node_props,
+        analysis_config=analysis_config,
+        cfsm_config=cfsm_config
+    )
+
+    return strip(
+        props=props_old,
+        nodes=nodes_old,
+        elements=elements_old,
+        lengths=lengths_old,
+        springs=springs_old,
+        constraints=constraints_old,
+        gbt_con=gbt_con_old,
+        b_c=b_c_old,
+        m_all=m_all_old,
+        n_eigs=n_eigs_old,
+        sect_props=sect_props
+    )
