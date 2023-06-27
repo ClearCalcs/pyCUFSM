@@ -1,15 +1,16 @@
 from copy import deepcopy
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from scipy import linalg as spla  # type: ignore
 
 import pycufsm.cfsm
 from pycufsm.analysis import analysis
-from pycufsm.helpers import inputs_new_to_old
+from pycufsm.helpers import inputs_new_to_old, m_recommend
+from pycufsm.preprocess import stress_gen
 from pycufsm.types import (
-    B_C, Analysis_Config, Cfsm_Config, GBT_Con, New_Constraint, New_Element, New_Node_Props,
-    New_Props, New_Spring, Sect_Props
+    B_C, Analysis_Config, ArrayLike, Cfsm_Config, Forces, GBT_Con, New_Constraint, New_Element,
+    New_Node_Props, New_Spring, Sect_Props
 )
 
 # from scipy.sparse.linalg import eigs
@@ -383,17 +384,21 @@ def strip(
 
 
 def strip_new(
-    props: Dict[str, New_Props],
-    nodes: np.ndarray,
-    lengths: Dict[float, List[int]],
-    elements: List[New_Element],
+    props: Dict[str, Dict[str, float]],
+    nodes: ArrayLike,
+    elements: Sequence[New_Element],
     sect_props: Sect_Props,
-    springs: Optional[List[New_Spring]] = None,
-    constraints: Optional[List[New_Constraint]] = None,
+    forces: Forces,
+    lengths: Optional[Union[int, ArrayLike, set, Dict[float, ArrayLike]]] = None,
+    springs: Optional[Sequence[New_Spring]] = None,
+    constraints: Optional[Sequence[New_Constraint]] = None,
     node_props: Optional[Dict[int, New_Node_Props]] = None,
     analysis_config: Optional[Analysis_Config] = None,
     cfsm_config: Optional[Cfsm_Config] = None
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    if lengths is None or isinstance(lengths, int):
+        n_lengths = lengths if isinstance(lengths, int) else 50
+        lengths = []
     (
         props_old, nodes_old, elements_old, lengths_old, springs_old, constraints_old, gbt_con_old,
         b_c_old, m_all_old, n_eigs_old
@@ -409,16 +414,29 @@ def strip_new(
         cfsm_config=cfsm_config
     )
 
-    return strip(
-        props=props_old,
-        nodes=nodes_old,
-        elements=elements_old,
-        lengths=lengths_old,
-        springs=springs_old,
-        constraints=constraints_old,
-        gbt_con=gbt_con_old,
-        b_c=b_c_old,
-        m_all=m_all_old,
-        n_eigs=n_eigs_old,
-        sect_props=sect_props
-    )
+    nodes_stressed = stress_gen(nodes=nodes_old, forces=forces, sect_props=sect_props)
+
+    if len(lengths) == 0:
+        m_all_old, lengths_old, signature, curve, shapes, _, _, _, _, _, _, _, _ = m_recommend(
+            props=props_old,
+            nodes=nodes_old,
+            elements=elements_old,
+            sect_props=sect_props,
+            n_lengths=n_lengths
+        )
+    else:
+        signature, curve, shapes = strip(
+            props=props_old,
+            nodes=nodes_stressed,
+            elements=elements_old,
+            lengths=lengths_old,
+            springs=springs_old,
+            constraints=constraints_old,
+            gbt_con=gbt_con_old,
+            b_c=b_c_old,
+            m_all=m_all_old,
+            n_eigs=n_eigs_old,
+            sect_props=sect_props
+        )
+
+    return signature, curve, shapes, nodes_stressed, lengths_old

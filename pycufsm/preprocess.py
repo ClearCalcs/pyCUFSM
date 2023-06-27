@@ -441,9 +441,21 @@ def yield_mp(
     BWS, Aug 2000
     BWS, May 2019 trap nan when flat plate or other properites are zero
     """
-    f_yield: Forces = {'P': 0, 'Mxx': 0, 'Myy': 0, 'M11': 0, 'M22': 0}
+    f_yield: Forces = {
+        'P': 0,
+        'Mxx': 0,
+        'Myy': 0,
+        'M11': 0,
+        'M22': 0,
+        'restrain': restrained,
+        'offset': [0, 0]
+    }
 
     f_yield['P'] = f_y * sect_props['A']
+
+    # TODO: This seems like a weirdly over-complicated way to calculate yield stresses...
+    # especially given that if restrained == False, then Mxx just simply equals M11, yes?
+
     #account for the possibility of restrained bending vs. unrestrained bending
     if restrained is False:
         sect_props['Ixy'] = 0
@@ -527,6 +539,10 @@ def stress_gen(
     BWS, 1998
     B Smith, Aug 2020
     """
+    if 'restrain' in forces:
+        restrained = forces['restrain']
+    if 'offset' in forces:
+        offset_basis = list(forces['offset'])
     if isinstance(offset_basis, float) or isinstance(offset_basis, int):
         offset_basis = [offset_basis, offset_basis]
 

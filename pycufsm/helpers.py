@@ -1,12 +1,12 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 import pycufsm.cfsm
 import pycufsm.fsm
 from pycufsm.types import (
-    B_C, Analysis_Config, Cfsm_Config, Cufsm_MAT_File, GBT_Con, New_Constraint, New_Element,
-    New_Node_Props, New_Props, New_Spring, PyCufsm_Input, Sect_Props
+    B_C, Analysis_Config, ArrayLike, Cfsm_Config, Cufsm_MAT_File, GBT_Con, New_Constraint,
+    New_Element, New_Node_Props, New_Spring, PyCufsm_Input, Sect_Props
 )
 
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
@@ -126,7 +126,7 @@ def signature_ss(
     """
     i_springs = np.array([])
     i_constraints = np.array([])
-    i_b_c = 'S-S'
+    i_b_c: B_C = 'S-S'
     i_m_all = np.ones((len(lengths), 1)).tolist()
 
     isignature, icurve, ishapes = pycufsm.fsm.strip(
@@ -446,12 +446,12 @@ def load_mat(mat: Cufsm_MAT_File) -> PyCufsm_Input:
 
 
 def inputs_new_to_old(
-    props: Dict[str, New_Props],
-    nodes: np.ndarray,
-    lengths: Dict[float, List[int]],
-    elements: List[New_Element],
-    springs: Optional[List[New_Spring]] = None,
-    constraints: Optional[List[New_Constraint]] = None,
+    props: Dict[str, Dict[str, float]],
+    nodes: ArrayLike,
+    lengths: Union[ArrayLike, set, Dict[float, ArrayLike]],
+    elements: Sequence[New_Element],
+    springs: Optional[Sequence[New_Spring]] = None,
+    constraints: Optional[Sequence[New_Constraint]] = None,
     node_props: Optional[Dict[int, New_Node_Props]] = None,
     analysis_config: Optional[Analysis_Config] = None,
     cfsm_config: Optional[Cfsm_Config] = None
@@ -586,7 +586,18 @@ def inputs_new_to_old(
     i: int = 0
     for mat_name, mat in props.items():
         mat_index[mat_name] = i
-        props_old.append([i, mat["E_x"], mat["E_y"], mat["nu_x"], mat["nu_y"], mat["bulk"]])
+        if 'E' in mat and 'nu' in mat:
+            props_old.append([
+                i, mat["E"], mat["E"], mat["nu"], mat["nu"], mat["E"] / (2 * (1 + mat["nu"]))
+            ])
+        elif 'E_x' in mat and 'E_y' in mat and 'nu_x' in mat and 'nu_y' in mat and 'bulk' in mat:
+            props_old.append([i, mat["E_x"], mat["E_y"], mat["nu_x"], mat["nu_y"], mat["bulk"]])
+        else:
+            raise TypeError(
+                f"'props' must EITHER be a dictionary with 'E' and 'nu' keys, or "
+                f"with 'E_x', 'E_y', 'nu_x', 'nu_y', and 'bulk'. The dictionary "
+                f"passed for material {mat_name} includes {mat.keys()}"
+            )
 
     # Convert nodes
     nodes_old: list = []
@@ -614,9 +625,15 @@ def inputs_new_to_old(
     # Convert lengths and m_all
     lengths_old: List[float] = []
     m_all_old: List[List[int]] = []
-    for length, m_a in lengths.items():
-        lengths_old.append(length)
-        m_all_old.append(m_a)
+    if isinstance(lengths, set) or isinstance(lengths, list) or isinstance(
+            lengths, np.ndarray) or isinstance(lengths, tuple):
+        for length in lengths:
+            lengths_old.append(length)
+            m_all_old.append([1])
+    elif isinstance(lengths, dict):
+        for length, m_a in lengths.items():
+            lengths_old.append(length)
+            m_all_old.append(list(m_a))
 
     # Convert springs
     springs_old: list = []
