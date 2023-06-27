@@ -76,7 +76,7 @@ def describe_end_to_end_tests():
 
         expected = {"xcrl": 5, "Mcrl": 0.67, "xcrd": 26.6, "Mcrd": 0.85, "A": 0.880, "Ixx": 10.285}
 
-        def ir_results_in_correct_sect_props():
+        def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.001)
 
@@ -85,7 +85,7 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
 
     def context_dsm_3_2_1_c_with_lips_P():
 
@@ -104,7 +104,7 @@ def describe_end_to_end_tests():
             "Ixx": 10.285
         }
 
-        def ir_results_in_correct_sect_props():
+        def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.001)
 
@@ -113,7 +113,7 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Pcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
 
     def context_dsm_3_2_2_c_with_lips_modified_Mx():
 
@@ -134,7 +134,7 @@ def describe_end_to_end_tests():
             "Ixx": 10.818
         }
 
-        def ir_results_in_correct_sect_props():
+        def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.001)
 
@@ -143,7 +143,7 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-3)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
 
     def context_dsm_3_2_2_c_with_lips_modified_P():
 
@@ -164,7 +164,7 @@ def describe_end_to_end_tests():
             "Ixx": 10.818
         }
 
-        def ir_results_in_correct_sect_props():
+        def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.001)
 
@@ -173,7 +173,7 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Pcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], rtol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
 
     def context_dsm_3_2_5_z_with_lips_Mx():
 
@@ -185,7 +185,7 @@ def describe_end_to_end_tests():
 
         expected = {"xcrl": 4.1, "Mcrl": 0.85, "xcrd": 22.1, "Mcrd": 0.77, "A": 0.822, "Ixx": 7.762}
 
-        def ir_results_in_correct_sect_props():
+        def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.001)
 
@@ -195,7 +195,7 @@ def describe_end_to_end_tests():
 
         def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[0:-10, 1, 0], curve[0:-10, 0], rtol=1.e-3)
+            assert np.allclose(expected_curve[:-5, 1, 0], curve[:-5, 0], atol=1.e-4)
 
     def context_dsm_3_2_5_z_with_lips_P():
 
@@ -207,7 +207,7 @@ def describe_end_to_end_tests():
 
         expected = {"xcrl": 5.9, "Pcrl": 0.16, "xcrd": 18.3, "Pcrd": 0.29, "A": 0.822, "Ixx": 7.762}
 
-        def ir_results_in_correct_sect_props():
+        def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.001)
 
@@ -216,5 +216,95 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Pcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+
+    def context_dsm_3_2_8_equal_angle_Mx():
+
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.8: Equal leg angle (Mx)")
+        def describe():
+            pass
+
+        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("anolip_Mxr.mat")
+        print(lengths)
+
+        expected = {"xcrl": 4.3, "Mcrl": 1.03, "xcrd": 4.3, "Mcrd": 1.03, "A": 0.231, "Ixx": 0.094}
+
+        def it_results_in_correct_sect_props():
+            assert expected["A"] == approx(sect_props["A"], abs=0.001)
+            assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.001)
+
+        def it_results_in_correct_Pcr():
+            assert signature[lengths.index(expected["xcrl"])] == approx(expected["Mcrl"], abs=0.01)
+            assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
+
+        def it_results_in_correct_signature_curve():
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+
+    def context_dsm_3_2_11_rack_post_Mx():
+
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.11: Rack post section (Mx)")
+        def describe():
+            pass
+
+        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("rack_Mx.mat")
+        print(lengths)
+
+        expected = {"xcrl": 1.7, "Mcrl": 7.22, "xcrd": 21.0, "Mcrd": 1.53, "A": 0.613, "Ixx": 1.10}
+
+        def it_results_in_correct_sect_props():
+            assert expected["A"] == approx(sect_props["A"], abs=0.001)
+            assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.01)
+
+        def it_results_in_correct_Pcr():
+            assert signature[lengths.index(expected["xcrl"])] == approx(expected["Mcrl"], abs=0.01)
+            assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
+
+        def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[0:-10, 1, 0], curve[0:-10, 0], rtol=1.e-3)
+            assert np.allclose(expected_curve[:-3, 1, 0], curve[:-3, 0], atol=1.e-4)
+
+    def context_dsm_3_2_11_rack_post_Mz():
+
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.11: Rack post section (Mz)")
+        def describe():
+            pass
+
+        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("rack_Mz.mat")
+        print(lengths)
+
+        expected = {"xcrl": 21.0, "Mcrl": 1.58, "xcrd": 21.0, "Mcrd": 1.58, "A": 0.613, "Ixx": 1.10}
+
+        def it_results_in_correct_sect_props():
+            assert expected["A"] == approx(sect_props["A"], abs=0.001)
+            assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.01)
+
+        def it_results_in_correct_Pcr():
+            assert signature[lengths.index(expected["xcrl"])] == approx(expected["Mcrl"], abs=0.01)
+            assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
+
+        def it_results_in_correct_signature_curve():
+            # TODO: Investigate why the signature curve starts mismatching at the tail end...
+            assert np.allclose(expected_curve[:-4, 1, 0], curve[:-4, 0], atol=1.e-4)
+
+    def context_dsm_3_2_11_rack_post_P():
+
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.11: Rack post section (Mz)")
+        def describe():
+            pass
+
+        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("rack_P.mat")
+        print(lengths)
+
+        expected = {"xcrl": 2.5, "Mcrl": 1.47, "xcrd": 21.0, "Mcrd": 1.09, "A": 0.613, "Ixx": 1.10}
+
+        def it_results_in_correct_sect_props():
+            assert expected["A"] == approx(sect_props["A"], abs=0.001)
+            assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.01)
+
+        def it_results_in_correct_Pcr():
+            assert signature[lengths.index(expected["xcrl"])] == approx(expected["Mcrl"], abs=0.01)
+            assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
+
+        def it_results_in_correct_signature_curve():
+            # TODO: Investigate why the signature curve starts mismatching at the tail end...
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)

@@ -1,4 +1,6 @@
 # distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+# cython: language_level=3, boundscheck=False
+
 # import cython
 cimport numpy as np
 import numpy as np
