@@ -8,7 +8,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        python-version: ["3.8"]
+        python-version: ["3.9"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -21,7 +21,7 @@ jobs:
           pip install .[dev,test]
       - name: Run linting check with pylint
         run: |
-          pylint --rcfile .pylintrc ./pycufsm
+          pylint ./pycufsm
       - name: Run formatting checks with YAPF
         run: |
           yapf --diff --verbose --recursive .
@@ -37,7 +37,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v3
