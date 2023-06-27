@@ -19,6 +19,12 @@ def __main__() -> Dict[str, np.ndarray]:
     # Nodal location units are inches
     nodes = [[5, 1], [5, 0], [2.5, 0], [0, 0], [0, 3], [0, 6], [0, 9], [2.5, 9], [5, 9], [5, 8]]
     elements: List[New_Element] = [{"nodes": "all", "t": 0.1, "mat": "CFS"}]
+    lengths = np.array([
+        0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5, 4.75,
+        5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30, 32, 34, 36,
+        38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 66, 72, 78, 84, 90, 96, 102, 108, 114, 120,
+        132, 144, 156, 168, 180, 204, 228, 252, 276, 300
+    ])
 
     # Values here correspond to signature curve basis and orthogonal based upon geometry
     analysis_config: Analysis_Config = {'b_c': "S-S", 'n_eigs': 10}
@@ -49,6 +55,7 @@ def __main__() -> Dict[str, np.ndarray]:
         props=props,
         nodes=nodes,
         elements=elements,
+        lengths=lengths,
         forces={
             'P': sect_props['A'] * 50,
             'Mxx': 0,

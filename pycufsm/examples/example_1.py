@@ -122,6 +122,6 @@ def __main__() -> Dict[str, np.ndarray]:
         'X_values': lengths,
         'Y_values': signature,
         'Y_values_allmodes': curve,
-        'Orig_coords': nodes,
+        'Orig_coords': nodes_p,
         'Deformations': shapes
     }
