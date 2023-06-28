@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Literal, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -448,11 +448,11 @@ def load_mat(mat: Cufsm_MAT_File) -> PyCufsm_Input:
 def inputs_new_to_old(
     props: Dict[str, Dict[str, float]],
     nodes: ArrayLike,
-    lengths: Union[ArrayLike, set, Dict[float, ArrayLike]],
     elements: Sequence[New_Element],
+    lengths: Union[ArrayLike, set, Dict[float, ArrayLike]],
+    node_props: Optional[Dict[Union[Literal["all"], int], New_Node_Props]] = None,
     springs: Optional[Sequence[New_Spring]] = None,
     constraints: Optional[Sequence[New_Constraint]] = None,
-    node_props: Optional[Dict[int, New_Node_Props]] = None,
     analysis_config: Optional[Analysis_Config] = None,
     cfsm_config: Optional[Cfsm_Config] = None
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, GBT_Con, B_C,
@@ -460,33 +460,49 @@ def inputs_new_to_old(
     """Converts new format of inputs to old (original CUFSM) format
 
     Args:
-        props (dict[str, dict[str, float]]): 
+        props (Dict[str, Dict[str, float]]): Dictionary of named materials and their properties
             {"mat_name": {E_x: float, E_y: float, nu_x: float, nu_y: float, bulk: float}}
-        nodes (np.ndarray)): 
+        nodes (ArrayLike): 2D array of nodal coordinates
             [[x, y]]
-        lengths (dict[int, list[int]]): 
-            {length: list[int]}     # [m_a]
-        elements (list[dict]): 
+            Note that any node numbers used in later inputs refer to the index of the node in
+            this 'nodes' array, with the first node being node 0. 
+        elements (Sequence[New_Element]): Element connectivity and properties 
             [{
-                nodes: str|list[int],   # "all" or [node1, node2, node3, ...]
+                nodes: "all"|List[int], # "all" or [node1, node2, node3, ...] in sequence
                 t: float,               # thickness
                 mat: str                # "mat_name"
             )].
             nodes: "all" is a special indicator that all nodes should be connected sequentially
             If nodes is given as an array, any number of nodal indices may be listed in order
-        springs (list of dicts, optional): 
+        lengths (Union[ArrayLike, set, Dict[float, ArrayLike]): Half-wavelengths for analysis
+            [length1, length2, ...]     # lengths only (assumes [m_a] = [1] for each length) 
+            {length: list[int]}         # length: [m_a]
+        node_props (Optional[Dict[Union[Literal["all", int], New_Node_Props]]): DOF restrictions 
+            and stresses on nodes.
+            {
+                node_#|"all": {
+                    dof_x: bool,    # defaults to True (included / not constrained)
+                    dof_y: bool,    # defaults to True (included / not constrained)
+                    dof_z: bool,    # defaults to True (included / not constrained)
+                    dof_q: bool,    # defaults to True (included / not constrained)
+                    stress: float   # defaults to 0.0 (no stress)
+                }
+            }
+            Defaults to None, and taken as all DOFs included and all 0.0 stresses if so
+        springs (Optional[Sequence[New_Spring]]): Definition of any springs in cross-section
             [{
                 node: int,      # node # 
-                dof: str,       # "x"|"y"|"z"|"q" - "q" is the twist dof
                 k_x: float,     # x stiffness
                 k_y: float,     # y stiffness
                 k_z: float,     # z stiffness
                 k_q: float,     # q stiffness
-                k_type: str,    # "foundation"|"paired"|"discrete" - stiffness type
-                y_s: float,     # location of discrete spring
+                k_type: str,    # "foundation"|"node_pair"|"total" - stiffness type
+                node_pair: int, # node # to which to pair (if relevant)
+                discrete: bool, # whether spring is at a discrete location
+                y: float,       # location of discrete spring
             }]
             Defaults to None.
-        constraints (list of dicts, optional): 
+        constraints (Optional[Sequence[New_Constraint]]): Definition of any constraints in section
             [{
                 elim_node: int,     # node #
                 elim_dof: str,      # "x"|"y"|"z"|"q" - "q" is the twist dof 
@@ -495,7 +511,7 @@ def inputs_new_to_old(
                 keep_dof: str       # "x"|"y"|"z"|"q" - "q" is the twist dof
             }]
             Defaults to None.
-        analysis_config (dict, optional): 
+        analysis_config (Optional[Analysis_Config]): Configuration options for any analysis
             {
                 b_c: str,           # "S-S"|"C-C"|"S-C"|"C-F"|"C-G" - boundary condition type
                 n_eigs: int         # number of eigenvalues to consider
@@ -507,7 +523,7 @@ def inputs_new_to_old(
                 'S-C' simple-clamped
                 'C-F' clamped-free
                 'C-G' clamped-guided
-        cfsm_config (dict, optional): _description_. 
+        cfsm_config (Optional[Cfsm_Config]): Configuration options for cFSM (constrained modes) 
             {
                 glob_modes: list(int),      # list of 1's (inclusion) and 0's (exclusion) for 
                     each mode from the analysis
@@ -536,7 +552,6 @@ def inputs_new_to_old(
                 "natural": natural basis
                 "modal_axial": modal basis, axial orthogonality
                 "modal_load": modal basis, load dependent orthogonality
-        sect_props (Sect_Props, optional): _description_. Defaults to None.
 
     Returns:
         props (np.ndarray): [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
@@ -603,8 +618,16 @@ def inputs_new_to_old(
     nodes_old: list = []
     if node_props is None:
         node_props = {}
+    if "all" in node_props:
+        dof_x = int(node_props["all"]["dof_x"]) if "dof_x" in node_props["all"] else 1
+        dof_y = int(node_props["all"]["dof_y"]) if "dof_y" in node_props["all"] else 1
+        dof_z = int(node_props["all"]["dof_z"]) if "dof_z" in node_props["all"] else 1
+        dof_q = int(node_props["all"]["dof_q"]) if "dof_q" in node_props["all"] else 1
+        stress = node_props["all"]["stress"] if "stress" in node_props["all"] else 0.0
     for i, node in enumerate(nodes):
-        if i in node_props:
+        if "all" in node_props:
+            nodes_old.append([i, node[0], node[1], dof_x, dof_y, dof_z, dof_q, stress])
+        elif i in node_props:
             dof_x = int(node_props[i]["dof_x"]) if "dof_x" in node_props[i] else 1
             dof_y = int(node_props[i]["dof_y"]) if "dof_y" in node_props[i] else 1
             dof_z = int(node_props[i]["dof_z"]) if "dof_z" in node_props[i] else 1
@@ -612,7 +635,7 @@ def inputs_new_to_old(
             stress = node_props[i]["stress"] if "stress" in node_props[i] else 0.0
             nodes_old.append([i, node[0], node[1], dof_x, dof_y, dof_z, dof_q, stress])
         else:
-            nodes_old.append([i, node[0], node[1], 1, 1, 1, 1, 0])
+            nodes_old.append([i, node[0], node[1], 1, 1, 1, 1, 0.0])
 
     # Convert elements
     elements_old: list = []

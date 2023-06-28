@@ -4,14 +4,19 @@ import numpy as np
 from typing_extensions import TypedDict
 
 __all__ = [
-    'ArrayLike', 'B_C', 'Analysis_Config', 'Cfsm_Config', 'Cufsm_MAT_File', 'Forces', 'GBT_Con',
-    'New_Constraint', 'New_Element', 'New_Node_Props', 'New_Props', 'New_Props_min', 'New_Spring',
-    'PyCufsm_Input', 'Sect_Geom', 'Sect_Props'
+    'ArrayLike', 'B_C', 'Directions', 'ForceTypes', 'Analysis_Config', 'Cfsm_Config',
+    'Cufsm_MAT_File', 'Forces', 'GBT_Con', 'New_Constraint', 'New_Element', 'New_Node_Props',
+    'New_Props', 'New_Props_min', 'New_Spring', 'PyCufsm_Input', 'Sect_Geom', 'Sect_Props',
+    'Yield_Force'
 ]
 
 ArrayLike = Union[np.ndarray, list, tuple]
 
 B_C = Literal["S-S", "C-C", "S-C", "C-F", "C-G"]  # pylint: disable=invalid-name
+
+Directions = Literal["Pos", "Neg", "+", "-"]
+
+ForceTypes = Literal["Mxx", "Myy", "M11", "M22", "P"]
 
 Analysis_Config = TypedDict(
     'Analysis_Config',
@@ -91,7 +96,7 @@ New_Constraint = TypedDict(
 New_Element = TypedDict(
     'New_Element',
     {
-        'nodes': Union[str, List[int]],  # "all" or [node1, node2, node3, ...]
+        'nodes': Union[Literal["all"], List[int]],  # "all" or [node1, node2, node3, ...]
         't': float,  # thickness
         'mat': str  # "mat_name"
     }
@@ -118,7 +123,7 @@ New_Props = TypedDict(
     }
 )
 
-New_Props_min = TypedDict('New_Props_min', {'E': float, 'nu': float})
+New_Props_min = TypedDict('New_Props_min', {'E': float, 'nu': float, 'f_y': float})
 
 New_Spring = TypedDict(
     'New_Spring',
@@ -188,5 +193,15 @@ Sect_Props = TypedDict(
         "B1": float,
         "B2": float,
         "wn": np.ndarray
+    }
+)
+
+Yield_Force = TypedDict(
+    'Yield_Force', {
+        "force": ForceTypes,
+        "direction": Directions,
+        "f_y": float,
+        "restrain": bool,
+        "offset": ArrayLike
     }
 )
