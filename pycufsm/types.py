@@ -4,7 +4,7 @@ import numpy as np
 from typing_extensions import TypedDict
 
 __all__ = [
-    'ArrayLike', 'B_C', 'Directions', 'ForceTypes', 'Analysis_Config', 'Cfsm_Config',
+    'ArrayLike', 'BC', 'Directions', 'ForceTypes', 'Analysis_Config', 'Cfsm_Config',
     'Cufsm_MAT_File', 'Forces', 'GBT_Con', 'New_Constraint', 'New_Element', 'New_Node_Props',
     'New_Props', 'New_Props_min', 'New_Spring', 'PyCufsm_Input', 'Sect_Geom', 'Sect_Props',
     'Yield_Force'
@@ -12,7 +12,7 @@ __all__ = [
 
 ArrayLike = Union[np.ndarray, list, tuple]
 
-B_C = Literal["S-S", "C-C", "S-C", "C-F", "C-G"]  # pylint: disable=invalid-name
+BC = Literal["S-S", "C-C", "S-C", "C-F", "C-G"]
 
 Directions = Literal["Pos", "Neg", "+", "-"]
 
@@ -21,7 +21,7 @@ ForceTypes = Literal["Mxx", "Myy", "M11", "M22", "P"]
 Analysis_Config = TypedDict(
     'Analysis_Config',
     {
-        'b_c': B_C,  # boundary condition type
+        'b_c': BC,  # boundary condition type
         'n_eigs': int,  # number of eigenvalues to consider
     }
 )

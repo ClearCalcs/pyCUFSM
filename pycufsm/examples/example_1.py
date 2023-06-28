@@ -4,7 +4,7 @@ import numpy as np
 
 from pycufsm.fsm import strip
 from pycufsm.preprocess import stress_gen
-from pycufsm.types import B_C, GBT_Con, Sect_Props
+from pycufsm.types import BC, GBT_Con, Sect_Props
 
 # This example presents a very simple Cee section,
 # solved for pure compression,
@@ -55,7 +55,7 @@ def __main__() -> Dict[str, np.ndarray]:
     }
 
     # Simply-supported boundary conditions
-    b_c: B_C = 'S-S'
+    b_c: BC = 'S-S'
 
     # For signature curve analysis, only a single array of ones makes sense here
     m_all = np.ones((len(lengths), 1))

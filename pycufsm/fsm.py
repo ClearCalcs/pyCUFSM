@@ -9,7 +9,7 @@ from pycufsm.analysis import analysis
 from pycufsm.helpers import inputs_new_to_old, m_recommend
 from pycufsm.preprocess import stress_gen, yield_mp
 from pycufsm.types import (
-    B_C, Analysis_Config, ArrayLike, Cfsm_Config, Forces, GBT_Con, New_Constraint, New_Element,
+    BC, Analysis_Config, ArrayLike, Cfsm_Config, Forces, GBT_Con, New_Constraint, New_Element,
     New_Node_Props, New_Spring, Sect_Props, Yield_Force
 )
 
@@ -24,7 +24,7 @@ from pycufsm.types import (
 
 def strip(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
-    springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: B_C, m_all: np.ndarray,
+    springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: BC, m_all: np.ndarray,
     n_eigs: int, sect_props: Sect_Props
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Perform a finite strip analysis

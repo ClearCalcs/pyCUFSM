@@ -5,7 +5,7 @@ import numpy as np
 import pycufsm.cfsm
 import pycufsm.fsm
 from pycufsm.types import (
-    B_C, Analysis_Config, ArrayLike, Cfsm_Config, Cufsm_MAT_File, GBT_Con, New_Constraint,
+    BC, Analysis_Config, ArrayLike, Cfsm_Config, Cufsm_MAT_File, GBT_Con, New_Constraint,
     New_Element, New_Node_Props, New_Spring, PyCufsm_Input, Sect_Props
 )
 
@@ -126,7 +126,7 @@ def signature_ss(
     """
     i_springs = np.array([])
     i_constraints = np.array([])
-    i_b_c: B_C = 'S-S'
+    i_b_c: BC = 'S-S'
     i_m_all = np.ones((len(lengths), 1)).tolist()
 
     isignature, icurve, ishapes = pycufsm.fsm.strip(
@@ -455,7 +455,7 @@ def inputs_new_to_old(
     constraints: Optional[Sequence[New_Constraint]] = None,
     analysis_config: Optional[Analysis_Config] = None,
     cfsm_config: Optional[Cfsm_Config] = None
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, GBT_Con, B_C,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, GBT_Con, BC,
            np.ndarray, int]:
     """Converts new format of inputs to old (original CUFSM) format
 
