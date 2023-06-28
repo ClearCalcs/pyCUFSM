@@ -453,9 +453,6 @@ def yield_mp(
 
     f_yield['P'] = f_y * sect_props['A']
 
-    # TODO: This seems like a weirdly over-complicated way to calculate yield stresses...
-    # especially given that if restrained == False, then Mxx just simply equals M11, yes?
-
     #account for the possibility of restrained bending vs. unrestrained bending
     if restrained is False:
         sect_props['Ixy'] = 0
