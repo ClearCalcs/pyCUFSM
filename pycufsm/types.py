@@ -109,7 +109,6 @@ New_Node_Props = TypedDict(
         'dof_y': bool,  # defaults to True
         'dof_z': bool,  # defaults to True
         'dof_q': bool,  # defaults to True
-        'stress': float,  # defaults to 0.0
     }
 )
 
