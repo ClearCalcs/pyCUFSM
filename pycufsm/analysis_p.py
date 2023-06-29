@@ -55,68 +55,6 @@ def constr_bc_flag(nodes: np.ndarray, constraints: np.ndarray) -> int:
         return 1
 
 
-def addspring(
-    k_global: np.ndarray, springs: np.ndarray, n_nodes: int, length: float, b_c: str,
-    m_a: np.ndarray
-) -> np.ndarray:
-    """Add spring stiffness to global elastic stiffness matrix
-
-    Args:
-        k_global (np.ndarray): complete elastic stiffness matrix
-        springs (np.ndarray): [node# DOF(x=1,y=2,z=3,theta=4) k_s]
-            definition of any external springs added to the member
-        n_nodes (int): _description_
-        length (float): _description_
-        b_c (str): _description_
-        m_a (np.ndarray): _description_
-
-    Returns:
-        np.ndarray: _description_
-    
-    BWS, August 2000
-    modified by Z. Li, Aug. 09, 2009 for general B.C.
-    Z. Li, June 2010
-    """
-    if len(springs) > 0:
-        total_m = len(m_a)  # Total number of longitudinal terms m
-
-        for spring in springs:
-            node = spring[0]
-            dof = spring[1]
-            k_stiff = spring[2]
-            k_flag = spring[3]
-
-            if dof == 1:
-                r_c = 2*node - 1
-            elif dof == 2:
-                r_c = 2*n_nodes + 2*node - 1
-            elif dof == 3:
-                r_c = 2 * node
-            elif dof == 4:
-                r_c = 2*n_nodes + 2*node
-            else:
-                r_c = 1
-                k_s = 0
-
-            for i in range(0, total_m):
-                for j in range(0, total_m):
-                    if k_flag == 0:
-                        k_s = k_stiff  # k_stiff is the total stiffness and may be added directly
-                    else:
-                        if dof == 3:
-                            k_s = 0  # axial dof with a foundation stiffness has no net stiffness
-                        else:
-                            [i_1, _, _, _, _] = bc_i1_5(b_c, m_a[i], m_a[j], length)
-                            k_s = k_stiff * i_1
-                            # k_stiff is a foundation stiffness and an equivalent
-                            # total stiffness must be calculated
-
-                    k_global[4*n_nodes*i+r_c-1, 4*n_nodes*j+r_c-1] \
-                        = k_global[4*n_nodes*i+r_c-1, 4*n_nodes*j+r_c-1] + k_s
-
-    return k_global
-
-
 def elem_prop(nodes: np.ndarray, elements: np.ndarray) -> np.ndarray:
     """creates a matrix of element properties for each element (width and slope)
 
@@ -1206,7 +1144,7 @@ def spring_assemble(
 
             k_global[4*n_nodes*i + (node_i+1) * 2 - 1:4*n_nodes*i + (node_i+1) * 2,
                      4*n_nodes*j + (node_i+1) * 2 - 1:4*n_nodes*j + (node_i+1) * 2] += k11
-            if node_j != 0:
+            if node_j != -1:
                 k_global[4*n_nodes*i + (node_i+1) * 2 - 1:4*n_nodes*i + (node_i+1) * 2,
                          4*n_nodes*j + (node_j+1) * 2 - 1:4*n_nodes*j + (node_j+1) * 2] += k12
                 k_global[4*n_nodes*i + (node_j+1) * 2 - 1:4*n_nodes*i + (node_j+1) * 2,
@@ -1217,7 +1155,7 @@ def spring_assemble(
             k_global[4*n_nodes*i + skip + (node_i+1) * 2 - 1:4*n_nodes*i + skip + (node_i+1) * 2,
                      4*n_nodes*j + skip + (node_i+1) * 2 - 1:4*n_nodes*j + skip
                      + (node_i+1) * 2] += k33
-            if node_j != 0:
+            if node_j != -1:
                 k_global[4*n_nodes*i + skip + (node_i+1) * 2 - 1:4*n_nodes*i + skip
                          + (node_i+1) * 2, 4*n_nodes*j + skip + (node_j+1) * 2 - 1:4*n_nodes*j
                          + skip + (node_j+1) * 2] += k34
@@ -1230,7 +1168,7 @@ def spring_assemble(
 
             k_global[4*n_nodes*i + (node_i+1) * 2 - 1:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
                      + skip + (node_i+1) * 2 - 1:4*n_nodes*j + skip + (node_i+1) * 2] += k13
-            if node_j != 0:
+            if node_j != -1:
                 k_global[4*n_nodes*i + (node_i+1) * 2 - 1:4*n_nodes*i + (node_i+1) * 2, 4*n_nodes*j
                          + skip + (node_j+1) * 2 - 1:4*n_nodes*j + skip + (node_j+1) * 2] += k14
                 k_global[4*n_nodes*i + (node_j+1) * 2 - 1:4*n_nodes*i + (node_j+1) * 2, 4*n_nodes*j
@@ -1240,7 +1178,7 @@ def spring_assemble(
 
             k_global[4*n_nodes*i + skip + (node_i+1) * 2 - 1:4*n_nodes*i + skip + (node_i+1) * 2,
                      4*n_nodes*j + (node_i+1) * 2 - 1:4*n_nodes*j + (node_i+1) * 2] += k31
-            if node_j != 0:
+            if node_j != -1:
                 k_global[4*n_nodes*i + skip + (node_i+1) * 2 - 1:4*n_nodes*i + skip
                          + (node_i+1) * 2,
                          4*n_nodes*j + (node_j+1) * 2 - 1:4*n_nodes*j + (node_j+1) * 2] += k32

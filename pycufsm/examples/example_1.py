@@ -4,7 +4,7 @@ import numpy as np
 
 from pycufsm.fsm import strip
 from pycufsm.preprocess import stress_gen
-from pycufsm.types import GBT_Con, Sect_Props
+from pycufsm.types import BC, GBT_Con, Sect_Props
 
 # This example presents a very simple Cee section,
 # solved for pure compression,
@@ -55,7 +55,7 @@ def __main__() -> Dict[str, np.ndarray]:
     }
 
     # Simply-supported boundary conditions
-    b_c = 'S-S'
+    b_c: BC = 'S-S'
 
     # For signature curve analysis, only a single array of ones makes sense here
     m_all = np.ones((len(lengths), 1))
@@ -92,10 +92,11 @@ def __main__() -> Dict[str, np.ndarray]:
             'Mxx': 0,
             'Myy': 0,
             'M11': 0,
-            'M22': 0
+            'M22': 0,
+            'restrain': False,
+            'offset': [-thickness / 2, -thickness / 2]
         },
         sect_props=sect_props,
-        offset_basis=[-thickness / 2, -thickness / 2]
     )
 
     # Perform the Finite Strip Method analysis
@@ -121,6 +122,6 @@ def __main__() -> Dict[str, np.ndarray]:
         'X_values': lengths,
         'Y_values': signature,
         'Y_values_allmodes': curve,
-        'Orig_coords': nodes,
+        'Orig_coords': nodes_p,
         'Deformations': shapes
     }

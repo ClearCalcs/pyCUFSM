@@ -1,12 +1,17 @@
 from copy import deepcopy
-from typing import Tuple
+from typing import Dict, Literal, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from scipy import linalg as spla  # type: ignore
 
 import pycufsm.cfsm
 from pycufsm.analysis import analysis
-from pycufsm.types import GBT_Con, Sect_Props
+from pycufsm.helpers import inputs_new_to_old, m_recommend
+from pycufsm.preprocess import stress_gen, yield_mp
+from pycufsm.types import (
+    BC, Analysis_Config, ArrayLike, Cfsm_Config, Forces, GBT_Con, New_Constraint, New_Element,
+    New_Node_Props, New_Spring, Sect_Props, Yield_Force
+)
 
 # from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
@@ -19,7 +24,7 @@ from pycufsm.types import GBT_Con, Sect_Props
 
 def strip(
     props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
-    springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: str, m_all: np.ndarray,
+    springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: BC, m_all: np.ndarray,
     n_eigs: int, sect_props: Sect_Props
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Perform a finite strip analysis
@@ -67,13 +72,14 @@ def strip(
         sect_props (Sect_Props): _description_
 
     Returns:
-        curve: buckling curve (load factor) for each length
-            curve{i} = [ length mode# 1
+        signature (np.ndarray): signature curve
+        curve (np.ndarray): buckling curve (load factor) for each length
+            curve[i] = [ length mode# 1
                         length mode# 2
                         ...    ...
                         length mode#]
-        shapes: mode shapes for each length
-            shapes{i} = mode, mode is a matrix, each column corresponds to a mode.
+        shapes (np.ndarray): mode shapes for each length
+            shapes[i] = mode, mode is a matrix, each column corresponds to a mode.
     """
 
     n_nodes = len(nodes)
@@ -169,12 +175,10 @@ def strip(
             m_a=m_a
         )
 
-        # %ADD SPRING CONTRIBUTIONS TO STIFFNESS
-        # %Prior to version 4.3 this was the springs method
-        #     %     if ~isempty(springs) %springs variable exists
-        #     %         [k_global]=addspring(k_global,springs,n_nodes,length,b_c,m_a)
-        #     %     end
-        # %Now from version 4.3 this is the new springs method
+        # ADD SPRING CONTRIBUTIONS TO STIFFNESS
+        # Prior to version 4.3 the springs format was [node# dof k_stiffness k_type]
+        #   where k_type indicated either a foundation or total stiffness
+        # Now from version 4.3 this is the new springs method
         if len(springs) != 0:
             # springs variable exists
             for spring in springs:
@@ -200,9 +204,10 @@ def strip(
                 # Transform k_s into global coordinates
                 node_i = spring[1]
                 node_j = spring[2]
-                if node_j == 0 or spring[7] == 0:  # spring is to ground
+                if node_j == -1 or spring[7] == 0:  # spring is to ground
                     # handle the spring to ground during assembly
                     alpha: float = 0  # use global coordinates for spring
+                    node_j = -1
                 else:  # spring is between nodes
                     x_i = nodes[node_i, 1]
                     y_i = nodes[node_i, 2]
@@ -377,3 +382,219 @@ def strip(
         shapes.append(modes_full)
 
     return signature.flatten(), np.array(curve), np.array(shapes)
+
+
+def strip_new(
+    props: Dict[str, Dict[str, float]],
+    nodes: ArrayLike,
+    elements: Sequence[New_Element],
+    sect_props: Sect_Props,
+    lengths: Optional[Union[ArrayLike, set, Dict[float, ArrayLike]]] = None,
+    node_props: Optional[Dict[Union[Literal["all"], int], New_Node_Props]] = None,
+    springs: Optional[Sequence[New_Spring]] = None,
+    constraints: Optional[Sequence[New_Constraint]] = None,
+    analysis_config: Optional[Analysis_Config] = None,
+    cfsm_config: Optional[Cfsm_Config] = None,
+    forces: Optional[Forces] = None,
+    yield_force: Optional[Yield_Force] = None,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Converts new format of inputs to old (original CUFSM) format
+
+    Args:
+        props (Dict[str, Dict[str, float]]): Dictionary of named materials and their properties
+            {"mat_name": {E_x: float, E_y: float, nu_x: float, nu_y: float, bulk: float}}
+        nodes (ArrayLike): 2D array of nodal coordinates
+            [[x, y]]
+            Note that any node numbers used in later inputs refer to the index of the node in
+            this 'nodes' array, with the first node being node 0. 
+        elements (Sequence[New_Element]): Element connectivity and properties 
+            [{
+                nodes: "all"|List[int], # "all" or [node1, node2, node3, ...] in sequence
+                t: float,               # thickness
+                mat: str                # "mat_name"
+            )].
+            nodes: "all" is a special indicator that all nodes should be connected sequentially
+            If nodes is given as an array, any number of nodal indices may be listed in order
+        sect_props (Sect_Props): Dictionary of section properties, such as A, Ixx, Iyy, J, etc.
+        lengths (Union[ArrayLike, set, Dict[float, ArrayLike]): Half-wavelengths for analysis
+            [length1, length2, ...]     # lengths only (assumes [m_a] = [1] for each length) 
+            {length: list[int]}         # length: [m_a]
+        node_props (Optional[Dict[Union[Literal["all", int], New_Node_Props]]): DOF restrictions 
+            and stresses on nodes.
+            {
+                node_#|"all": {
+                    dof_x: bool,    # defaults to True (included / not constrained)
+                    dof_y: bool,    # defaults to True (included / not constrained)
+                    dof_z: bool,    # defaults to True (included / not constrained)
+                    dof_q: bool,    # defaults to True (included / not constrained)
+                    stress: float   # defaults to 0.0 (no stress)
+                }
+            }
+            Defaults to None, and taken as all DOFs included and all 0.0 stresses if so
+        springs (Optional[Sequence[New_Spring]]): Definition of any springs in cross-section
+            [{
+                node: int,      # node # 
+                k_x: float,     # x stiffness
+                k_y: float,     # y stiffness
+                k_z: float,     # z stiffness
+                k_q: float,     # q stiffness
+                k_type: str,    # "foundation"|"node_pair"|"total" - stiffness type
+                node_pair: int, # node # to which to pair (if relevant)
+                discrete: bool, # whether spring is at a discrete location
+                y: float,       # location of discrete spring
+            }]
+            Defaults to None.
+        constraints (Optional[Sequence[New_Constraint]]): Definition of any constraints in section
+            [{
+                elim_node: int,     # node #
+                elim_dof: str,      # "x"|"y"|"z"|"q" - "q" is the twist dof 
+                coeff: float,       # elim_dof = coeff * keep_dof
+                keep_node: int,     # node #
+                keep_dof: str       # "x"|"y"|"z"|"q" - "q" is the twist dof
+            }]
+            Defaults to None.
+        analysis_config (Optional[Analysis_Config]): Configuration options for any analysis
+            {
+                b_c: str,           # "S-S"|"C-C"|"S-C"|"C-F"|"C-G" - boundary condition type
+                n_eigs: int         # number of eigenvalues to consider
+            }
+            Defaults to None, and taken as {b_c: "S-S", n_eigs: 10} if so.
+            Boundary condition types (at loaded edges):
+                'S-S' simple-simple
+                'C-C' clamped-clamped
+                'S-C' simple-clamped
+                'C-F' clamped-free
+                'C-G' clamped-guided
+        cfsm_config (Optional[Cfsm_Config]): Configuration options for cFSM (constrained modes) 
+            {
+                glob_modes: list(int),      # list of 1's (inclusion) and 0's (exclusion) for 
+                    each mode from the analysis
+                dist_modes: list(int),      # list of 1's (inclusion) and 0's (exclusion) for 
+                    each mode from the analysis
+                local_modes: list(int),     # list of 1's (inclusion) and 0's (exclusion) for 
+                    each mode from the analysis
+                other_modes: list(int),     # list of 1's (inclusion) and 0's (exclusion) for 
+                    each mode from the analysis
+                null_space: str,            # "ST"|"k_global"|"kg_global"|"vector"
+                normalization: str,         # "none"|"vector"|"strain_energy"|"work"
+                coupled: bool,              # coupled basis vs uncoupled basis for general B.C.
+                orthogonality: str          # "natural"|"modal_axial"|"modal_load" - natural or 
+                    modal basis
+            }
+            Defaults to None, in which case no cFSM analysis is performed
+            null_space:
+                "ST": ST basis
+                "k_global": null space of GDL with respect to k_global
+                "kg_global": null space of GDL with respect to kg_global
+                "vector": null space of GDL in vector sense
+            coupled:        basis for general B.C. especially for non-simply supported B.C.s
+                uncoupled basis = the basis will be block diagonal
+                coupled basis = the basis is fully spanned
+            orthogonality:      natural basis vs modal basis
+                "natural": natural basis
+                "modal_axial": modal basis, axial orthogonality
+                "modal_load": modal basis, load dependent orthogonality
+        yield_force (Optional[Yield_Force]): Single yield force to apply to section.
+            Either this or 'forces' must be set.
+            {
+                force: "Mxx"|"Myy"|"M11"|"M22"|"P", # which force should cause yield
+                direction: "Pos"|"Neg"|"+"|"-",     # direction to apply that force
+                f_y: float,                         # yield strength of material (stress)
+                restrain: bool,                     # whether section is restrained
+                offset: ArrayLike                   # [x_offset, y_offset] of centroid
+            }
+            Note that 'restrain' only affects "Mxx" or "Myy" forces, and then only for sections
+            in which the principal axes are no aligned with the geometric axes (such as Z sections)
+        forces (Optional[Forces]): Specific forces to apply to the section.
+            Either this or 'yield_force' must be set.
+            {
+                'P': float,         # axial force
+                'Mxx': float,       # moment about x-x axis
+                'Myy': float,       # moment about y-y axis
+                'M11': float,       # moment about 1-1 (primary principal) axis
+                'M22': float,       # moment about 2-2 axis
+                'restrain': bool,   # whether section is restrained
+                'offset': ArrayLike # [x_offset, y_offset] of centroid
+            }
+
+    Returns:
+        signature (np.ndarray): signature curve
+        curve (np.ndarray): buckling curve (load factor) for each length
+            curve[i] = [ length mode# 1
+                        length mode# 2
+                        ...    ...
+                        length mode#]
+        shapes (np.ndarray): mode shapes for each length
+            shapes[i] = mode, mode is a matrix, each column corresponds to a mode.
+    """
+    if lengths is None or isinstance(lengths, int):
+        n_lengths = lengths if isinstance(lengths, int) else 50
+        lengths = []
+
+    (
+        props_old, nodes_old, elements_old, lengths_old, springs_old, constraints_old, gbt_con_old,
+        b_c_old, m_all_old, n_eigs_old
+    ) = inputs_new_to_old(
+        props=props,
+        nodes=nodes,
+        lengths=lengths,
+        elements=elements,
+        springs=springs,
+        constraints=constraints,
+        node_props=node_props,
+        analysis_config=analysis_config,
+        cfsm_config=cfsm_config
+    )
+
+    if forces is None and yield_force is not None:
+        restrained = yield_force['restrain'] if 'restrain' in yield_force else False
+        offset = yield_force['offset'] if 'offset' in yield_force else [0, 0]
+        all_yields = yield_mp(
+            nodes=nodes_old, f_y=yield_force['f_y'], sect_props=sect_props, restrained=restrained
+        )
+        forces = {
+            "Mxx": 0,
+            "Myy": 0,
+            "M11": 0,
+            "M22": 0,
+            "P": 0,
+            "restrain": restrained,
+            "offset": offset
+        }
+        if yield_force['direction'] == '-' or yield_force['direction'] == 'Neg':
+            multiplier = -1
+        else:
+            multiplier = 1
+        forces[yield_force['force']] = all_yields[yield_force['force']] * multiplier
+    elif forces is not None and yield_force is not None:
+        raise ValueError("Only one of 'forces' or 'yield_force' may be set - but not both")
+    elif forces is None and yield_force is None:
+        raise ValueError("Either 'forces' or 'yield_force' must be set")
+    assert forces is not None
+
+    nodes_stressed = stress_gen(nodes=nodes_old, forces=forces, sect_props=sect_props)
+
+    if len(lengths) == 0:
+        m_all_old, lengths_old, signature, curve, shapes, _, _, _, _, _, _, _, _ = m_recommend(
+            props=props_old,
+            nodes=nodes_old,
+            elements=elements_old,
+            sect_props=sect_props,
+            n_lengths=n_lengths
+        )
+    else:
+        signature, curve, shapes = strip(
+            props=props_old,
+            nodes=nodes_stressed,
+            elements=elements_old,
+            lengths=lengths_old,
+            springs=springs_old,
+            constraints=constraints_old,
+            gbt_con=gbt_con_old,
+            b_c=b_c_old,
+            m_all=m_all_old,
+            n_eigs=n_eigs_old,
+            sect_props=sect_props
+        )
+
+    return signature, curve, shapes, nodes_stressed, lengths_old
