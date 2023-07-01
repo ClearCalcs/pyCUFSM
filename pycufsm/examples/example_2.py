@@ -4,7 +4,7 @@ import numpy as np
 
 from pycufsm.fsm import strip
 from pycufsm.preprocess import stress_gen
-from pycufsm.types import GBT_Con, Sect_Props
+from pycufsm.types import BC, GBT_Con, Sect_Props
 
 # This example presents a very simple Zed section,
 # solved for pure bending about the X-axis,
@@ -54,7 +54,7 @@ def __main__() -> Dict[str, np.ndarray]:
     }
 
     # Simply-supported boundary conditions
-    b_c = 'S-S'
+    b_c: BC = 'S-S'
 
     # For signature curve analysis, only a single array of ones makes sense here
     m_all = np.ones((len(lengths), 1))
@@ -91,7 +91,9 @@ def __main__() -> Dict[str, np.ndarray]:
             'Mxx': 500 * sect_props['Ixx'] / sect_props['cy'],
             'Myy': 0,
             'M11': 0,
-            'M22': 0
+            'M22': 0,
+            'restrain': False,
+            'offset': None
         },
         sect_props=sect_props,
         offset_basis=[-thickness / 2, -thickness / 2]

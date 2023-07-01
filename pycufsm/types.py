@@ -1,4 +1,4 @@
-from typing import Any, List, Literal, Union
+from typing import Any, List, Literal, Optional, Union
 
 import numpy as np
 from typing_extensions import TypedDict
@@ -65,7 +65,7 @@ Forces = TypedDict(
         'M11': float,
         'M22': float,
         'restrain': bool,
-        'offset': ArrayLike
+        'offset': Optional[ArrayLike]
     }
 )
 
@@ -201,6 +201,6 @@ Yield_Force = TypedDict(
         "direction": Directions,
         "f_y": float,
         "restrain": bool,
-        "offset": ArrayLike
+        "offset": Optional[ArrayLike]
     }
 )

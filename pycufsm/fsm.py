@@ -647,7 +647,8 @@ def strip_new(
 
     if forces is None and yield_force is not None:
         restrained = yield_force['restrain'] if 'restrain' in yield_force else False
-        offset = yield_force['offset'] if 'offset' in yield_force else [0, 0]
+        offset = yield_force[
+            'offset'] if 'offset' in yield_force and yield_force['offset'] is not None else [0, 0]
         all_yields = yield_mp(
             nodes=nodes_old, f_y=yield_force['f_y'], sect_props=sect_props, restrained=restrained
         )
