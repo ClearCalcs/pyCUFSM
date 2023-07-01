@@ -4,6 +4,7 @@ matplotlib==3.7.1
 ipywidgets==8.0.6
 yapf==0.40.1
 toml==0.10.2 # Required for YAPF 
+typing_extensions==4.6.2
 mypy==1.4.1
 pylint==2.17.4
 cython==3.0.0b3
