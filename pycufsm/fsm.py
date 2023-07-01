@@ -462,8 +462,9 @@ def strip_new(
             |   `mat: str`               
             | )].
             elements["nodes"]:
-                `nodes: "all"` is a special indicator that all nodes should be connected sequentially
-                If `nodes` is given as an array, any number of nodal indices may be listed in order
+                `nodes: "all"` is a special indicator that all nodes should be connected 
+                sequentially. If `nodes` is given as an array, any number of nodal indices 
+                may be listed in order
             elements["t"]:
                 Material thickness
             elements["mat"]:
@@ -583,7 +584,8 @@ def strip_new(
             Either this or 'forces' must be set, or stresses must be set manually in `nodes`.
             yield_force["restrain"]:
                 Note that 'restrain' only affects "Mxx" or "Myy" forces, and then only for sections
-                in which the principal axes are no aligned with the geometric axes (such as Z sections)
+                in which the principal axes are no aligned with the geometric axes (such as Z 
+                sections)
             yield_force["offset"]:
                 | `[x_offset, y_offset]`
                 Offset from the (0,0) coordinate used in calculating section properties and the
@@ -601,7 +603,8 @@ def strip_new(
             | }
             forces["restrain"]:
                 Note that 'restrain' only affects "Mxx" or "Myy" forces, and then only for sections
-                in which the principal axes are no aligned with the geometric axes (such as Z sections)
+                in which the principal axes are no aligned with the geometric axes (such as Z 
+                sections)
             forces["offset"]:
                 | `[x_offset, y_offset]`
                 Offset from the (0,0) coordinate used in calculating section properties and the

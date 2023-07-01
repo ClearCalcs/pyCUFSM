@@ -27,14 +27,14 @@ def prop2_new(nodes: ArrayLike, elements: Sequence[New_Element]) -> Sect_Props:
     # The new nodes format is structurally identical to the original `coord` format
     coord = np.array(nodes)
 
-    ends = []
+    ends: list = []
     for elem in elements:
         if isinstance(elem["nodes"], str) and elem["nodes"] == "all":
             elem["nodes"] = list(range(len(nodes)))
         for node1, node2 in zip(elem["nodes"][0:], elem["nodes"][1:]):
             ends.append([node1, node2, elem["t"]])
 
-    return prop2(coord=coord, ends=ends)
+    return prop2(coord=coord, ends=np.array(ends))
 
 
 def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
