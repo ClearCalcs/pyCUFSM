@@ -674,7 +674,8 @@ def strip_new(
     elif np.shape(nodes)[1] == 3:
         nodes_stressed = nodes_old
 
-    lengths_old = lengths_recommend(nodes=nodes_old, elements=elements_old, n_lengths=n_lengths)
+    if len(lengths) == 0:
+        lengths_old = lengths_recommend(nodes=nodes_old, elements=elements_old, n_lengths=n_lengths)
 
     signature, curve, shapes = strip(
         props=props_old,
