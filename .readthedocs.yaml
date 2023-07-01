@@ -19,5 +19,7 @@ sphinx:
 python:
   install:
     - method: pip
-      path: .[doc]
-    - system_packages: true
+      path: .
+      extra_requirements:
+        - doc
+  system_packages: true
