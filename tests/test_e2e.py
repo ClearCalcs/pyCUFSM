@@ -12,7 +12,7 @@ from .utils import pspec_context
 
 def mat_file_test(mat_filename):
     mat = scipy.io.loadmat("tests/mat_files/" + mat_filename)
-    cufsm_input = helpers.load_mat(mat)
+    cufsm_input = helpers.load_cufsm_mat(mat_data=mat)
 
     # Disable cFSM for now in basic loading of mat files
     cufsm_input["GBTcon"]["glob"] = [0]

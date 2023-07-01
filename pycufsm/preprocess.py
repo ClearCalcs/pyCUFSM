@@ -538,7 +538,7 @@ def stress_gen(
     """
     if 'restrain' in forces:
         restrained = forces['restrain']
-    if 'offset' in forces:
+    if 'offset' in forces and forces['offset'] is not None:
         offset_basis = list(forces['offset'])
     if isinstance(offset_basis, float) or isinstance(offset_basis, int):
         offset_basis = [offset_basis, offset_basis]

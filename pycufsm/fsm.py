@@ -6,7 +6,7 @@ from scipy import linalg as spla  # type: ignore
 
 import pycufsm.cfsm
 from pycufsm.analysis import analysis
-from pycufsm.helpers import inputs_new_to_old, m_recommend
+from pycufsm.helpers import inputs_new_to_old, lengths_recommend
 from pycufsm.preprocess import stress_gen, yield_mp
 from pycufsm.types import (
     BC, Analysis_Config, ArrayLike, Cfsm_Config, Forces, GBT_Con, New_Constraint, New_Element,
@@ -30,56 +30,98 @@ def strip(
     """Perform a finite strip analysis
 
     Args:
-        props (np.ndarray): [mat_num stiff_x stiff_y nu_x nu_y bulk] 6 x n_mats
-        nodes (np.ndarray): [node# x y dof_x dof_y dof_z dof_r stress] n_nodes x 8
-        elements (np.ndarray): [elem# node_i node_j thick mat_num] n_elements x 5
-        lengths (np.ndarray): [L1 L2 L3...] 1 x n_lengths lengths to be analyzed; 
-            could be half-wavelengths for signature curve or physical lengths for general b.c.
-        springs (np.ndarray): [node# d.o.f. k_spring k_flag] where 1=x dir 2= y dir 3 = z dir 
-            4 = q dir (twist) flag says if k_stiff is a foundation stiffness or a total stiffness
-        constraints (np.ndarray): [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
-            k=kept dof dof_e_node = coeff*dof_k_node_k
-        gbt_con (GBT_Con): gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
-            and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
+        props (np.ndarray): Material properties
+            | `[[mat_num, stiff_x, stiff_y, nu_x, nu_y, bulk], ...]`
+        nodes (np.ndarray): Nodal properties
+            | `[[node#, x, y, dof_x, dof_y, dof_z, dof_r, stress], ...]`
+        elements (np.ndarray): Element properties
+            | `[[elem#, node_i, node_j, thick, mat_num], ...]`
+        lengths (np.ndarray): Half-wavelengths to analyse
+            | `[length1, length2, ...]`
+            These could be half-wavelengths for signature curve or physical lengths for general b.c.
+        springs (np.ndarray): Nodal springs (if any)
+            | `[[node#, node_pair, k_x, k_y, k_z, k_q, k_type, discrete, y_s], ...]`
+            where `k_flag` is 0 for a foundation spring, or 1 for a total spring. discrete is 1 for 
+            a discrete spring. k_* are the spring stiffnesses for each DOF, and y_s is the location
+            of the discrete spring; it is ignored if the spring is not discrete.
+        constraints (np.ndarray): 
+            | `[[node#_e dof_e coeff node#_k dof_k], ...]
+            where k=kept dof, e=dof to be eliminated. Each DOF is set as an integer where
+            1=x, 2=y, 3=z, 4=q.
+            The resulting constraint will be `node_e_dof = coeff * node_k_dof`
+        gbt_con (GBT_Con): GBT Configuration
+            | {
+            |   "glob": [0|1, 0|1, ...],
+            |   "dist": [0|1, 0|1, ...],
+            |   "local": [0|1, 0|1, ...],
+            |   "other": [0|1, 0|1, ...],
+            |   "o_space": 1|2|3|4,
+            |   "norm": 0|1|2|3,
+            |   "couple": 1|2,
+            |   "orth": 1|2|3,
+            | }
+            gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other:
+                vectors of 1's and 0's referring to the inclusion (1) or exclusion of a 
+                given mode from the analysis,
             gbt_con.o_space - choices of ST/O mode
-                    1: ST basis
-                    2: O space (null space of GDL) with respect to k_global
-                    3: O space (null space of GDL) with respect to kg_global
-                    4: O space (null space of GDL) in vector sense
+                | 1: ST basis
+                | 2: O space (null space of GDL) with respect to k_global
+                | 3: O space (null space of GDL) with respect to kg_global
+                | 4: O space (null space of GDL) in vector sense
             gbt_con.norm - code for normalization (if normalization is done at all)
-                    0: no normalization,
-                    1: vector norm
-                    2: strain energy norm
-                    3: work norm
-            gbt_con.couple - coupled basis vs uncoupled basis for general
-                        B.C. especially for non-simply supported B.C.
-                    1: uncoupled basis, the basis will be block diagonal
-                    2: coupled basis, the basis is fully spanned
+                | 0: no normalization,
+                | 1: vector norm
+                | 2: strain energy norm
+                | 3: work norm
+            gbt_con.couple - coupled basis vs uncoupled basis
+                for general B.C. especially for non-simply supported B.C.
+                | 1: uncoupled basis, the basis will be block diagonal
+                | 2: coupled basis, the basis is fully spanned
             gbt_con.orth - natural basis vs modal basis
-                    1: natural basis
-                    2: modal basis, axial orthogonality
-                    3: modal basis, load dependent orthogonality
-        b_c (str): ['S-S'] a string specifying boundary conditions to be analyzed:
-            'S-S' simply-pimply supported boundary condition at loaded edges
-            'C-C' clamped-clamped boundary condition at loaded edges
-            'S-C' simply-clamped supported boundary condition at loaded edges
-            'C-F' clamped-free supported boundary condition at loaded edges
-            'C-G' clamped-guided supported boundary condition at loaded edges
-        m_all (np.ndarray): m_all{length#}=[longitudinal_num# ... longitudinal_num#],
-            longitudinal terms m for all the lengths in cell notation
+                | 1: natural basis
+                | 2: modal basis, axial orthogonality
+                | 3: modal basis, load dependent orthogonality
+        b_c (str): Boundary condition to be analyzed
+            | 'S-S' simply-pimply supported boundary condition at loaded edges
+            | 'C-C' clamped-clamped boundary condition at loaded edges
+            | 'S-C' simply-clamped supported boundary condition at loaded edges
+            | 'C-F' clamped-free supported boundary condition at loaded edges
+            | 'C-G' clamped-guided supported boundary condition at loaded edges
+        m_all (np.ndarray): Longitudinal terms for each half-wavelength
+            | m_all[length#] = [longitudinal_num, ...],
+            Longitudinal terms m for all the lengths in cell notation
             each cell has a vector including the longitudinal terms for this length
-        n_eigs (int): the number of eigenvalues to be determined at length (default=10)
-        sect_props (Sect_Props): _description_
+        n_eigs (int): Number of eigenvalues 
+            The number of eigenvalues to be determined at length (default=10)
+        sect_props (Sect_Props): Section properties
+            | { 
+            |   "A": float,
+            |   "cx": float,
+            |   "cy": float,
+            |   "Ixx": float,
+            |   "Iyy": float,
+            |   "Ixy": float,
+            |   "phi": float,
+            |   "I11": float,
+            |   "I22": float,
+            |   "J": float,
+            |   "x0": float,
+            |   "y0": float,
+            |   "Cw": float,
+            |   "B1": float,
+            |   "B2": float,
+            |   "wn": np.ndarray
+            | }
+            Dictionary of section properties of cross-section
 
     Returns:
-        signature (np.ndarray): signature curve
+        signature (np.ndarray): Signature curve
+            | `signature[length#] = load_factor`
         curve (np.ndarray): buckling curve (load factor) for each length
-            curve[i] = [ length mode# 1
-                        length mode# 2
-                        ...    ...
-                        length mode#]
+            | `curve[length#] = [mode1_load_factor, mode2_load_factor, ...]`
         shapes (np.ndarray): mode shapes for each length
-            shapes[i] = mode, mode is a matrix, each column corresponds to a mode.
+            | `shapes[length#] = [disp_mode1, disp_mode2, ...]`
+            Each `disp_*` is an array of displacements for each node in the section
     """
 
     n_nodes = len(nodes)
@@ -401,131 +443,188 @@ def strip_new(
     """Converts new format of inputs to old (original CUFSM) format
 
     Args:
-        props (Dict[str, Dict[str, float]]): Dictionary of named materials and their properties
-            {"mat_name": {E_x: float, E_y: float, nu_x: float, nu_y: float, bulk: float}}
-        nodes (ArrayLike): 2D array of nodal coordinates
-            [[x, y]]
-            Note that any node numbers used in later inputs refer to the index of the node in
-            this 'nodes' array, with the first node being node 0. 
+        props (Dict[str, Dict[str, float]]): Material properties
+            | `{"mat_name": {E_x: float, E_y: float, nu_x: float, nu_y: float, bulk: float}, ...}`
+            | or
+            | `{"mat_name": {E: float, nu: float}}`
+            The latter option assumes an isotropic material.
+        nodes (ArrayLike): Nodal coordinates
+            | `[[x, y, stress], ...]`
+            | or
+            | `[[x, y], ...]`
+            The latter option assumes that the stress will be set using 
+            Note that any node numbers used in later inputs refer to the **index** of the node in
+            this `nodes` array, with the first node being node number 0. 
         elements (Sequence[New_Element]): Element connectivity and properties 
-            [{
-                nodes: "all"|List[int], # "all" or [node1, node2, node3, ...] in sequence
-                t: float,               # thickness
-                mat: str                # "mat_name"
-            )].
-            nodes: "all" is a special indicator that all nodes should be connected sequentially
-            If nodes is given as an array, any number of nodal indices may be listed in order
-        sect_props (Sect_Props): Dictionary of section properties, such as A, Ixx, Iyy, J, etc.
+            | [{
+            |   `nodes: "all"|List[int],` 
+            |   `t: float,`              
+            |   `mat: str`               
+            | )].
+            elements["nodes"]:
+                `nodes: "all"` is a special indicator that all nodes should be connected 
+                sequentially. If `nodes` is given as an array, any number of nodal indices 
+                may be listed in order
+            elements["t"]:
+                Material thickness
+            elements["mat"]:
+                material name as a string
+        sect_props (Sect_Props): Section properties
+            | { 
+            |   "A": float,
+            |   "cx": float,
+            |   "cy": float,
+            |   "Ixx": float,
+            |   "Iyy": float,
+            |   "Ixy": float,
+            |   "phi": float,
+            |   "I11": float,
+            |   "I22": float,
+            |   "J": float,
+            |   "x0": float,
+            |   "y0": float,
+            |   "Cw": float,
+            |   "B1": float,
+            |   "B2": float,
+            |   "wn": np.ndarray
+            | }
+            Dictionary of section properties of cross-section
         lengths (Union[ArrayLike, set, Dict[float, ArrayLike]): Half-wavelengths for analysis
-            [length1, length2, ...]     # lengths only (assumes [m_a] = [1] for each length) 
-            {length: list[int]}         # length: [m_a]
-        node_props (Optional[Dict[Union[Literal["all", int], New_Node_Props]]): DOF restrictions 
-            and stresses on nodes.
-            {
-                node_#|"all": {
-                    dof_x: bool,    # defaults to True (included / not constrained)
-                    dof_y: bool,    # defaults to True (included / not constrained)
-                    dof_z: bool,    # defaults to True (included / not constrained)
-                    dof_q: bool,    # defaults to True (included / not constrained)
-                    stress: float   # defaults to 0.0 (no stress)
-                }
-            }
-            Defaults to None, and taken as all DOFs included and all 0.0 stresses if so
+            | `[length1, length2, ...]`
+            | or
+            | `{length1: List[int], length2: List[int], ...}        
+            If given as a simple array, then the longitudinal m term will be taken as `[1]` for each
+            half-wavelength (which is normally what you want for a signature curve analysis). If
+            given as a dictionary, then the longitudinal m terms must be set to an array with
+            appropriate values
+        node_props (Optional[Dict[Union[Literal["all", int], New_Node_Props]]): Nodal DOF inclusion
+            | {
+            |    node_#|"all": {
+            |        dof_x: bool,
+            |        dof_y: bool,
+            |        dof_z: bool,
+            |        dof_q: bool,
+            |    }
+            | }
+            Defaults to None, and taken as all DOFs included if so. Any DOFs set to false will be
+            taken as fully constrained to ground
         springs (Optional[Sequence[New_Spring]]): Definition of any springs in cross-section
-            [{
-                node: int,      # node # 
-                k_x: float,     # x stiffness
-                k_y: float,     # y stiffness
-                k_z: float,     # z stiffness
-                k_q: float,     # q stiffness
-                k_type: str,    # "foundation"|"node_pair"|"total" - stiffness type
-                node_pair: int, # node # to which to pair (if relevant)
-                discrete: bool, # whether spring is at a discrete location
-                y: float,       # location of discrete spring
-            }]
+            | [{
+            |    node: int,
+            |    k_x: float,
+            |    k_y: float,
+            |    k_z: float,
+            |    k_q: float,
+            |    k_type: "foundation"|"node_pair"|"total",
+            |    node_pair: int,
+            |    discrete: bool,
+            |    y: float,
+            | }, ...]
+            `k_type` is the stiffness type. `node_pair` and `y` keys are only required if the
+            `k_type` or `discrete` options are set to require them.
             Defaults to None.
         constraints (Optional[Sequence[New_Constraint]]): Definition of any constraints in section
-            [{
-                elim_node: int,     # node #
-                elim_dof: str,      # "x"|"y"|"z"|"q" - "q" is the twist dof 
-                coeff: float,       # elim_dof = coeff * keep_dof
-                keep_node: int,     # node #
-                keep_dof: str       # "x"|"y"|"z"|"q" - "q" is the twist dof
-            }]
-            Defaults to None.
+            | [{
+            |    elim_node: int,
+            |    elim_dof: "x"|"y"|"z"|"q",
+            |    coeff: float,
+            |    keep_node: int,
+            |    keep_dof: "x"|"y"|"z"|"q"
+            | }, ...]
+            `"q"` is the twist DOF. Each constraint takes the form of `elim_dof = coeff * keep_dof`.
+            Defaults to None. 
         analysis_config (Optional[Analysis_Config]): Configuration options for any analysis
-            {
-                b_c: str,           # "S-S"|"C-C"|"S-C"|"C-F"|"C-G" - boundary condition type
-                n_eigs: int         # number of eigenvalues to consider
-            }
-            Defaults to None, and taken as {b_c: "S-S", n_eigs: 10} if so.
-            Boundary condition types (at loaded edges):
-                'S-S' simple-simple
-                'C-C' clamped-clamped
-                'S-C' simple-clamped
-                'C-F' clamped-free
-                'C-G' clamped-guided
+            | {
+            |    b_c: "S-S"|"C-C"|"S-C"|"C-F"|"C-G",
+            |    n_eigs: int
+            | }
+            Defaults to None, and taken as `{b_c: "S-S", n_eigs: 10}` if so.
+            analysis_config["b_c"]: Boundary condition types (at loaded edges):
+                | 'S-S' simple-simple
+                | 'C-C' clamped-clamped
+                | 'S-C' simple-clamped
+                | 'C-F' clamped-free
+                | 'C-G' clamped-guided
         cfsm_config (Optional[Cfsm_Config]): Configuration options for cFSM (constrained modes) 
-            {
-                glob_modes: list(int),      # list of 1's (inclusion) and 0's (exclusion) for 
-                    each mode from the analysis
-                dist_modes: list(int),      # list of 1's (inclusion) and 0's (exclusion) for 
-                    each mode from the analysis
-                local_modes: list(int),     # list of 1's (inclusion) and 0's (exclusion) for 
-                    each mode from the analysis
-                other_modes: list(int),     # list of 1's (inclusion) and 0's (exclusion) for 
-                    each mode from the analysis
-                null_space: str,            # "ST"|"k_global"|"kg_global"|"vector"
-                normalization: str,         # "none"|"vector"|"strain_energy"|"work"
-                coupled: bool,              # coupled basis vs uncoupled basis for general B.C.
-                orthogonality: str          # "natural"|"modal_axial"|"modal_load" - natural or 
-                    modal basis
+            | {
+            |    glob_modes: list(int), 
+            |    dist_modes: list(int), 
+            |    local_modes: list(int),
+            |    other_modes: list(int),     
+            |    null_space: "ST"|"k_global"|"kg_global"|"vector",
+            |    normalization: "none"|"vector"|"strain_energy"|"work",
+            |    coupled: bool,              
+            |    orthogonality: "natural"|"modal_axial"|"modal_load"
             }
             Defaults to None, in which case no cFSM analysis is performed
-            null_space:
-                "ST": ST basis
-                "k_global": null space of GDL with respect to k_global
-                "kg_global": null space of GDL with respect to kg_global
-                "vector": null space of GDL in vector sense
-            coupled:        basis for general B.C. especially for non-simply supported B.C.s
-                uncoupled basis = the basis will be block diagonal
-                coupled basis = the basis is fully spanned
-            orthogonality:      natural basis vs modal basis
-                "natural": natural basis
-                "modal_axial": modal basis, axial orthogonality
-                "modal_load": modal basis, load dependent orthogonality
+            analysis_config["*_modes"]:
+                list of 1's (inclusion) and 0's (exclusion) for each mode from the analysis
+            analysis_config["null_space"]:
+                | "ST": ST basis
+                | "k_global": null space of GDL with respect to k_global
+                | "kg_global": null space of GDL with respect to kg_global
+                | "vector": null space of GDL in vector sense
+            analysis_config["normalization"]: Type of normalization
+                If any is performed.
+            analysis_config["coupled"]: basis for general boundary conditions
+                | uncoupled basis = the basis will be block diagonal
+                | coupled basis = the basis is fully spanned
+            analysis_config["orthogonality"]: natural basis vs modal basis
+                | "natural": natural basis
+                | "modal_axial": modal basis, axial orthogonality
+                | "modal_load": modal basis, load dependent orthogonality
         yield_force (Optional[Yield_Force]): Single yield force to apply to section.
-            Either this or 'forces' must be set.
-            {
-                force: "Mxx"|"Myy"|"M11"|"M22"|"P", # which force should cause yield
-                direction: "Pos"|"Neg"|"+"|"-",     # direction to apply that force
-                f_y: float,                         # yield strength of material (stress)
-                restrain: bool,                     # whether section is restrained
-                offset: ArrayLike                   # [x_offset, y_offset] of centroid
-            }
-            Note that 'restrain' only affects "Mxx" or "Myy" forces, and then only for sections
-            in which the principal axes are no aligned with the geometric axes (such as Z sections)
+            | {
+            |    force: "Mxx"|"Myy"|"M11"|"M22"|"P",
+            |    direction: "Pos"|"Neg"|"+"|"-",
+            |    f_y: float,
+            |    restrain: bool,
+            |    offset: ArrayLike
+            | }
+            Either this or 'forces' must be set, or stresses must be set manually in `nodes`.
+            yield_force["restrain"]:
+                Note that 'restrain' only affects "Mxx" or "Myy" forces, and then only for sections
+                in which the principal axes are no aligned with the geometric axes (such as Z 
+                sections)
+            yield_force["offset"]:
+                | `[x_offset, y_offset]`
+                Offset from the (0,0) coordinate used in calculating section properties and the
+                (0,0) coordinate used to define the nodal coordinates. This may commonly differ
+                by thickness/2, for example, if an external section properties calculator is used
         forces (Optional[Forces]): Specific forces to apply to the section.
-            Either this or 'yield_force' must be set.
-            {
-                'P': float,         # axial force
-                'Mxx': float,       # moment about x-x axis
-                'Myy': float,       # moment about y-y axis
-                'M11': float,       # moment about 1-1 (primary principal) axis
-                'M22': float,       # moment about 2-2 axis
-                'restrain': bool,   # whether section is restrained
-                'offset': ArrayLike # [x_offset, y_offset] of centroid
-            }
+            | {
+            |    'P': float,
+            |    'Mxx': float,
+            |    'Myy': float,
+            |    'M11': float,
+            |    'M22': float,
+            |    'restrain': bool,
+            |    'offset': ArrayLike
+            | }
+            forces["restrain"]:
+                Note that 'restrain' only affects "Mxx" or "Myy" forces, and then only for sections
+                in which the principal axes are no aligned with the geometric axes (such as Z 
+                sections)
+            forces["offset"]:
+                | `[x_offset, y_offset]`
+                Offset from the (0,0) coordinate used in calculating section properties and the
+                (0,0) coordinate used to define the nodal coordinates. This may commonly differ
+                by thickness/2, for example, if an external section properties calculator is used
+            Either this or 'yield_force' must be set, or stresses must be set manually in `nodes`.
+            
 
     Returns:
-        signature (np.ndarray): signature curve
+        signature (np.ndarray): Signature curve
+            | `signature[length#] = load_factor`
         curve (np.ndarray): buckling curve (load factor) for each length
-            curve[i] = [ length mode# 1
-                        length mode# 2
-                        ...    ...
-                        length mode#]
+            | `curve[length#] = [mode1_load_factor, mode2_load_factor, ...]`
         shapes (np.ndarray): mode shapes for each length
-            shapes[i] = mode, mode is a matrix, each column corresponds to a mode.
+            | `shapes[length#] = [disp_mode1, disp_mode2, ...]`
+            Each `disp_*` is an array of displacements for each node in the section
+        nodes_stressed: Nodal coordinates with stresses
+            | `[[x, y, stress], ...]`
+        lengths: Half-wavelengths used in analysis
+            | `[length1, length2, ...]`
     """
     if lengths is None or isinstance(lengths, int):
         n_lengths = lengths if isinstance(lengths, int) else 50
@@ -548,7 +647,8 @@ def strip_new(
 
     if forces is None and yield_force is not None:
         restrained = yield_force['restrain'] if 'restrain' in yield_force else False
-        offset = yield_force['offset'] if 'offset' in yield_force else [0, 0]
+        offset = yield_force[
+            'offset'] if 'offset' in yield_force and yield_force['offset'] is not None else [0, 0]
         all_yields = yield_mp(
             nodes=nodes_old, f_y=yield_force['f_y'], sect_props=sect_props, restrained=restrained
         )
@@ -568,33 +668,275 @@ def strip_new(
         forces[yield_force['force']] = all_yields[yield_force['force']] * multiplier
     elif forces is not None and yield_force is not None:
         raise ValueError("Only one of 'forces' or 'yield_force' may be set - but not both")
-    elif forces is None and yield_force is None:
-        raise ValueError("Either 'forces' or 'yield_force' must be set")
-    assert forces is not None
-
-    nodes_stressed = stress_gen(nodes=nodes_old, forces=forces, sect_props=sect_props)
+    elif forces is None and yield_force is None and np.shape(nodes)[1] == 2:
+        raise ValueError(
+            "Either 'forces' or 'yield_force' must be set, "
+            + "or stress must be set manually for each node"
+        )
+    if forces is not None:
+        nodes_stressed = stress_gen(nodes=nodes_old, forces=forces, sect_props=sect_props)
+    elif np.shape(nodes)[1] == 3:
+        nodes_stressed = nodes_old
 
     if len(lengths) == 0:
-        m_all_old, lengths_old, signature, curve, shapes, _, _, _, _, _, _, _, _ = m_recommend(
-            props=props_old,
-            nodes=nodes_old,
-            elements=elements_old,
-            sect_props=sect_props,
-            n_lengths=n_lengths
-        )
-    else:
-        signature, curve, shapes = strip(
-            props=props_old,
-            nodes=nodes_stressed,
-            elements=elements_old,
-            lengths=lengths_old,
-            springs=springs_old,
-            constraints=constraints_old,
-            gbt_con=gbt_con_old,
-            b_c=b_c_old,
-            m_all=m_all_old,
-            n_eigs=n_eigs_old,
-            sect_props=sect_props
-        )
+        lengths_old = lengths_recommend(nodes=nodes_old, elements=elements_old, n_lengths=n_lengths)
+
+    signature, curve, shapes = strip(
+        props=props_old,
+        nodes=nodes_stressed,
+        elements=elements_old,
+        lengths=lengths_old,
+        springs=springs_old,
+        constraints=constraints_old,
+        gbt_con=gbt_con_old,
+        b_c=b_c_old,
+        m_all=m_all_old,
+        n_eigs=n_eigs_old,
+        sect_props=sect_props
+    )
 
     return signature, curve, shapes, nodes_stressed, lengths_old
+
+
+def signature_ss(
+    props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, i_gbt_con: GBT_Con,
+    sect_props: Sect_Props, lengths: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """generate the signature curve solution, part 2: actually solve the signature curve
+
+    Args:
+        props (np.ndarray): standard parameter
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        i_gbt_con (GBT_Con): cFSM configuration options
+        sect_props (Sect_Props): section properties
+        lengths (np.ndarray): half-wavelengths
+
+    Returns:
+        signature: signature curve,
+        curve: all the curve results,
+        shapes: deformed shapes at each point
+    
+    (function originally in helpers; moved to fsm because it drives entire fsm analyses)
+    Z. Li, July 2010 (last modified)
+    """
+    i_springs = np.array([])
+    i_constraints = np.array([])
+    i_b_c: BC = 'S-S'
+    i_m_all = np.ones((len(lengths), 1)).tolist()
+
+    isignature, icurve, ishapes = pycufsm.fsm.strip(
+        props=props,
+        nodes=nodes,
+        elements=elements,
+        lengths=lengths,
+        springs=i_springs,
+        constraints=i_constraints,
+        gbt_con=i_gbt_con,
+        b_c=i_b_c,
+        m_all=i_m_all,
+        n_eigs=10,
+        sect_props=sect_props,
+    )
+
+    return isignature, icurve, ishapes
+
+
+def m_recommend(
+    props: np.ndarray,
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    sect_props: Sect_Props,
+    length_append: Optional[float] = None,
+    n_lengths: int = 50,
+    lengths: Optional[np.ndarray] = None
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Suggested longitudinal terms are calculated based on the characteristic
+    half-wave lengths of local, distortional, and global buckling from the
+    signature curve.
+
+    Args:
+        props (np.ndarray): standard parameter
+        nodes (np.ndarray): standard parameter
+        elements (np.ndarray): standard parameter
+        sect_props (Sect_Props): section properties
+        length_append (Optional[float], optional): any additional half-wavelength to include. 
+            Defaults to None.
+        n_lengths (int, optional): number of half-wavelengths. Defaults to 50.
+        lengths (Optional[np.ndarray], optional): specific half-wavelengths to use. 
+            Defaults to None.
+
+    Returns:
+        _type_: _description_
+    
+    (function originally in helpers; moved to fsm because it drives entire fsm analyses)
+    Z. Li, Oct. 2010
+    """
+    i_gbt_con: GBT_Con = {
+        "glob": [0],
+        "dist": [0],
+        "local": [0],
+        "other": [0],
+        "o_space": 1,
+        "couple": 1,
+        "orth": 1,
+        "norm": 1,
+    }
+    if lengths is None:
+        lengths = lengths_recommend(
+            nodes=nodes, elements=elements, length_append=length_append, n_lengths=n_lengths
+        )
+
+    print("Running initial pyCUFSM signature curve")
+    isignature, icurve, ishapes = signature_ss(
+        props=props,
+        nodes=nodes,
+        elements=elements,
+        i_gbt_con=i_gbt_con,
+        sect_props=sect_props,
+        lengths=lengths
+    )
+
+    curve_signature = np.zeros((len(lengths), 2))
+    curve_signature[:, 0] = lengths.T
+    curve_signature[:, 1] = isignature
+
+    local_minima = []
+    for i, c_sign in enumerate(curve_signature[:-2]):
+        load1 = c_sign[1]
+        load2 = curve_signature[i + 1, 1]
+        load3 = curve_signature[i + 2, 1]
+        if load2 < load1 and load2 <= load3:
+            local_minima.append(curve_signature[i + 1, 0])
+
+    _, _, _, _, _, _, n_dist_modes, n_local_modes, _ = pycufsm.cfsm.base_properties(
+        nodes=nodes, elements=elements
+    )
+
+    n_global_modes = 4
+    n_other_modes = 2 * (len(nodes) - 1)
+
+    i_gbt_con["local"] = np.ones((n_local_modes, 1)).tolist()
+    i_gbt_con["dist"] = np.zeros((n_dist_modes, 1)).tolist()
+    i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
+    i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
+
+    print("Running pyCUFSM local modes curve")
+    isignature_local, icurve_local, ishapes_local = signature_ss(
+        props=props,
+        nodes=nodes,
+        elements=elements,
+        i_gbt_con=i_gbt_con,
+        sect_props=sect_props,
+        lengths=lengths
+    )
+
+    print("Running pyCUFSM distortional modes curve")
+    i_gbt_con["local"] = np.zeros((n_local_modes, 1)).tolist()
+    i_gbt_con["dist"] = np.ones((n_dist_modes, 1)).tolist()
+    i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
+    i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
+    isignature_dist, icurve_dist, ishapes_dist = signature_ss(
+        props=props,
+        nodes=nodes,
+        elements=elements,
+        i_gbt_con=i_gbt_con,
+        sect_props=sect_props,
+        lengths=lengths
+    )
+
+    curve_signature_local = np.zeros((len(lengths), 2))
+    curve_signature_local[:, 0] = lengths
+    curve_signature_local[:, 1] = isignature_local
+    curve_signature_dist = np.zeros((len(lengths), 2))
+    curve_signature_dist[:, 0] = lengths
+    curve_signature_dist[:, 1] = isignature_dist
+
+    #cFSM local half-wavelength
+    local_minima_local = []
+    for i, c_sign in enumerate(curve_signature_local[:-2]):
+        load1 = c_sign[1]
+        load2 = curve_signature_local[i + 1, 1]
+        load3 = curve_signature_local[i + 2, 1]
+        if load2 < load1 and load2 <= load3:
+            local_minima_local.append(curve_signature_local[i + 1, 0])
+    # If there were no local minima, then take the absolute minimum
+    if len(local_minima_local) == 0:
+        ind = np.argmin([val[1] for val in curve_signature_local])
+        local_minima_local.append(curve_signature_local[ind, 0])
+
+    #cFSM dist half-wavelength
+    local_minima_dist = []
+    for i, c_sign in enumerate(curve_signature_dist[:-2]):
+        load1 = c_sign[1]
+        load2 = curve_signature_dist[i + 1, 1]
+        load3 = curve_signature_dist[i + 2, 1]
+        if load2 < load1 and load2 <= load3:
+            local_minima_dist.append(curve_signature_dist[i + 1, 0])
+    # If there were no local minima, then take the absolute minimum
+    if len(local_minima_dist) == 0:
+        ind = np.argmin([val[1] for val in curve_signature_dist])
+        local_minima_dist.append(curve_signature_dist[ind, 0])
+
+    if len(local_minima) == 2:
+        length_crl = local_minima[0]
+        length_crd = local_minima[1]
+
+    else:
+        #half-wavelength of local and distortional buckling
+        length_crl = local_minima_local[0]
+        length_crd = local_minima_dist[0]
+
+    #recommend longitudinal terms m
+    im_pm_all = []
+    for im_p_len in lengths:
+
+        if np.ceil(im_p_len / length_crl) > 4:
+            im_pm_all_temp = [
+                np.ceil(im_p_len / length_crl) - 3,
+                np.ceil(im_p_len / length_crl) - 2,
+                np.ceil(im_p_len / length_crl) - 1,
+                np.ceil(im_p_len / length_crl),
+                np.ceil(im_p_len / length_crl) + 1,
+                np.ceil(im_p_len / length_crl) + 2,
+                np.ceil(im_p_len / length_crl) + 3,
+            ]
+        else:
+            im_pm_all_temp = [1, 2, 3, 4, 5, 6, 7]
+
+        if np.ceil(im_p_len / length_crd) > 4:
+            im_pm_all_temp.extend([
+                np.ceil(im_p_len / length_crd) - 3,
+                np.ceil(im_p_len / length_crd) - 2,
+                np.ceil(im_p_len / length_crd) - 1,
+                np.ceil(im_p_len / length_crd),
+                np.ceil(im_p_len / length_crd) + 1,
+                np.ceil(im_p_len / length_crd) + 2,
+                np.ceil(im_p_len / length_crl) + 3,
+            ])
+        else:
+            im_pm_all_temp.extend([1, 2, 3, 4, 5, 6, 7])
+
+        im_pm_all_temp.extend([1, 2, 3])
+
+        im_pm_all.append(im_pm_all_temp)
+
+    #m_a_recommend = analysis.m_sort(im_pm_all)
+    m_a_recommend = np.array(im_pm_all)
+
+    return (
+        m_a_recommend,
+        lengths,
+        isignature,
+        icurve,
+        ishapes,
+        length_crl,
+        length_crd,
+        isignature_local,
+        icurve_local,
+        ishapes_local,
+        isignature_dist,
+        icurve_dist,
+        ishapes_dist,
+    )
