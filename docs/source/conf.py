@@ -18,7 +18,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
-    'myst_parser',
     'autoapi.extension',
 ]
 autoapi_dirs = ['../../pycufsm']
