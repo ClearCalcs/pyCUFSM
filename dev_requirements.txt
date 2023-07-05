@@ -1,7 +1,7 @@
 numpy==1.25.0
 scipy==1.11.1
 matplotlib==3.7.1
-ipywidgets==8.0.6
+ipywidgets==8.0.7
 yapf==0.40.1
 toml==0.10.2 # Required for YAPF 
 typing_extensions==4.7.1
