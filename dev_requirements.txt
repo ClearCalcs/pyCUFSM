@@ -7,4 +7,4 @@ toml==0.10.2 # Required for YAPF
 typing_extensions==4.7.1
 mypy==1.5.1
 pylint==2.17.5
-cython==3.0.0
+cython==3.0.2
