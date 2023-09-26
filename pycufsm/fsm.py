@@ -8,10 +8,9 @@ import pycufsm.cfsm
 from pycufsm.analysis import analysis
 from pycufsm.helpers import inputs_new_to_old, lengths_recommend
 from pycufsm.preprocess import stress_gen, yield_mp
-from pycufsm.types import (
-    BC, Analysis_Config, ArrayLike, Cfsm_Config, Forces, GBT_Con, New_Constraint, New_Element,
-    New_Node_Props, New_Spring, Sect_Props, Yield_Force
-)
+from pycufsm.types import (BC, Analysis_Config, ArrayLike, Cfsm_Config, Forces,
+                           GBT_Con, New_Constraint, New_Element,
+                           New_Node_Props, New_Spring, Sect_Props, Yield_Force)
 
 # from scipy.sparse.linalg import eigs
 # Originally developed for MATLAB by Benjamin Schafer PhD et al
@@ -723,7 +722,7 @@ def signature_ss(
     i_springs = np.array([])
     i_constraints = np.array([])
     i_b_c: BC = 'S-S'
-    i_m_all = np.ones((len(lengths), 1)).tolist()
+    i_m_all = np.ones((len(lengths), 1))
 
     isignature, icurve, ishapes = pycufsm.fsm.strip(
         props=props,
