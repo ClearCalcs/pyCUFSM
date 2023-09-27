@@ -723,7 +723,7 @@ def signature_ss(
     i_springs = np.array([])
     i_constraints = np.array([])
     i_b_c: BC = 'S-S'
-    i_m_all = np.ones((len(lengths), 1)).tolist()
+    i_m_all = np.ones((len(lengths), 1))
 
     isignature, icurve, ishapes = pycufsm.fsm.strip(
         props=props,
