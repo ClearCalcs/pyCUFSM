@@ -8,6 +8,7 @@ try:
     except ImportError:
         # if we can build the cython module, build and use it
         import pyximport  # type: ignore
+
         pyximport.install(
             build_in_temp=False,
             inplace=True,

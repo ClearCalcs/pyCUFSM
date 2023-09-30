@@ -2,8 +2,7 @@ numpy==1.26.0
 scipy==1.11.3
 matplotlib==3.7.2
 ipywidgets==8.1.1
-yapf==0.40.2
-toml==0.10.2 # Required for YAPF 
+black==23.9.1
 typing_extensions==4.8.0
 mypy==1.5.1
 pylint==2.17.6

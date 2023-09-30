@@ -32,23 +32,21 @@ def mat_file_test(mat_filename):
         springs=cufsm_input["springs"],
         constraints=cufsm_input["constraints"],
         gbt_con=cufsm_input["GBTcon"],
-        b_c='S-S',
+        b_c="S-S",
         m_all=m_all_ones,
         n_eigs=1,
-        sect_props=sect_props_cutwp
+        sect_props=sect_props_cutwp,
     )
     lengths = list(cufsm_input["lengths"])
     return lengths, mat["curve"], sect_props_cutwp, signature, curve, shapes
 
 
 def describe_end_to_end_tests():
-
     @pspec_context("End-to-End Tests")
     def describe():
         pass
 
     def context_example_1():
-
         @pspec_context("Example 1: Both old and new input formats")
         def describe():
             pass
@@ -64,7 +62,6 @@ def describe_end_to_end_tests():
             assert np.allclose(results_old["Y_values_allmodes"], results_new["Y_values_allmodes"])
 
     def context_dsm_3_2_1_c_with_lips_Mx():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.1: C-Section with Lips (Mx)")
         def describe():
             pass
@@ -82,24 +79,16 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.0e-4)
 
     def context_dsm_3_2_1_c_with_lips_P():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.1: C-Section with Lips (P)")
         def describe():
             pass
 
         lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("cwlip_P.mat")
 
-        expected = {
-            "xcrl": 6.6,
-            "Pcrl": 0.12,
-            "xcrd": 28.5,
-            "Pcrd": 0.27,
-            "A": 0.880,
-            "Ixx": 10.285
-        }
+        expected = {"xcrl": 6.6, "Pcrl": 0.12, "xcrd": 28.5, "Pcrd": 0.27, "A": 0.880, "Ixx": 10.285}
 
         def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
@@ -110,26 +99,16 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Pcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.0e-4)
 
     def context_dsm_3_2_2_c_with_lips_modified_Mx():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.2: Modified C-Section with Lips (Mx)")
         def describe():
             pass
 
-        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test(
-            "cwlip_modified_Mx.mat"
-        )
+        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("cwlip_modified_Mx.mat")
 
-        expected = {
-            "xcrl": 2.7,
-            "Mcrl": 1.40,
-            "xcrd": 30.5,
-            "Mcrd": 0.98,
-            "A": 0.933,
-            "Ixx": 10.818
-        }
+        expected = {"xcrl": 2.7, "Mcrl": 1.40, "xcrd": 30.5, "Mcrd": 0.98, "A": 0.933, "Ixx": 10.818}
 
         def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
@@ -140,26 +119,16 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.0e-4)
 
     def context_dsm_3_2_2_c_with_lips_modified_P():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.2: Modified C-Section with Lips (P)")
         def describe():
             pass
 
-        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test(
-            "cwlip_modified_P.mat"
-        )
+        lengths, expected_curve, sect_props, signature, curve, _ = mat_file_test("cwlip_modified_P.mat")
 
-        expected = {
-            "xcrl": 11.5,
-            "Pcrl": 0.27,
-            "xcrd": 32.7,
-            "Pcrd": 0.32,
-            "A": 0.933,
-            "Ixx": 10.818
-        }
+        expected = {"xcrl": 11.5, "Pcrl": 0.27, "xcrd": 32.7, "Pcrd": 0.32, "A": 0.933, "Ixx": 10.818}
 
         def it_results_in_correct_sect_props():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
@@ -170,10 +139,9 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Pcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.0e-4)
 
     def context_dsm_3_2_5_z_with_lips_Mx():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.2: Z-Section with Lips (Mx)")
         def describe():
             pass
@@ -192,10 +160,9 @@ def describe_end_to_end_tests():
 
         def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[:-5, 1, 0], curve[:-5, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:-5, 1, 0], curve[:-5, 0], atol=1.0e-4)
 
     def context_dsm_3_2_5_z_with_lips_P():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.2: Z-Section with Lips (P)")
         def describe():
             pass
@@ -213,10 +180,9 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Pcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.0e-4)
 
     def context_dsm_3_2_8_equal_angle_Mx():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.8: Equal leg angle (Mx)")
         def describe():
             pass
@@ -235,10 +201,9 @@ def describe_end_to_end_tests():
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.0e-4)
 
     def context_dsm_3_2_11_rack_post_Mx():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.11: Rack post section (Mx)")
         def describe():
             pass
@@ -258,10 +223,9 @@ def describe_end_to_end_tests():
 
         def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[:-3, 1, 0], curve[:-3, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:-3, 1, 0], curve[:-3, 0], atol=1.0e-4)
 
     def context_dsm_3_2_11_rack_post_Mz():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.11: Rack post section (Mz)")
         def describe():
             pass
@@ -281,10 +245,9 @@ def describe_end_to_end_tests():
 
         def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[:-4, 1, 0], curve[:-4, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:-4, 1, 0], curve[:-4, 0], atol=1.0e-4)
 
     def context_dsm_3_2_11_rack_post_P():
-
         @pspec_context("DSM Guide Jan 2006, Ex 3.2.11: Rack post section (Mz)")
         def describe():
             pass
@@ -304,4 +267,4 @@ def describe_end_to_end_tests():
 
         def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.e-4)
+            assert np.allclose(expected_curve[:, 1, 0], curve[:, 0], atol=1.0e-4)

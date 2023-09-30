@@ -9,8 +9,18 @@ from pycufsm.analysis import analysis
 from pycufsm.helpers import inputs_new_to_old, lengths_recommend
 from pycufsm.preprocess import stress_gen, yield_mp
 from pycufsm.types import (
-    BC, Analysis_Config, ArrayLike, Cfsm_Config, Forces, GBT_Con, New_Constraint, New_Element,
-    New_Node_Props, New_Spring, Sect_Props, Yield_Force
+    BC,
+    Analysis_Config,
+    ArrayLike,
+    Cfsm_Config,
+    Forces,
+    GBT_Con,
+    New_Constraint,
+    New_Element,
+    New_Node_Props,
+    New_Spring,
+    Sect_Props,
+    Yield_Force,
 )
 
 # from scipy.sparse.linalg import eigs
@@ -23,9 +33,17 @@ from pycufsm.types import (
 
 
 def strip(
-    props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, lengths: np.ndarray,
-    springs: np.ndarray, constraints: np.ndarray, gbt_con: GBT_Con, b_c: BC, m_all: np.ndarray,
-    n_eigs: int, sect_props: Sect_Props
+    props: np.ndarray,
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    lengths: np.ndarray,
+    springs: np.ndarray,
+    constraints: np.ndarray,
+    gbt_con: GBT_Con,
+    b_c: BC,
+    m_all: np.ndarray,
+    n_eigs: int,
+    sect_props: Sect_Props,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Perform a finite strip analysis
 
@@ -41,10 +59,10 @@ def strip(
             These could be half-wavelengths for signature curve or physical lengths for general b.c.
         springs (np.ndarray): Nodal springs (if any)
             | `[[node#, node_pair, k_x, k_y, k_z, k_q, k_type, discrete, y_s], ...]`
-            where `k_flag` is 0 for a foundation spring, or 1 for a total spring. discrete is 1 for 
+            where `k_flag` is 0 for a foundation spring, or 1 for a total spring. discrete is 1 for
             a discrete spring. k_* are the spring stiffnesses for each DOF, and y_s is the location
             of the discrete spring; it is ignored if the spring is not discrete.
-        constraints (np.ndarray): 
+        constraints (np.ndarray):
             | `[[node#_e dof_e coeff node#_k dof_k], ...]
             where k=kept dof, e=dof to be eliminated. Each DOF is set as an integer where
             1=x, 2=y, 3=z, 4=q.
@@ -61,7 +79,7 @@ def strip(
             |   "orth": 1|2|3,
             | }
             gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other:
-                vectors of 1's and 0's referring to the inclusion (1) or exclusion of a 
+                vectors of 1's and 0's referring to the inclusion (1) or exclusion of a
                 given mode from the analysis,
             gbt_con.o_space - choices of ST/O mode
                 | 1: ST basis
@@ -91,10 +109,10 @@ def strip(
             | m_all[length#] = [longitudinal_num, ...],
             Longitudinal terms m for all the lengths in cell notation
             each cell has a vector including the longitudinal terms for this length
-        n_eigs (int): Number of eigenvalues 
+        n_eigs (int): Number of eigenvalues
             The number of eigenvalues to be determined at length (default=10)
         sect_props (Sect_Props): Section properties
-            | { 
+            | {
             |   "A": float,
             |   "cx": float,
             |   "cy": float,
@@ -140,8 +158,7 @@ def strip(
     el_props = analysis.elem_prop(nodes=nodes, elements=elements)
 
     # ENABLE cFSM ANALYSIS IF APPLICABLE, AND FIND BASE PROPERTIES
-    if sum(gbt_con['glob']) + sum(gbt_con['dist']) \
-                + sum(gbt_con['local']) + sum(gbt_con['other']) > 0:
+    if sum(gbt_con["glob"]) + sum(gbt_con["dist"]) + sum(gbt_con["local"]) + sum(gbt_con["other"]) > 0:
         # turn on modal classification analysis
         cfsm_analysis = 1
         # set u_p stress to 1.0 for finding kg_global and k_global for axial modes
@@ -150,15 +167,23 @@ def strip(
 
         # natural base first
         # properties all the longitudinal terms share
-        [main_nodes, meta_elements, node_props, n_main_nodes, \
-            n_corner_nodes, n_sub_nodes, n_dist_modes, n_local_modes, dof_perm] \
-            = pycufsm.cfsm.base_properties(nodes=nodes_base, elements=elements)
+        [
+            main_nodes,
+            meta_elements,
+            node_props,
+            n_main_nodes,
+            n_corner_nodes,
+            n_sub_nodes,
+            n_dist_modes,
+            n_local_modes,
+            dof_perm,
+        ] = pycufsm.cfsm.base_properties(nodes=nodes_base, elements=elements)
         [r_x, r_z, r_yd, r_ys, r_ud] = pycufsm.cfsm.mode_constr(
             nodes=nodes_base,
             elements=elements,
             node_props=node_props,
             main_nodes=main_nodes,
-            meta_elements=meta_elements
+            meta_elements=meta_elements,
         )
         [d_y, n_global_modes] = pycufsm.cfsm.y_dofs(
             nodes=nodes_base,
@@ -169,7 +194,7 @@ def strip(
             r_yd=r_yd,
             r_ud=r_ud,
             sect_props=sect_props,
-            el_props=el_props
+            el_props=el_props,
         )
     else:
         # no modal classification constraints are engaged
@@ -204,17 +229,11 @@ def strip(
                 r_x=r_x,
                 r_z=r_z,
                 r_ys=r_ys,
-                d_y=d_y
+                d_y=d_y,
             )
 
         k_global, kg_global = analysis.k_kg_global(
-            nodes=nodes,
-            elements=elements,
-            el_props=el_props,
-            props=props,
-            length=length,
-            b_c=b_c,
-            m_a=m_a
+            nodes=nodes, elements=elements, el_props=el_props, props=props, length=length, b_c=b_c, m_a=m_a
         )
 
         # ADD SPRING CONTRIBUTIONS TO STIFFNESS
@@ -232,15 +251,7 @@ def strip(
                 discrete = spring[8]
                 y_s = spring[9] * length
                 ks_l = analysis.spring_klocal(
-                    k_u=k_u,
-                    k_v=k_v,
-                    k_w=k_w,
-                    k_q=k_q,
-                    length=length,
-                    b_c=b_c,
-                    m_a=m_a,
-                    discrete=discrete,
-                    y_s=y_s
+                    k_u=k_u, k_v=k_v, k_w=k_w, k_q=k_q, length=length, b_c=b_c, m_a=m_a, discrete=discrete, y_s=y_s
                 )
 
                 # Transform k_s into global coordinates
@@ -258,7 +269,7 @@ def strip(
                     d_x = x_j - x_i
                     d_y = y_j - y_i
                     width = np.sqrt(d_x**2 + d_y**2)
-                    if width < 1E-10:  # coincident nodes
+                    if width < 1e-10:  # coincident nodes
                         alpha = 0  # use global coordinates for spring
                     else:
                         # local orientation for spring
@@ -271,12 +282,7 @@ def strip(
 
                 # Add element contribution of k_s to full matrix k_global
                 k_global = analysis.spring_assemble(
-                    k_global=k_global,
-                    k_local=k_s,
-                    node_i=node_i,
-                    node_j=node_j,
-                    n_nodes=n_nodes,
-                    m_a=m_a
+                    k_global=k_global, k_local=k_s, node_i=node_i, node_j=node_j, n_nodes=n_nodes, m_a=m_a
                 )
 
         # INTERNAL BOUNDARY CONDITIONS (ON THE NODES) AND USER DEFINED CONSTR.
@@ -305,7 +311,7 @@ def strip(
                 n_dist_modes=n_dist_modes,
                 n_local_modes=n_local_modes,
                 b_c=b_c,
-                el_props=el_props
+                el_props=el_props,
             )
             # no normalization is enforced: 0:  m
             # assign base vectors to constraints
@@ -316,7 +322,7 @@ def strip(
                 n_local_modes=n_local_modes,
                 gbt_con=gbt_con,
                 n_dof_m=4 * n_nodes,
-                m_a=m_a
+                m_a=m_a,
             )  # m
             r_mode = b_v
             # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -337,7 +343,7 @@ def strip(
                 nm0 = len(r_m0_matrix[0])
                 r_0_matrix = r_m0_matrix
                 if nu0 > 0:
-                    r_0_matrix[:, nm0:(nm0 + nu0)] = r_u0_matrix
+                    r_0_matrix[:, nm0 : (nm0 + nu0)] = r_u0_matrix
                 r_matrix = spla.null_space(r_0_matrix.conj().T)
             else:
                 r_matrix = spla.null_space(r_u0_matrix.conj().T)
@@ -381,7 +387,7 @@ def strip(
         [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
         # CLEAN UP THE EIGEN SOLUTION
         # eigenvalues are along the diagonal of matrix length_factors
-        #length_factors = np.diag(length_factors)
+        # length_factors = np.diag(length_factors)
         # find all the positive eigenvalues and corresponding vectors, squeeze out the rest
         index = np.logical_and(length_factors > 0, abs(np.imag(length_factors)) < 0.00001)
         length_factors = length_factors[index]
@@ -452,25 +458,25 @@ def strip_new(
             | `[[x, y, stress], ...]`
             | or
             | `[[x, y], ...]`
-            The latter option assumes that the stress will be set using 
+            The latter option assumes that the stress will be set using
             Note that any node numbers used in later inputs refer to the **index** of the node in
-            this `nodes` array, with the first node being node number 0. 
-        elements (Sequence[New_Element]): Element connectivity and properties 
+            this `nodes` array, with the first node being node number 0.
+        elements (Sequence[New_Element]): Element connectivity and properties
             | [{
-            |   `nodes: "all"|List[int],` 
-            |   `t: float,`              
-            |   `mat: str`               
+            |   `nodes: "all"|List[int],`
+            |   `t: float,`
+            |   `mat: str`
             | )].
             elements["nodes"]:
-                `nodes: "all"` is a special indicator that all nodes should be connected 
-                sequentially. If `nodes` is given as an array, any number of nodal indices 
+                `nodes: "all"` is a special indicator that all nodes should be connected
+                sequentially. If `nodes` is given as an array, any number of nodal indices
                 may be listed in order
             elements["t"]:
                 Material thickness
             elements["mat"]:
                 material name as a string
         sect_props (Sect_Props): Section properties
-            | { 
+            | {
             |   "A": float,
             |   "cx": float,
             |   "cy": float,
@@ -492,7 +498,7 @@ def strip_new(
         lengths (Union[ArrayLike, set, Dict[float, ArrayLike]): Half-wavelengths for analysis
             | `[length1, length2, ...]`
             | or
-            | `{length1: List[int], length2: List[int], ...}        
+            | `{length1: List[int], length2: List[int], ...}
             If given as a simple array, then the longitudinal m term will be taken as `[1]` for each
             half-wavelength (which is normally what you want for a signature curve analysis). If
             given as a dictionary, then the longitudinal m terms must be set to an array with
@@ -532,7 +538,7 @@ def strip_new(
             |    keep_dof: "x"|"y"|"z"|"q"
             | }, ...]
             `"q"` is the twist DOF. Each constraint takes the form of `elim_dof = coeff * keep_dof`.
-            Defaults to None. 
+            Defaults to None.
         analysis_config (Optional[Analysis_Config]): Configuration options for any analysis
             | {
             |    b_c: "S-S"|"C-C"|"S-C"|"C-F"|"C-G",
@@ -545,15 +551,15 @@ def strip_new(
                 | 'S-C' simple-clamped
                 | 'C-F' clamped-free
                 | 'C-G' clamped-guided
-        cfsm_config (Optional[Cfsm_Config]): Configuration options for cFSM (constrained modes) 
+        cfsm_config (Optional[Cfsm_Config]): Configuration options for cFSM (constrained modes)
             | {
-            |    glob_modes: list(int), 
-            |    dist_modes: list(int), 
+            |    glob_modes: list(int),
+            |    dist_modes: list(int),
             |    local_modes: list(int),
-            |    other_modes: list(int),     
+            |    other_modes: list(int),
             |    null_space: "ST"|"k_global"|"kg_global"|"vector",
             |    normalization: "none"|"vector"|"strain_energy"|"work",
-            |    coupled: bool,              
+            |    coupled: bool,
             |    orthogonality: "natural"|"modal_axial"|"modal_load"
             }
             Defaults to None, in which case no cFSM analysis is performed
@@ -584,7 +590,7 @@ def strip_new(
             Either this or 'forces' must be set, or stresses must be set manually in `nodes`.
             yield_force["restrain"]:
                 Note that 'restrain' only affects "Mxx" or "Myy" forces, and then only for sections
-                in which the principal axes are no aligned with the geometric axes (such as Z 
+                in which the principal axes are no aligned with the geometric axes (such as Z
                 sections)
             yield_force["offset"]:
                 | `[x_offset, y_offset]`
@@ -603,7 +609,7 @@ def strip_new(
             | }
             forces["restrain"]:
                 Note that 'restrain' only affects "Mxx" or "Myy" forces, and then only for sections
-                in which the principal axes are no aligned with the geometric axes (such as Z 
+                in which the principal axes are no aligned with the geometric axes (such as Z
                 sections)
             forces["offset"]:
                 | `[x_offset, y_offset]`
@@ -611,7 +617,7 @@ def strip_new(
                 (0,0) coordinate used to define the nodal coordinates. This may commonly differ
                 by thickness/2, for example, if an external section properties calculator is used
             Either this or 'yield_force' must be set, or stresses must be set manually in `nodes`.
-            
+
 
     Returns:
         signature (np.ndarray): Signature curve
@@ -631,8 +637,16 @@ def strip_new(
         lengths = []
 
     (
-        props_old, nodes_old, elements_old, lengths_old, springs_old, constraints_old, gbt_con_old,
-        b_c_old, m_all_old, n_eigs_old
+        props_old,
+        nodes_old,
+        elements_old,
+        lengths_old,
+        springs_old,
+        constraints_old,
+        gbt_con_old,
+        b_c_old,
+        m_all_old,
+        n_eigs_old,
     ) = inputs_new_to_old(
         props=props,
         nodes=nodes,
@@ -642,36 +656,24 @@ def strip_new(
         constraints=constraints,
         node_props=node_props,
         analysis_config=analysis_config,
-        cfsm_config=cfsm_config
+        cfsm_config=cfsm_config,
     )
 
     if forces is None and yield_force is not None:
-        restrained = yield_force['restrain'] if 'restrain' in yield_force else False
-        offset = yield_force[
-            'offset'] if 'offset' in yield_force and yield_force['offset'] is not None else [0, 0]
-        all_yields = yield_mp(
-            nodes=nodes_old, f_y=yield_force['f_y'], sect_props=sect_props, restrained=restrained
-        )
-        forces = {
-            "Mxx": 0,
-            "Myy": 0,
-            "M11": 0,
-            "M22": 0,
-            "P": 0,
-            "restrain": restrained,
-            "offset": offset
-        }
-        if yield_force['direction'] == '-' or yield_force['direction'] == 'Neg':
+        restrained = yield_force["restrain"] if "restrain" in yield_force else False
+        offset = yield_force["offset"] if "offset" in yield_force and yield_force["offset"] is not None else [0, 0]
+        all_yields = yield_mp(nodes=nodes_old, f_y=yield_force["f_y"], sect_props=sect_props, restrained=restrained)
+        forces = {"Mxx": 0, "Myy": 0, "M11": 0, "M22": 0, "P": 0, "restrain": restrained, "offset": offset}
+        if yield_force["direction"] == "-" or yield_force["direction"] == "Neg":
             multiplier = -1
         else:
             multiplier = 1
-        forces[yield_force['force']] = all_yields[yield_force['force']] * multiplier
+        forces[yield_force["force"]] = all_yields[yield_force["force"]] * multiplier
     elif forces is not None and yield_force is not None:
         raise ValueError("Only one of 'forces' or 'yield_force' may be set - but not both")
     elif forces is None and yield_force is None and np.shape(nodes)[1] == 2:
         raise ValueError(
-            "Either 'forces' or 'yield_force' must be set, "
-            + "or stress must be set manually for each node"
+            "Either 'forces' or 'yield_force' must be set, " + "or stress must be set manually for each node"
         )
     if forces is not None:
         nodes_stressed = stress_gen(nodes=nodes_old, forces=forces, sect_props=sect_props)
@@ -692,15 +694,19 @@ def strip_new(
         b_c=b_c_old,
         m_all=m_all_old,
         n_eigs=n_eigs_old,
-        sect_props=sect_props
+        sect_props=sect_props,
     )
 
     return signature, curve, shapes, nodes_stressed, lengths_old
 
 
 def signature_ss(
-    props: np.ndarray, nodes: np.ndarray, elements: np.ndarray, i_gbt_con: GBT_Con,
-    sect_props: Sect_Props, lengths: np.ndarray
+    props: np.ndarray,
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    i_gbt_con: GBT_Con,
+    sect_props: Sect_Props,
+    lengths: np.ndarray,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """generate the signature curve solution, part 2: actually solve the signature curve
 
@@ -716,13 +722,13 @@ def signature_ss(
         signature: signature curve,
         curve: all the curve results,
         shapes: deformed shapes at each point
-    
+
     (function originally in helpers; moved to fsm because it drives entire fsm analyses)
     Z. Li, July 2010 (last modified)
     """
     i_springs = np.array([])
     i_constraints = np.array([])
-    i_b_c: BC = 'S-S'
+    i_b_c: BC = "S-S"
     i_m_all = np.ones((len(lengths), 1))
 
     isignature, icurve, ishapes = pycufsm.fsm.strip(
@@ -749,9 +755,22 @@ def m_recommend(
     sect_props: Sect_Props,
     length_append: Optional[float] = None,
     n_lengths: int = 50,
-    lengths: Optional[np.ndarray] = None
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    lengths: Optional[np.ndarray] = None,
+) -> Tuple[
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+]:
     """Suggested longitudinal terms are calculated based on the characteristic
     half-wave lengths of local, distortional, and global buckling from the
     signature curve.
@@ -761,15 +780,15 @@ def m_recommend(
         nodes (np.ndarray): standard parameter
         elements (np.ndarray): standard parameter
         sect_props (Sect_Props): section properties
-        length_append (Optional[float], optional): any additional half-wavelength to include. 
+        length_append (Optional[float], optional): any additional half-wavelength to include.
             Defaults to None.
         n_lengths (int, optional): number of half-wavelengths. Defaults to 50.
-        lengths (Optional[np.ndarray], optional): specific half-wavelengths to use. 
+        lengths (Optional[np.ndarray], optional): specific half-wavelengths to use.
             Defaults to None.
 
     Returns:
         _type_: _description_
-    
+
     (function originally in helpers; moved to fsm because it drives entire fsm analyses)
     Z. Li, Oct. 2010
     """
@@ -784,18 +803,11 @@ def m_recommend(
         "norm": 1,
     }
     if lengths is None:
-        lengths = lengths_recommend(
-            nodes=nodes, elements=elements, length_append=length_append, n_lengths=n_lengths
-        )
+        lengths = lengths_recommend(nodes=nodes, elements=elements, length_append=length_append, n_lengths=n_lengths)
 
     print("Running initial pyCUFSM signature curve")
     isignature, icurve, ishapes = signature_ss(
-        props=props,
-        nodes=nodes,
-        elements=elements,
-        i_gbt_con=i_gbt_con,
-        sect_props=sect_props,
-        lengths=lengths
+        props=props, nodes=nodes, elements=elements, i_gbt_con=i_gbt_con, sect_props=sect_props, lengths=lengths
     )
 
     curve_signature = np.zeros((len(lengths), 2))
@@ -810,9 +822,7 @@ def m_recommend(
         if load2 < load1 and load2 <= load3:
             local_minima.append(curve_signature[i + 1, 0])
 
-    _, _, _, _, _, _, n_dist_modes, n_local_modes, _ = pycufsm.cfsm.base_properties(
-        nodes=nodes, elements=elements
-    )
+    _, _, _, _, _, _, n_dist_modes, n_local_modes, _ = pycufsm.cfsm.base_properties(nodes=nodes, elements=elements)
 
     n_global_modes = 4
     n_other_modes = 2 * (len(nodes) - 1)
@@ -824,12 +834,7 @@ def m_recommend(
 
     print("Running pyCUFSM local modes curve")
     isignature_local, icurve_local, ishapes_local = signature_ss(
-        props=props,
-        nodes=nodes,
-        elements=elements,
-        i_gbt_con=i_gbt_con,
-        sect_props=sect_props,
-        lengths=lengths
+        props=props, nodes=nodes, elements=elements, i_gbt_con=i_gbt_con, sect_props=sect_props, lengths=lengths
     )
 
     print("Running pyCUFSM distortional modes curve")
@@ -838,12 +843,7 @@ def m_recommend(
     i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
     i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
     isignature_dist, icurve_dist, ishapes_dist = signature_ss(
-        props=props,
-        nodes=nodes,
-        elements=elements,
-        i_gbt_con=i_gbt_con,
-        sect_props=sect_props,
-        lengths=lengths
+        props=props, nodes=nodes, elements=elements, i_gbt_con=i_gbt_con, sect_props=sect_props, lengths=lengths
     )
 
     curve_signature_local = np.zeros((len(lengths), 2))
@@ -853,7 +853,7 @@ def m_recommend(
     curve_signature_dist[:, 0] = lengths
     curve_signature_dist[:, 1] = isignature_dist
 
-    #cFSM local half-wavelength
+    # cFSM local half-wavelength
     local_minima_local = []
     for i, c_sign in enumerate(curve_signature_local[:-2]):
         load1 = c_sign[1]
@@ -866,7 +866,7 @@ def m_recommend(
         ind = np.argmin([val[1] for val in curve_signature_local])
         local_minima_local.append(curve_signature_local[ind, 0])
 
-    #cFSM dist half-wavelength
+    # cFSM dist half-wavelength
     local_minima_dist = []
     for i, c_sign in enumerate(curve_signature_dist[:-2]):
         load1 = c_sign[1]
@@ -884,14 +884,13 @@ def m_recommend(
         length_crd = local_minima[1]
 
     else:
-        #half-wavelength of local and distortional buckling
+        # half-wavelength of local and distortional buckling
         length_crl = local_minima_local[0]
         length_crd = local_minima_dist[0]
 
-    #recommend longitudinal terms m
+    # recommend longitudinal terms m
     im_pm_all = []
     for im_p_len in lengths:
-
         if np.ceil(im_p_len / length_crl) > 4:
             im_pm_all_temp = [
                 np.ceil(im_p_len / length_crl) - 3,
@@ -906,15 +905,17 @@ def m_recommend(
             im_pm_all_temp = [1, 2, 3, 4, 5, 6, 7]
 
         if np.ceil(im_p_len / length_crd) > 4:
-            im_pm_all_temp.extend([
-                np.ceil(im_p_len / length_crd) - 3,
-                np.ceil(im_p_len / length_crd) - 2,
-                np.ceil(im_p_len / length_crd) - 1,
-                np.ceil(im_p_len / length_crd),
-                np.ceil(im_p_len / length_crd) + 1,
-                np.ceil(im_p_len / length_crd) + 2,
-                np.ceil(im_p_len / length_crl) + 3,
-            ])
+            im_pm_all_temp.extend(
+                [
+                    np.ceil(im_p_len / length_crd) - 3,
+                    np.ceil(im_p_len / length_crd) - 2,
+                    np.ceil(im_p_len / length_crd) - 1,
+                    np.ceil(im_p_len / length_crd),
+                    np.ceil(im_p_len / length_crd) + 1,
+                    np.ceil(im_p_len / length_crd) + 2,
+                    np.ceil(im_p_len / length_crl) + 3,
+                ]
+            )
         else:
             im_pm_all_temp.extend([1, 2, 3, 4, 5, 6, 7])
 
@@ -922,7 +923,7 @@ def m_recommend(
 
         im_pm_all.append(im_pm_all_temp)
 
-    #m_a_recommend = analysis.m_sort(im_pm_all)
+    # m_a_recommend = analysis.m_sort(im_pm_all)
     m_a_recommend = np.array(im_pm_all)
 
     return (

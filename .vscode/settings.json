@@ -5,8 +5,6 @@
         "**/.hg": true,
         "**/.DS_Store": true
     },
-    "python.formatting.provider": "yapf",
-    "python.linting.pylintEnabled": true,
     "cSpell.words": [
         "Adany",
         "AISI",
@@ -46,16 +44,17 @@
         "unlipped",
         "Zhanjie"
     ],
-    "editor.formatOnSave": true,
-    "editor.formatOnType": true,
-    "python.linting.mypyEnabled": true,
     "cSpell.diagnosticLevel": "Hint",
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
     },
-    "editor.formatOnPaste": true,
-    "python.linting.mypyArgs": [
-        "--show-column-numbers",
-        "--no-pretty"
-    ]
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+    },
+    "mypy-type-checker.reportingScope": "workspace",
+    "pylint.severity": {
+        "refactor": "Information"
+    }
 }
