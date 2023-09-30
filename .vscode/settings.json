@@ -53,5 +53,8 @@
         "editor.formatOnSave": true,
         "editor.formatOnPaste": true,
     },
-    "mypy-type-checker.reportingScope": "workspace"
+    "mypy-type-checker.reportingScope": "workspace",
+    "pylint.severity": {
+        "refactor": "Information"
+    }
 }

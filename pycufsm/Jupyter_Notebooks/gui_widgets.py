@@ -10,30 +10,34 @@ def prevals() -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarra
     springs = np.array([])
     constraints = np.array([])
     flag = [1, 0, 0, 0, 1, 0, 0, 0, 0, 0]
-    props = np.array([[0, 29500, 29500, 0.3, 0.3, 29500 / (2 * (1+0.3))]])
-    nodes = np.array([
-        [0, 2.5, 0.773, 1, 1, 1, 1, 1],
-        [1, 2.5, 0, 1, 1, 1, 1, 1],
-        [2, 1.25, 0, 1, 1, 1, 1, 1],
-        [3, 0, 0, 1, 1, 1, 1, 1],
-        [4, 0, 3, 1, 1, 1, 1, 1],
-        [5, 0, 6, 1, 1, 1, 1, 1],
-        [6, 0, 9, 1, 1, 1, 1, 1],
-        [7, 1.25, 9, 1, 1, 1, 1, 1],
-        [8, 2.5, 9, 1, 1, 1, 1, 1],
-        [9, 2.5, 8.227, 1, 1, 1, 1, 1],
-    ])
-    elements = np.array([
-        [0, 0, 1, 0.059, 0],
-        [1, 1, 2, 0.059, 0],
-        [2, 2, 3, 0.059, 0],
-        [3, 3, 4, 0.059, 0],
-        [4, 4, 5, 0.059, 0],
-        [5, 5, 6, 0.059, 0],
-        [6, 6, 7, 0.059, 0],
-        [7, 7, 8, 0.059, 0],
-        [8, 8, 9, 0.059, 0],
-    ])
+    props = np.array([[0, 29500, 29500, 0.3, 0.3, 29500 / (2 * (1 + 0.3))]])
+    nodes = np.array(
+        [
+            [0, 2.5, 0.773, 1, 1, 1, 1, 1],
+            [1, 2.5, 0, 1, 1, 1, 1, 1],
+            [2, 1.25, 0, 1, 1, 1, 1, 1],
+            [3, 0, 0, 1, 1, 1, 1, 1],
+            [4, 0, 3, 1, 1, 1, 1, 1],
+            [5, 0, 6, 1, 1, 1, 1, 1],
+            [6, 0, 9, 1, 1, 1, 1, 1],
+            [7, 1.25, 9, 1, 1, 1, 1, 1],
+            [8, 2.5, 9, 1, 1, 1, 1, 1],
+            [9, 2.5, 8.227, 1, 1, 1, 1, 1],
+        ]
+    )
+    elements = np.array(
+        [
+            [0, 0, 1, 0.059, 0],
+            [1, 1, 2, 0.059, 0],
+            [2, 2, 3, 0.059, 0],
+            [3, 3, 4, 0.059, 0],
+            [4, 4, 5, 0.059, 0],
+            [5, 5, 6, 0.059, 0],
+            [6, 6, 7, 0.059, 0],
+            [7, 7, 8, 0.059, 0],
+            [8, 8, 9, 0.059, 0],
+        ]
+    )
     return props, nodes, elements, springs, constraints, flag
 
 
@@ -49,17 +53,13 @@ def prevals() -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarra
 
 
 class Preprocess:
-
-    def wprops(self, props: np.ndarray,
-               m: int) -> Tuple[widgets.VBox, widgets.Button, widgets.Button, list]:
+    def wprops(self, props: np.ndarray, m: int) -> Tuple[widgets.VBox, widgets.Button, widgets.Button, list]:
         self.m = m
         matTitle = widgets.Label(value="Material Properties")
         mattext = ["mat#", "Ex", "Ey", "vx", "vy", "G"]
         prop: List[widgets.GridBox] = [[] for i in range(self.m)]
         self.mitems: List[widgets.FloatText] = [[] for i in range(self.m)]
-        self.ADDMAT = widgets.Button(
-            description="Add Material", layout=widgets.Layout(border="solid 1px black")
-        )
+        self.ADDMAT = widgets.Button(description="Add Material", layout=widgets.Layout(border="solid 1px black"))
         self.DELMAT = widgets.Button(
             description="Remove Material",
             layout=widgets.Layout(border="solid 1px black"),
@@ -72,9 +72,7 @@ class Preprocess:
             if i < len(self.props):
                 for j in range(6):
                     self.mitems[i].append(
-                        widgets.FloatText(
-                            value=self.props[i, j], layout=widgets.Layout(width="70px")
-                        )
+                        widgets.FloatText(value=self.props[i, j], layout=widgets.Layout(width="70px"))
                     )
                 prop[i] = widgets.GridBox(
                     self.mitems[i],
@@ -106,42 +104,28 @@ class Preprocess:
         nodetext = ["Node#", "x", "y", "xdof", "zdof", "ydof", "qdof", "stress"]
         node = [[] for i in range(self.n)]
         self.nitems = [[] for i in range(self.n)]
-        self.ADDNODE = widgets.Button(
-            description="Add Node", layout=widgets.Layout(border="solid 1px black")
-        )
-        self.DELNODE = widgets.Button(
-            description="Remove Node", layout=widgets.Layout(border="solid 1px black")
-        )
-        nlabel = widgets.HBox([
-            widgets.Label(value=nodetext[j], layout=widgets.Layout(width="55px")) for j in range(8)
-        ])
+        self.ADDNODE = widgets.Button(description="Add Node", layout=widgets.Layout(border="solid 1px black"))
+        self.DELNODE = widgets.Button(description="Remove Node", layout=widgets.Layout(border="solid 1px black"))
+        nlabel = widgets.HBox([widgets.Label(value=nodetext[j], layout=widgets.Layout(width="55px")) for j in range(8)])
         for i in range(self.n):
             if i < len(self.nodes):
                 for j in range(8):
                     self.nitems[i].append(
                         widgets.FloatText(
                             value=self.nodes[i, j],
-                            layout=widgets.Layout(
-                                width="57px", height="22px", font=("Helvetica", 8)
-                            ),
+                            layout=widgets.Layout(width="57px", height="22px", font=("Helvetica", 8)),
                         )
                     )
-                node[i] = widgets.HBox(
-                    self.nitems[i], layout=widgets.Layout(width="490px", height="30px")
-                )
+                node[i] = widgets.HBox(self.nitems[i], layout=widgets.Layout(width="490px", height="30px"))
             if i >= len(self.nodes):
                 for j in range(8):
                     self.nitems[i].append(
                         widgets.FloatText(
                             value=self.nodes[i - 1, j],
-                            layout=widgets.Layout(
-                                width="57px", height="22px", font=("Helvetica", 8)
-                            ),
+                            layout=widgets.Layout(width="57px", height="22px", font=("Helvetica", 8)),
                         )
                     )
-                node[i] = widgets.HBox(
-                    self.nitems[i], layout=widgets.Layout(width="490px", height="30px")
-                )
+                node[i] = widgets.HBox(self.nitems[i], layout=widgets.Layout(width="490px", height="30px"))
         noder0 = widgets.VBox([node[j] for j in range(n)])
         brow = widgets.HBox([self.ADDNODE, self.DELNODE])
         self.rnode = widgets.VBox(
@@ -401,12 +385,8 @@ class Preprocess:
         self.constraints = constraints
         self.flag = flag
         self.rowm, self.ADDMAT, self.DELMAT, self.mitems = self.wprops(self.props, len(self.props))
-        self.rnode, self.ADDNODE, self.DELNODE, self.nitems = self.wnodes(
-            self.nodes, len(self.nodes)
-        )
-        self.relem, self.ADDELEM, self.DELELEM, self.eitems = self.welems(
-            self.elements, len(self.elements)
-        )
+        self.rnode, self.ADDNODE, self.DELNODE, self.nitems = self.wnodes(self.nodes, len(self.nodes))
+        self.relem, self.ADDELEM, self.DELELEM, self.eitems = self.welems(self.elements, len(self.elements))
         self.rflag, self.Submit, self.flags = self.wflag(self.flag)
         self.rBC, self.bc_widget, self.neigs = self.wBound_Cond()
         self.cs = widgets.Output()
