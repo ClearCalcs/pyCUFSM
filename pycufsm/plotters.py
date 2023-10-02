@@ -51,7 +51,9 @@ def crossect(
         scale = 1
         maxstress = max(np.abs(nodes[:, 7]))
         stress = np.append(
-            nodes[:, 0].reshape((len(nodes), 1)), (nodes[:, 7] / maxstress).reshape((len(nodes), 1)), axis=1
+            nodes[:, 0].reshape((len(nodes), 1)),
+            (nodes[:, 7] / maxstress).reshape((len(nodes), 1)),
+            axis=1,
         )
         maxi = np.max(np.abs(nodes[:, 1:3]))
         maxoffset = scale * np.max(maxi) / 10
@@ -84,7 +86,7 @@ def crossect(
             ]
         )
         plt.plot([x_i, x_j], [z_i, z_j], "bo", markersize=0.5)
-        polygon = Polygon(points, True, ec="b", fc=(1, 1, 0, 1), lw=0.5)
+        polygon = Polygon(xy=points, closed=True, ec="b", fc=(1, 1, 0, 1), lw=0.5)
         ax1.add_artist(polygon)
         # patches.append(polygon)
         if stresspicflag == 1:
@@ -111,7 +113,12 @@ def crossect(
             plt.text((x_i + x_j) / 2, (z_i + z_j) / 2, str(elements[i, 0] + 1), fontsize=8)
         # plot the materials labels if wanted
         if matflag == 1:
-            plt.text((x_i + x_j) / 2 + 10, (z_i + z_j) / 2 + 10, str(elements[i, 4]), fontsize=8)
+            plt.text(
+                (x_i + x_j) / 2 + 10,
+                (z_i + z_j) / 2 + 10,
+                str(elements[i, 4]),
+                fontsize=8,
+            )
         # Plot th stress distribution in 3D if wanted
         #####___#####
     ####Patches of cross section
@@ -227,7 +234,7 @@ def dispshap(
             x_min = min(x_min, np.min(points[:, 0]))
             y_min = min(y_min, np.min(points[:, 1]))
             # points = np.random.rand(5 ,2)
-            polygon = Polygon(points, True, ec="b", fc="y", lw=0.5)
+            polygon = Polygon(xy=points, closed=True, ec="b", fc="y", lw=0.5)
             axes.add_artist(polygon)
             plt.plot([x_i, x_j], [z_i, z_j], "bo", markersize=2)
     # patch = PatchCollection(patches, cmap =jet, alpha=0.4)
@@ -305,17 +312,26 @@ def dispshap(
         disp[0, 1:links] = undisp[0, 1:links] + scale * dlbarm[0, :]
         disp[1, 1:links] = undisp[1, 1:links] + scale * dlbarm[2, :]
         # The angle of each link
-        thetalinks = np.arctan2(disp[1, 1 : links + 1] - disp[1, 0:links], disp[0, 1 : links + 1] - disp[0, 0:links])
+        thetalinks = np.arctan2(
+            disp[1, 1 : links + 1] - disp[1, 0:links],
+            disp[0, 1 : links + 1] - disp[0, 0:links],
+        )
         thetalinks = np.append(thetalinks, thetalinks[links - 1])
         # Plot the deformed geometry
         theta = np.arctan2((z_j - z_i), (x_j - x_i))
         thick = elements[i, 3]
         # Deformed geomtery with appropriate thickness
         dispout = np.array(
-            [[disp[0, :] + np.sin(thetalinks) * thick / 2], [disp[1, :] - np.cos(thetalinks) * thick / 2]]
+            [
+                [disp[0, :] + np.sin(thetalinks) * thick / 2],
+                [disp[1, :] - np.cos(thetalinks) * thick / 2],
+            ]
         ).T
         dispin = np.array(
-            [[disp[0, :] - np.sin(thetalinks) * thick / 2], [disp[1, :] + np.cos(thetalinks) * thick / 2]]
+            [
+                [disp[0, :] - np.sin(thetalinks) * thick / 2],
+                [disp[1, :] + np.cos(thetalinks) * thick / 2],
+            ]
         ).T
         dispout = dispout.reshape((11, 2))
         dispin = dispin.reshape((11, 2))
@@ -328,10 +344,15 @@ def dispshap(
                     [dispout[j + 1, 0], dispout[j + 1, 1]],
                 ]
             )
-            polygon = Polygon(defpoints, True, ec="r", fc="r", lw=0.5)
+            polygon = Polygon(xy=defpoints, closed=True, ec="r", fc="r", lw=0.5)
             # defpatches = defpatches.append(polygon)
             axes.add_artist(polygon)
-        plt.plot([disp[0, 0], disp[0, links]], [disp[1, 0], disp[1, links]], "bo", markersize=2)
+        plt.plot(
+            [disp[0, 0], disp[0, links]],
+            [disp[1, 0], disp[1, links]],
+            "bo",
+            markersize=2,
+        )
     PatchCollection(defpatches, cmap="jet", alpha=0.4)
     # dcolors = 100*np.random.rand(len(patches))
     # def_patch.set_array(np.array(dcolors))
@@ -388,11 +409,21 @@ def thecurve3(
         mark = ["b", marker[(file_i) % 10]]
         if logopt == 1:
             for j, mode in enumerate(modedisplay):
-                ax2.semilogx(curve[:, mode - 1, 0], curve[:, mode - 1, 1], color=color1[(j % 4)], marker=mark[1])
+                ax2.semilogx(
+                    curve[:, mode - 1, 0],
+                    curve[:, mode - 1, 1],
+                    color=color1[(j % 4)],
+                    marker=mark[1],
+                )
                 # ax2.semilogx(curve_sign[:,0], curve_sign[:,1], 'k')
         else:
             for mode in modedisplay:
-                ax2.plot(curve[:, mode - 1, 0], curve[:, mode - 1, 1], color=mark[0], marker=mark[1])
+                ax2.plot(
+                    curve[:, mode - 1, 0],
+                    curve[:, mode - 1, 1],
+                    color=mark[0],
+                    marker=mark[1],
+                )
                 # ax2.plot(curve_sign[:,0], curve_sign[:,1], 'k')
 
         c_r = 0
