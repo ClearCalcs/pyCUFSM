@@ -78,9 +78,6 @@ allow_any_generics = true
 implicit_reexport = true
 exclude = ['gui_widgets\.py']
 
-[[tool.mypy.overrides]]
-module = ["matplotlib.*", "ipywidgets"]
-ignore_missing_imports = true
 
 [tool.black]
 line-length = 120
