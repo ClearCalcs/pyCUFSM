@@ -197,9 +197,9 @@ def base_update(
         for i, m_i in enumerate(m_a):
             b_v_m = b_v_l[n_dof_m * i : n_dof_m * (i + 1), n_dof_m * i : n_dof_m * (i + 1)]
             # k_global/kg_global
-            if gbt_con["norm"] in (2, 3) or gbt_con["o_space"] in (2, 3) or gbt_con["orth"] in (2, 3):
+            if gbt_con["norm"] in (2, 3) or gbt_con["o_space"] in (2, 3, 4) or gbt_con["orth"] in (2, 3):
                 # axial loading or real loading by either gbt_con['orth'] = 2 or gbt_con['orth'] = 3
-                if gbt_con["orth"] == 1 or gbt_con["orth"] == 2:
+                if gbt_con["orth"] in (1, 2):
                     nodes_base = deepcopy(nodes)
                     nodes_base[:, 7] = np.ones_like(nodes[:, 7])  # set u_p stress to 1.0 (axial)
                     k_global, kg_global = analysis.k_kg_global(
@@ -224,13 +224,7 @@ def base_update(
 
             # orthogonalization/normalization begins
             #
-            if (
-                gbt_con["orth"] == 2
-                or gbt_con["orth"] == 3
-                or gbt_con["o_space"] == 2
-                or gbt_con["o_space"] == 3
-                or gbt_con["o_space"] == 4
-            ):
+            if gbt_con["orth"] in (2, 3) or gbt_con["o_space"] in (2, 3, 4):
                 # indices
                 if gbt_con["o_space"] == 1:
                     dof_index = np.zeros((5, 2))
@@ -267,19 +261,18 @@ def base_update(
                     if dof_sub[1] >= dof_sub[0]:
                         k_global_sub = b_v_m[:, dof_sub0:dof_sub1].conj().T @ k_global @ b_v_m[:, dof_sub0:dof_sub1]
                         kg_global_sub = b_v_m[:, dof_sub0:dof_sub1].conj().T @ kg_global @ b_v_m[:, dof_sub0:dof_sub1]
-                        [eigenvalues, eigenvectors] = spla.eig(a=k_global_sub, b=kg_global_sub)
+                        eigenvalues, eigenvectors = spla.eig(a=k_global_sub, b=kg_global_sub)
                         lf_sub = np.real(eigenvalues)
                         indexsub = np.argsort(lf_sub)
                         lf_sub = lf_sub[indexsub]
                         eigenvectors = np.real(eigenvectors[:, indexsub])
-                        if gbt_con["norm"] == 2 or gbt_con["norm"] == 3:
+                        if gbt_con["norm"] in (2, 3):
                             if gbt_con["norm"] == 2:
-                                s_matrix = eigenvectors.conj().T @ k_global_sub @ eigenvectors
+                                s_matrix = np.diag(eigenvectors.conj().T @ k_global_sub @ eigenvectors)
 
-                            if gbt_con["norm"] == 3:
-                                s_matrix = eigenvectors.conj().T @ kg_global_sub @ eigenvectors
+                            elif gbt_con["norm"] == 3:
+                                s_matrix = np.diag(eigenvectors.conj().T @ kg_global_sub @ eigenvectors)
 
-                            s_matrix = np.diag(s_matrix)
                             for j in range(0, int(dof_sub[1] - dof_sub[0])):
                                 eigenvectors[:, j] = np.transpose(
                                     np.conj(np.linalg.lstsq(eigenvectors[:, j].conj().T, np.sqrt(s_matrix).conj().T))
@@ -288,7 +281,7 @@ def base_update(
                         b_v_m[:, dof_sub0:dof_sub1] = b_v_m[:, dof_sub0:dof_sub1] @ eigenvectors
 
             # normalization for gbt_con['o_space'] = 1
-            if (gbt_con["norm"] == 2 or gbt_con["norm"] == 3) and gbt_con["o_space"] == 1:
+            if gbt_con["norm"] in (2, 3) and gbt_con["o_space"] == 1:
                 for j in range(0, n_dof_m):
                     if gbt_con["norm"] == 2:
                         b_v_m[:, j] = np.transpose(
@@ -317,12 +310,12 @@ def base_update(
 
             b_v[n_dof_m * i : n_dof_m * (i + 1), n_dof_m * i : n_dof_m * (i + 1)] = b_v_m
 
-    else:
+    elif gbt_con["couple"] != 1:
         # coupled basis
         # k_global/kg_global
         if gbt_con["norm"] in (2, 3) or gbt_con["o_space"] in (2, 3) or gbt_con["orth"] in (2, 3):
             # axial loading or real loading by either gbt_con['orth'] = 2 or gbt_con['orth'] = 3
-            if gbt_con["orth"] == 1 or gbt_con["orth"] == 2:
+            if gbt_con["orth"] in (1, 2):
                 nodes_base = deepcopy(nodes)
                 nodes_base[:, 7] = np.ones_like(nodes[:, 7])  # set u_p stress to 1.0 (axial)
             else:
@@ -333,13 +326,7 @@ def base_update(
         )
 
         # orthogonalization/normalization begins
-        if (
-            gbt_con["orth"] == 2
-            or gbt_con["orth"] == 3
-            or gbt_con["o_space"] == 2
-            or gbt_con["o_space"] == 3
-            or gbt_con["o_space"] == 4
-        ):
+        if gbt_con["orth"] in (2, 3) or gbt_con["o_space"] in (2, 3, 4):
             # indices
             dof_index = np.zeros((4, 2))
             dof_index[0, 0] = 0
@@ -420,7 +407,7 @@ def base_update(
                     indexsub = np.argsort(lf_sub)
                     lf_sub = lf_sub[indexsub]
                     eigenvectors = np.real(eigenvectors[:, indexsub])
-                    if gbt_con["norm"] == 2 or gbt_con["norm"] == 3:
+                    if gbt_con["norm"] in (2, 3):
                         if gbt_con["norm"] == 2:
                             s_matrix = eigenvectors.conj().T @ k_global_sub @ eigenvectors
                         if gbt_con["norm"] == 3:
@@ -459,7 +446,7 @@ def base_update(
                             ]
 
         # normalization for gbt_con['o_space'] = 1
-        if (gbt_con["norm"] == 2 or gbt_con["norm"] == 3) and (gbt_con["o_space"] == 1):
+        if gbt_con["norm"] in (2, 3) and gbt_con["o_space"] == 1:
             for i in range(0, n_dof_m * total_m):
                 if gbt_con["norm"] == 2:
                     b_v[:, i] = np.transpose(
@@ -1834,7 +1821,7 @@ def dof_ordering(node_props: np.ndarray) -> np.ndarray:
     i_c = 0
     i_s = 0
     for i, n_prop in enumerate(node_props):
-        if n_prop[3] == 1 or n_prop[3] == 2:  # corner or edge nodes
+        if n_prop[3] in (1, 2):  # corner or edge nodes
             dof_perm[2 * i + 1, i_c] = 1
             i_c = i_c + 1
         if n_prop[3] == 3:  # sub nodes
@@ -1860,7 +1847,7 @@ def dof_ordering(node_props: np.ndarray) -> np.ndarray:
     i_c = 0
     i_s = 0
     for i, n_prop in enumerate(node_props):
-        if n_prop[3] == 1 or n_prop[3] == 2:  # corner or edge nodes
+        if n_prop[3] in (1, 2):  # corner or edge nodes
             dof_perm[2 * n_node_props + 2 * i + 1, 3 * n_main_nodes + i_c] = 1
             i_c = i_c + 1
         if n_prop[3] == 3:  # sub nodes
