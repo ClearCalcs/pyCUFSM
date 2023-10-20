@@ -2,6 +2,6 @@ pytest==7.4.2
 pytest-describe==2.1.0
 pytest-pspec==0.0.4
 pytest-raises==0.11
-black==23.9.1
+black==23.10.0
 mypy==1.6.1
 pylint==3.0.1
