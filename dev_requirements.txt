@@ -5,5 +5,5 @@ ipywidgets==8.1.1
 black==23.9.1
 typing_extensions==4.8.0
 mypy==1.6.1
-pylint==3.0.1
+pylint==3.0.2
 cython==3.0.4
