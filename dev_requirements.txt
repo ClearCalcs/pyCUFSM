@@ -2,7 +2,7 @@ numpy==1.26.1
 scipy==1.11.3
 matplotlib==3.8.0
 ipywidgets==8.1.1
-black==23.10.1
+black==23.12.0
 typing_extensions==4.8.0
 mypy==1.6.1
 pylint==3.0.2
