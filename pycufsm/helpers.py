@@ -179,18 +179,18 @@ def load_cufsm_mat(mat_file: Optional[str] = None, mat_data: Optional[Cufsm_MAT_
         cufsm_input["curve"] = np.array(mat_data["curve"])
     if "GBTcon" in mat_data:
         gbt_con: GBT_Con = {
-            "glob": mat_data["GBTcon"]["glob"].flatten()[0].flatten()
-            if "glob" in mat_data["GBTcon"].dtype.names
-            else [0],
-            "dist": mat_data["GBTcon"]["dist"].flatten()[0].flatten()
-            if "dist" in mat_data["GBTcon"].dtype.names
-            else [0],
-            "local": mat_data["GBTcon"]["local"].flatten()[0].flatten()
-            if "local" in mat_data["GBTcon"].dtype.names
-            else [0],
-            "other": mat_data["GBTcon"]["other"].flatten()[0].flatten()
-            if "other" in mat_data["GBTcon"].dtype.names
-            else [0],
+            "glob": (
+                mat_data["GBTcon"]["glob"].flatten()[0].flatten() if "glob" in mat_data["GBTcon"].dtype.names else [0]
+            ),
+            "dist": (
+                mat_data["GBTcon"]["dist"].flatten()[0].flatten() if "dist" in mat_data["GBTcon"].dtype.names else [0]
+            ),
+            "local": (
+                mat_data["GBTcon"]["local"].flatten()[0].flatten() if "local" in mat_data["GBTcon"].dtype.names else [0]
+            ),
+            "other": (
+                mat_data["GBTcon"]["other"].flatten()[0].flatten() if "other" in mat_data["GBTcon"].dtype.names else [0]
+            ),
             "o_space": mat_data["GBTcon"]["o_space"] if "o_space" in mat_data["GBTcon"].dtype.names else 1,
             "norm": mat_data["GBTcon"]["norm"] if "norm" in mat_data["GBTcon"].dtype.names else 1,
             "couple": mat_data["GBTcon"]["couple"] if "couple" in mat_data["GBTcon"].dtype.names else 1,
