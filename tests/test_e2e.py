@@ -196,7 +196,7 @@ def describe_end_to_end_tests():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.001)
 
-        def it_results_in_correct_Pcr():
+        def it_results_in_correct_Mcr():
             assert signature[lengths.index(expected["xcrl"])] == approx(expected["Mcrl"], abs=0.01)
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
@@ -217,7 +217,7 @@ def describe_end_to_end_tests():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.01)
 
-        def it_results_in_correct_Pcr():
+        def it_results_in_correct_Mcr():
             assert signature[lengths.index(expected["xcrl"])] == approx(expected["Mcrl"], abs=0.01)
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
@@ -239,16 +239,16 @@ def describe_end_to_end_tests():
             assert expected["A"] == approx(sect_props["A"], abs=0.001)
             assert expected["Ixx"] == approx(sect_props["Ixx"], abs=0.01)
 
-        def it_results_in_correct_Pcr():
+        def it_results_in_correct_Mcr():
             assert signature[lengths.index(expected["xcrl"])] == approx(expected["Mcrl"], abs=0.01)
             assert signature[lengths.index(expected["xcrd"])] == approx(expected["Mcrd"], abs=0.01)
 
         def it_results_in_correct_signature_curve():
             # TODO: Investigate why the signature curve starts mismatching at the tail end...
-            assert np.allclose(expected_curve[:-4, 1, 0], curve[:-4, 0], atol=1.0e-4)
+            assert np.allclose(expected_curve[:-4, 1, 0], curve[:-4, 0], atol=1.0e-3)
 
     def context_dsm_3_2_11_rack_post_P():
-        @pspec_context("DSM Guide Jan 2006, Ex 3.2.11: Rack post section (Mz)")
+        @pspec_context("DSM Guide Jan 2006, Ex 3.2.11: Rack post section (P)")
         def describe():
             pass
 

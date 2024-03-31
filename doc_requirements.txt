@@ -1,5 +1,5 @@
 sphinx==7.2.6
 sphinx-autoapi==3.0.0
 typing_extensions==4.8.0
-matplotlib==3.8.0
+matplotlib==3.8.3
 ipywidgets==8.1.1
