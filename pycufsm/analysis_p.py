@@ -256,11 +256,27 @@ def k_kg_local(
                 i_5=i_5,
             )
             k_local[8 * i + 4 : 8 * (i + 1), 8 * j + 4 : 8 * (j + 1)] = calc_kf_mp(
-                d_x=d_x, d_y=d_y, d_1=d_1, d_xy=d_xy, b_strip=b_strip, i_1=i_1, i_2=i_2, i_3=i_3, i_4=i_4, i_5=i_5
+                d_x=d_x,
+                d_y=d_y,
+                d_1=d_1,
+                d_xy=d_xy,
+                b_strip=b_strip,
+                i_1=i_1,
+                i_2=i_2,
+                i_3=i_3,
+                i_4=i_4,
+                i_5=i_5,
             )
 
             kg_local[8 * i : 8 * i + 4, 8 * j : 8 * j + 4] = calc_gm_mp(
-                u_i=u_i, u_j=u_j, b_strip=b_strip, length=length, ty_1=ty_1, ty_2=ty_2, i_4=i_4, i_5=i_5
+                u_i=u_i,
+                u_j=u_j,
+                b_strip=b_strip,
+                length=length,
+                ty_1=ty_1,
+                ty_2=ty_2,
+                i_4=i_4,
+                i_5=i_5,
             )
             kg_local[8 * i + 4 : 8 * (i + 1), 8 * j + 4 : 8 * (j + 1)] = calc_gf_mp(
                 ty_1=ty_1, ty_2=ty_2, b_strip=b_strip, i_5=i_5
@@ -338,7 +354,11 @@ def kglobal_transv(
         node_i = int(elements[i, 1])
         node_j = int(elements[i, 2])
         k_global_transv = assemble_single(
-            k_global=k_global_transv, k_local=k_local, node_i=node_i, node_j=node_j, n_nodes=n_nodes
+            k_global=k_global_transv,
+            k_local=k_local,
+            node_i=node_i,
+            node_j=node_j,
+            n_nodes=n_nodes,
         )
 
     return k_global_transv
@@ -396,10 +416,10 @@ def klocal_transv(
     c_2 = u_p / length
 
     [i_1, _, _, _, _] = bc_i1_5(b_c=b_c, m_i=m_i, m_j=m_i, length=length)
-    i_2 = 0
-    i_3 = 0
-    i_4 = 0
-    i_5 = 0
+    i_2 = 0.0
+    i_3 = 0.0
+    i_4 = 0.0
+    i_5 = 0.0
 
     k_local[0:4, 0:4] = calc_km_mp(
         e_1=e_1,
@@ -417,7 +437,16 @@ def klocal_transv(
         i_5=i_5,
     )
     k_local[4:8, 4:8] = calc_kf_mp(
-        d_x=d_x, d_y=d_y, d_1=d_1, d_xy=d_xy, b_strip=b_strip, i_1=i_1, i_2=i_2, i_3=i_3, i_4=i_4, i_5=i_5
+        d_x=d_x,
+        d_y=d_y,
+        d_1=d_1,
+        d_xy=d_xy,
+        b_strip=b_strip,
+        i_1=i_1,
+        i_2=i_2,
+        i_3=i_3,
+        i_4=i_4,
+        i_5=i_5,
     )
     return k_local
 
@@ -671,7 +700,14 @@ def calc_kf_mp(
 
 
 def calc_gm_mp(
-    u_i: float, u_j: float, b_strip: float, length: float, ty_1: float, ty_2: float, i_4: float, i_5: float
+    u_i: float,
+    u_j: float,
+    b_strip: float,
+    length: float,
+    ty_1: float,
+    ty_2: float,
+    i_4: float,
+    i_5: float,
 ) -> np.ndarray:
     """Calculate the membrane geometric stiffness sub-matrix, used in the assembly of local
     geometric stiffness matrices
@@ -750,7 +786,7 @@ def calc_gf_mp(ty_1: float, ty_2: float, b_strip: float, i_5: float) -> np.ndarr
     return gf_mp
 
 
-def bc_i1_5(b_c: str, m_i: float, m_j: float, length: float) -> list:
+def bc_i1_5(b_c: str, m_i: float, m_j: float, length: float) -> Tuple[float, float, float, float, float]:
     """Calculate the 5 undetermined parameters i_1,i_2,i_3,i_4,i_5 for local elastic
     and geometric stiffness matrices.
 
@@ -884,7 +920,7 @@ def bc_i1_5(b_c: str, m_i: float, m_j: float, length: float) -> list:
                 i_4 = -(m_i**4) * np.pi**4 / 8 / length**3
                 i_5 = -(m_i**2) * np.pi**2 / 8 / length
 
-    return [i_1, i_2, i_3, i_4, i_5]
+    return (i_1, i_2, i_3, i_4, i_5)
 
 
 def trans(alpha: float, total_m: int) -> np.ndarray:
@@ -1137,7 +1173,13 @@ def assemble(
     return k_global, kg_global
 
 
-def assemble_single(k_global: np.ndarray, k_local: np.ndarray, node_i: int, node_j: int, n_nodes: int) -> np.ndarray:
+def assemble_single(
+    k_global: np.ndarray,
+    k_local: np.ndarray,
+    node_i: int,
+    node_j: int,
+    n_nodes: int,
+) -> np.ndarray:
     """this routine adds the element contribution to the global stiffness matrix
     basically it does the same as routine 'assemble', however:
     it does not care about kg_global (geom stiff matrix)
@@ -1181,10 +1223,22 @@ def assemble_single(k_global: np.ndarray, k_local: np.ndarray, node_i: int, node
     k_global[node_j * 2 : node_j * 2 + 2, node_i * 2 : node_i * 2 + 2] += k21
     k_global[node_j * 2 : node_j * 2 + 2, node_j * 2 : node_j * 2 + 2] += k22
 
-    k_global[skip + node_i * 2 : skip + node_i * 2 + 2, skip + node_i * 2 : skip + node_i * 2 + 2] += k33
-    k_global[skip + node_i * 2 : skip + node_i * 2 + 2, skip + node_j * 2 : skip + node_j * 2 + 2] += k34
-    k_global[skip + node_j * 2 : skip + node_j * 2 + 2, skip + node_i * 2 : skip + node_i * 2 + 2] += k43
-    k_global[skip + node_j * 2 : skip + node_j * 2 + 2, skip + node_j * 2 : skip + node_j * 2 + 2] += k44
+    k_global[
+        skip + node_i * 2 : skip + node_i * 2 + 2,
+        skip + node_i * 2 : skip + node_i * 2 + 2,
+    ] += k33
+    k_global[
+        skip + node_i * 2 : skip + node_i * 2 + 2,
+        skip + node_j * 2 : skip + node_j * 2 + 2,
+    ] += k34
+    k_global[
+        skip + node_j * 2 : skip + node_j * 2 + 2,
+        skip + node_i * 2 : skip + node_i * 2 + 2,
+    ] += k43
+    k_global[
+        skip + node_j * 2 : skip + node_j * 2 + 2,
+        skip + node_j * 2 : skip + node_j * 2 + 2,
+    ] += k44
 
     k_global[node_i * 2 : node_i * 2 + 2, skip + node_i * 2 : skip + node_i * 2 + 2] += k13
     k_global[node_i * 2 : node_i * 2 + 2, skip + node_j * 2 : skip + node_j * 2 + 2] += k14
@@ -1200,7 +1254,15 @@ def assemble_single(k_global: np.ndarray, k_local: np.ndarray, node_i: int, node
 
 
 def spring_klocal(
-    k_u: float, k_v: float, k_w: float, k_q: float, length: float, b_c: str, m_a: np.ndarray, discrete: int, y_s: float
+    k_u: float,
+    k_v: float,
+    k_w: float,
+    k_q: float,
+    length: float,
+    b_c: str,
+    m_a: np.ndarray,
+    discrete: int,
+    y_s: float,
 ) -> np.ndarray:
     """Generate spring stiffness matrix (k_local) in local coordinates, modified from
     klocal
@@ -1245,9 +1307,19 @@ def spring_klocal(
             km_mp = np.array(
                 [
                     [k_u * i_1, 0, -k_u * i_1, 0],
-                    [0, k_v * i_5 * length**2 / (u_i * u_j), 0, -k_v * i_5 * length**2 / (u_i * u_j)],
+                    [
+                        0,
+                        k_v * i_5 * length**2 / (u_i * u_j),
+                        0,
+                        -k_v * i_5 * length**2 / (u_i * u_j),
+                    ],
                     [-k_u * i_1, 0, k_u * i_1, 0],
-                    [0, -k_v * i_5 * length**2 / (u_i * u_j), 0, k_v * i_5 * length**2 / (u_i * u_j)],
+                    [
+                        0,
+                        -k_v * i_5 * length**2 / (u_i * u_j),
+                        0,
+                        k_v * i_5 * length**2 / (u_i * u_j),
+                    ],
                 ]
             )
             # assemble the matrix of kf_mp (flexural stiffness)
@@ -1296,7 +1368,12 @@ def bc_i1_5_atpoint(b_c: str, m_i: float, m_j: float, length: float, y_s: float)
 
 
 def spring_assemble(
-    k_global: np.ndarray, k_local: np.ndarray, node_i: int, node_j: int, n_nodes: int, m_a: np.ndarray
+    k_global: np.ndarray,
+    k_local: np.ndarray,
+    node_i: int,
+    node_j: int,
+    n_nodes: int,
+    m_a: np.ndarray,
 ) -> np.ndarray:
     """Add the (spring) contribution to the global stiffness matrix
 
