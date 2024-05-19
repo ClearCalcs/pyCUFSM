@@ -69,6 +69,7 @@ disable = [
 ]
 variable-rgx = '[a-zA-Z_][a-zA-Z0-9_]{2,30}$'
 argument-rgx = '[a-zA-Z_][a-zA-Z0-9_]{2,30}$'
+function-rgx = '[a-zA-Z_][a-zA-Z0-9_]{2,30}$'
 max-line-length = 120
 py-version = 3.8
 

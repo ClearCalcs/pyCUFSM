@@ -121,7 +121,7 @@ def base_column(
 
 
 def base_update(
-    GBT_con: GBT_Con,
+    gbt_con: GBT_Con,
     b_v_l: np.ndarray,
     length: float,
     m_a: np.ndarray,
@@ -138,25 +138,25 @@ def base_update(
 
     assumptions
         orthogonalization is done by solving the EV problem for each sub-space
-        three options for normalization is possible, set by 'GBT_con['norm']' parameter
+        three options for normalization is possible, set by 'gbt_con['norm']' parameter
 
     Args:
-        GBT_con (GBT_Con):
-            GBT_con['o_space'] - by GBT_con, choices of ST/O mode
+        gbt_con (GBT_Con):
+            gbt_con['o_space'] - by gbt_con, choices of ST/O mode
                     1: ST basis
                     2: O space (null space of GDL) with respect to K_global
                     3: O space (null space of GDL) with respect to Kg_global
                     4: O space (null space of GDL) in vector sense
-            GBT_con['norm'] - by GBT_con, code for normalization (if normalization is done at all)
+            gbt_con['norm'] - by gbt_con, code for normalization (if normalization is done at all)
                     0: no normalization,
                     1: vector norm
                     2: strain energy norm
                     3: work norm
-            GBT_con['couple'] - by GBT_con, coupled basis vs uncoupled basis for general B.C.
+            gbt_con['couple'] - by gbt_con, coupled basis vs uncoupled basis for general B.C.
                         especially for non-simply supported B.C.
                     1: uncoupled basis, the basis will be block diagonal
                     2: coupled basis, the basis is fully spanned
-            GBT_con['orth'] - by GBT_con, natural basis vs modal basis
+            gbt_con['orth'] - by gbt_con, natural basis vs modal basis
                     1: natural basis
                     2: modal basis, axial orthogonality
                     3: modal basis, load dependent orthogonality
@@ -192,14 +192,14 @@ def base_update(
     total_m = len(m_a)  # Total number of longitudinal terms m_i
     b_v = np.zeros((n_dof_m * total_m, n_dof_m * total_m))
 
-    if GBT_con["couple"] == 1:
+    if gbt_con["couple"] == 1:
         # uncoupled basis
         for i, m_i in enumerate(m_a):
             b_v_m = b_v_l[n_dof_m * i : n_dof_m * (i + 1), n_dof_m * i : n_dof_m * (i + 1)]
             # K_global/Kg_global
-            if GBT_con["norm"] in (2, 3) or GBT_con["o_space"] in (2, 3) or GBT_con["orth"] in (2, 3):
-                # axial loading or real loading by either GBT_con['orth'] = 2 or GBT_con['orth'] = 3
-                if GBT_con["orth"] == 1 or GBT_con["orth"] == 2:
+            if gbt_con["norm"] in (2, 3) or gbt_con["o_space"] in (2, 3) or gbt_con["orth"] in (2, 3):
+                # axial loading or real loading by either gbt_con['orth'] = 2 or gbt_con['orth'] = 3
+                if gbt_con["orth"] == 1 or gbt_con["orth"] == 2:
                     nodes_base = deepcopy(nodes)
                     nodes_base[:, 7] = np.ones_like(nodes[:, 7])  # set u_p stress to 1.0 (axial)
                     K_global, Kg_global = analysis.k_kg_global(
@@ -225,14 +225,14 @@ def base_update(
             # orthogonalization/normalization begins
             #
             if (
-                GBT_con["orth"] == 2
-                or GBT_con["orth"] == 3
-                or GBT_con["o_space"] == 2
-                or GBT_con["o_space"] == 3
-                or GBT_con["o_space"] == 4
+                gbt_con["orth"] == 2
+                or gbt_con["orth"] == 3
+                or gbt_con["o_space"] == 2
+                or gbt_con["o_space"] == 3
+                or gbt_con["o_space"] == 4
             ):
                 # indices
-                if GBT_con["o_space"] == 1:
+                if gbt_con["o_space"] == 1:
                     dof_index = np.zeros((5, 2))
                     dof_index[3, 0] = n_global_modes + n_dist_modes + n_local_modes
                     dof_index[3, 1] = n_global_modes + n_dist_modes + n_local_modes + n_nodes - 1
@@ -249,14 +249,14 @@ def base_update(
                 dof_index[2, 0] = n_global_modes + n_dist_modes
                 dof_index[2, 1] = n_global_modes + n_dist_modes + n_local_modes
 
-                # define vectors for other modes, GBT_con['o_space'] = 2, 3, 4
-                if GBT_con["o_space"] == 2:
+                # define vectors for other modes, gbt_con['o_space'] = 2, 3, 4
+                if gbt_con["o_space"] == 2:
                     a_matrix = spla.null_space(b_v_m[:, dof_index[0, 0] : dof_index[2, 1]].conj().T)
                     b_v_m[:, dof_index[3, 0] : dof_index[3, 1]] = np.linalg.solve(K_global, a_matrix)
-                if GBT_con["o_space"] == 3:
+                if gbt_con["o_space"] == 3:
                     a_matrix = spla.null_space(b_v_m[:, dof_index[0, 0] : dof_index[2, 1]].conj().T)
                     b_v_m[:, dof_index[3, 0] : dof_index[3, 1]] = np.linalg.solve(Kg_global, a_matrix)
-                if GBT_con["o_space"] == 4:
+                if gbt_con["o_space"] == 4:
                     a_matrix = spla.null_space(b_v_m[:, dof_index[0, 0] : dof_index[2, 1]].conj().T)
                     b_v_m[:, dof_index[3, 0] : dof_index[3, 1]] = a_matrix
 
@@ -272,11 +272,11 @@ def base_update(
                         indexsub = np.argsort(lf_sub)
                         lf_sub = lf_sub[indexsub]
                         eigenvectors = np.real(eigenvectors[:, indexsub])
-                        if GBT_con["norm"] == 2 or GBT_con["norm"] == 3:
-                            if GBT_con["norm"] == 2:
+                        if gbt_con["norm"] == 2 or gbt_con["norm"] == 3:
+                            if gbt_con["norm"] == 2:
                                 s_matrix = eigenvectors.conj().T @ k_global_sub @ eigenvectors
 
-                            if GBT_con["norm"] == 3:
+                            if gbt_con["norm"] == 3:
                                 s_matrix = eigenvectors.conj().T @ kg_global_sub @ eigenvectors
 
                             s_matrix = np.diag(s_matrix)
@@ -287,10 +287,10 @@ def base_update(
 
                         b_v_m[:, dof_sub0:dof_sub1] = b_v_m[:, dof_sub0:dof_sub1] @ eigenvectors
 
-            # normalization for GBT_con['o_space'] = 1
-            if (GBT_con["norm"] == 2 or GBT_con["norm"] == 3) and GBT_con["o_space"] == 1:
+            # normalization for gbt_con['o_space'] = 1
+            if (gbt_con["norm"] == 2 or gbt_con["norm"] == 3) and gbt_con["o_space"] == 1:
                 for j in range(0, n_dof_m):
-                    if GBT_con["norm"] == 2:
+                    if gbt_con["norm"] == 2:
                         b_v_m[:, j] = np.transpose(
                             np.conj(
                                 np.linalg.lstsq(
@@ -300,7 +300,7 @@ def base_update(
                             )
                         )
 
-                    if GBT_con["norm"] == 3:
+                    if gbt_con["norm"] == 3:
                         b_v_m[:, j] = np.transpose(
                             np.conj(
                                 np.linalg.lstsq(
@@ -310,8 +310,8 @@ def base_update(
                             )
                         )
 
-            # normalization for GBT_con['norm'] 1
-            if GBT_con["norm"] == 1:
+            # normalization for gbt_con['norm'] 1
+            if gbt_con["norm"] == 1:
                 for j in range(0, n_dof_m):
                     b_v_m[:, j] = b_v_m[:, j] / np.sqrt(b_v_m[:, j].conj().T @ b_v_m[:, j])
 
@@ -320,9 +320,9 @@ def base_update(
     else:
         # coupled basis
         # K_global/Kg_global
-        if GBT_con["norm"] in (2, 3) or GBT_con["o_space"] in (2, 3) or GBT_con["orth"] in (2, 3):
-            # axial loading or real loading by either GBT_con['orth'] = 2 or GBT_con['orth'] = 3
-            if GBT_con["orth"] == 1 or GBT_con["orth"] == 2:
+        if gbt_con["norm"] in (2, 3) or gbt_con["o_space"] in (2, 3) or gbt_con["orth"] in (2, 3):
+            # axial loading or real loading by either gbt_con['orth'] = 2 or gbt_con['orth'] = 3
+            if gbt_con["orth"] == 1 or gbt_con["orth"] == 2:
                 nodes_base = deepcopy(nodes)
                 nodes_base[:, 7] = np.ones_like(nodes[:, 7])  # set u_p stress to 1.0 (axial)
             else:
@@ -334,11 +334,11 @@ def base_update(
 
         # orthogonalization/normalization begins
         if (
-            GBT_con["orth"] == 2
-            or GBT_con["orth"] == 3
-            or GBT_con["o_space"] == 2
-            or GBT_con["o_space"] == 3
-            or GBT_con["o_space"] == 4
+            gbt_con["orth"] == 2
+            or gbt_con["orth"] == 3
+            or gbt_con["o_space"] == 2
+            or gbt_con["o_space"] == 3
+            or gbt_con["o_space"] == 4
         ):
             # indices
             dof_index = np.zeros((4, 2))
@@ -373,8 +373,8 @@ def base_update(
                 b_v_o[:, i * n_other_modes : (i + 1) * n_other_modes] = b_v_m[:, dof_index[4, 1] : dof_index[4, 2]]
                 #
 
-            # define vectors for other modes, GBT_con['o_space'] = 3 only
-            if GBT_con["o_space"] == 3:
+            # define vectors for other modes, gbt_con['o_space'] = 3 only
+            if gbt_con["o_space"] == 3:
                 a_matrix = spla.null_space(b_v_gdl.conj().T)
                 b_v_o = np.linalg.solve(K_global, a_matrix)
                 for i, m_i in enumerate(m_a):
@@ -382,8 +382,8 @@ def base_update(
                         :, i * n_other_modes + 1 : (i + 1) * n_other_modes
                     ]
 
-            # define vectors for other modes, GBT_con['o_space'] = 4 only
-            if GBT_con["o_space"] == 4:
+            # define vectors for other modes, gbt_con['o_space'] = 4 only
+            if gbt_con["o_space"] == 4:
                 a_matrix = spla.null_space(b_v_gdl.conj().T)
                 b_v_o = np.linalg.solve(Kg_global, a_matrix)
                 for i, m_i in enumerate(m_a):
@@ -391,8 +391,8 @@ def base_update(
                         :, i * n_other_modes + 1 : (i + 1) * n_other_modes
                     ]
 
-            # define vectors for other modes, GBT_con['o_space'] = 5 only
-            if GBT_con["o_space"] == 5:
+            # define vectors for other modes, gbt_con['o_space'] = 5 only
+            if gbt_con["o_space"] == 5:
                 a_matrix = spla.null_space(b_v_gdl.conj().T)
                 for i, m_i in enumerate(m_a):
                     b_v[:, i * n_dof_m + dof_index[3, 0] : i * n_dof_m + dof_index[3, 1]] = a_matrix[
@@ -420,10 +420,10 @@ def base_update(
                     indexsub = np.argsort(lf_sub)
                     lf_sub = lf_sub[indexsub]
                     eigenvectors = np.real(eigenvectors[:, indexsub])
-                    if GBT_con["norm"] == 2 or GBT_con["norm"] == 3:
-                        if GBT_con["norm"] == 2:
+                    if gbt_con["norm"] == 2 or gbt_con["norm"] == 3:
+                        if gbt_con["norm"] == 2:
                             s_matrix = eigenvectors.conj().T @ k_global_sub @ eigenvectors
-                        if GBT_con["norm"] == 3:
+                        if gbt_con["norm"] == 3:
                             s_matrix = eigenvectors.conj().T @ kg_global_sub @ eigenvectors
                         s_matrix = np.diag(s_matrix)
                         for i in range(0, (dof_sub[1] - dof_sub[0]) * total_m):
@@ -458,10 +458,10 @@ def base_update(
                                 :, i * n_other_modes + 1 : (i + 1) * n_other_modes
                             ]
 
-        # normalization for GBT_con['o_space'] = 1
-        if (GBT_con["norm"] == 2 or GBT_con["norm"] == 3) and (GBT_con["o_space"] == 1):
+        # normalization for gbt_con['o_space'] = 1
+        if (gbt_con["norm"] == 2 or gbt_con["norm"] == 3) and (gbt_con["o_space"] == 1):
             for i in range(0, n_dof_m * total_m):
-                if GBT_con["norm"] == 2:
+                if gbt_con["norm"] == 2:
                     b_v[:, i] = np.transpose(
                         np.conj(
                             np.linalg.lstsq(
@@ -470,7 +470,7 @@ def base_update(
                         )
                     )
 
-                if GBT_con["norm"] == 3:
+                if gbt_con["norm"] == 3:
                     b_v[:, i] = np.transpose(
                         np.conj(
                             np.linalg.lstsq(
@@ -479,8 +479,8 @@ def base_update(
                         )
                     )
 
-        # normalization for GBT_con['norm'] 1
-        if GBT_con["norm"] == 1:
+        # normalization for gbt_con['norm'] 1
+        if gbt_con["norm"] == 1:
             for i in range(0, n_dof_m * total_m):
                 b_v[:, i] = np.transpose(
                     np.conj(np.linalg.lstsq(b_v[:, i].conj().T, np.sqrt(b_v[:, i].conj().T @ b_v[:, i]).conj().T))
@@ -494,7 +494,7 @@ def mode_select(
     n_global_modes: int,
     n_dist_modes: int,
     n_local_modes: int,
-    GBT_con: GBT_Con,
+    gbt_con: GBT_Con,
     n_dof_m: int,
     m_a: np.ndarray,
 ) -> np.ndarray:
@@ -516,10 +516,10 @@ def mode_select(
         n_global_modes (int): _description_
         n_dist_modes (int): _description_
         n_local_modes (int): _description_
-        GBT_con (GBT_Con): GBT_con['glob'] - indicator which global modes are selected
-            GBT_con['dist'] - indicator which dist. modes are selected
-            GBT_con['local'] - indicator whether local modes are selected
-            GBT_con['other'] - indicator whether other modes are selected
+        gbt_con (GBT_Con): gbt_con['glob'] - indicator which global modes are selected
+            gbt_con['dist'] - indicator which dist. modes are selected
+            gbt_con['local'] - indicator whether local modes are selected
+            gbt_con['other'] - indicator whether other modes are selected
         n_dof_m (int): 4*n_nodes, total DOF for a single longitudinal term
         m_a (np.ndarray): _description_
 
@@ -531,7 +531,7 @@ def mode_select(
     modifed on Jul 10, 2009 by Z. Li for general B_C
     Z. Li, June 2010
     """
-    n_m = int(sum(GBT_con["glob"]) + sum(GBT_con["dist"]) + sum(GBT_con["local"]) + sum(GBT_con["other"]))
+    n_m = int(sum(gbt_con["glob"]) + sum(gbt_con["dist"]) + sum(gbt_con["local"]) + sum(gbt_con["other"]))
     b_v_red = np.zeros((len(b_v), (len(m_a) + 1) * n_m))
     for i in range(0, len(m_a)):
         #     b_v_m = b_v[n_dof_m*i:n_dof_m*(i+1),n_dof_m*i:n_dof_m*(i+1)]
@@ -540,32 +540,32 @@ def mode_select(
         nmo = 0
         b_v_red_m = np.zeros((len(b_v), n_m))
         for j in range(0, n_global_modes):
-            if j < len(GBT_con["glob"]) and GBT_con["glob"][j] == 1:
+            if j < len(gbt_con["glob"]) and gbt_con["glob"][j] == 1:
                 b_v_red_m[:, nmo] = b_v[:, n_dof_m * i + j]
                 nmo = nmo + 1
 
         for j in range(0, n_dist_modes):
-            if j < len(GBT_con["dist"]) and GBT_con["dist"][j] == 1:
+            if j < len(gbt_con["dist"]) and gbt_con["dist"][j] == 1:
                 b_v_red_m[:, nmo] = b_v[:, n_dof_m * i + n_global_modes + j]
                 nmo = nmo + 1
 
-        # if GBT_con['local'] == 1
+        # if gbt_con['local'] == 1
         #     b_v_red[:,(nmo+1):(nmo+n_local_modes)]
         #         = b_v[:,(n_global_modes+n_dist_modes+1):(n_global_modes+
         #               n_dist_modes+n_local_modes)]
         #     nmo = nmo+n_local_modes
         # end
         for j in range(0, n_local_modes):
-            if j < len(GBT_con["local"]) and GBT_con["local"][j] == 1:
+            if j < len(gbt_con["local"]) and gbt_con["local"][j] == 1:
                 b_v_red_m[:, nmo] = b_v[:, n_dof_m * i + n_global_modes + n_dist_modes + j]
                 nmo = nmo + 1
 
         for j in range(0, n_other_modes):
-            if j < len(GBT_con["other"]) and GBT_con["other"][j] == 1:
+            if j < len(gbt_con["other"]) and gbt_con["other"][j] == 1:
                 b_v_red_m[:, nmo] = b_v[:, n_dof_m * i + n_global_modes + n_dist_modes + n_local_modes + j]
                 nmo = nmo + 1
 
-        # if GBT_con['other'] == 1
+        # if gbt_con['other'] == 1
         #     n_other_modes = len(b_v[:, 1])-n_global_modes - n_dist_modes - n_local_modes
         #            # nr of other modes
         #     b_v_red[:,(nmo+1):(nmo+n_other_modes)]
@@ -1880,7 +1880,7 @@ def classify(
     elements: np.ndarray,
     lengths: np.ndarray,
     shapes: np.ndarray,
-    GBT_con: GBT_Con,
+    gbt_con: GBT_Con,
     B_C: str,
     m_all: np.ndarray,
     sect_props: Sect_Props,
@@ -1893,7 +1893,7 @@ def classify(
         elements (np.ndarray): [elements# node_i node_j thick mat_num] n_elements x 5
         lengths (np.ndarray): lengths to be analysed
         shapes (np.ndarray): array of mode shapes dof x lengths x mode
-        GBT_con (GBT_Con): _description_
+        gbt_con (GBT_Con): _description_
             method:
                 method = 1 = vector norm
                 method = 2 = strain energy norm
@@ -1981,7 +1981,7 @@ def classify(
         )
         # orthonormal vectors
         b_v = base_update(
-            GBT_con=GBT_con,
+            gbt_con=gbt_con,
             b_v_l=b_v_l,
             length=length,
             m_a=m_a,
@@ -2006,7 +2006,7 @@ def classify(
                 n_local_modes=n_local_modes,
                 m_a=m_a,
                 n_dof_m=n_dof_m,
-                GBT_con=GBT_con,
+                gbt_con=gbt_con,
             )
         clas.append(clas_modes)
         l_i = l_i + 1  # length index = length index + one
@@ -2022,7 +2022,7 @@ def mode_class(
     n_local_modes: int,
     m_a: np.ndarray,
     n_dof_m: int,
-    GBT_con: GBT_Con,
+    gbt_con: GBT_Con,
 ) -> np.ndarray:
     """to determine mode contribution in the current displacement
 
@@ -2039,8 +2039,8 @@ def mode_class(
         n_local_modes (int): number of modes
         m_a (np.ndarray): _description_
         n_dof_m (int): _description_
-        GBT_con (GBT_Con): _description_
-            GBT_con['couple'] - by GBT_con, coupled basis vs uncoupled basis for general B.C.
+        gbt_con (GBT_Con): _description_
+            gbt_con['couple'] - by gbt_con, coupled basis vs uncoupled basis for general B.C.
                 especially for non-simply supported B.C.
                 1: uncoupled basis, the basis will be block diagonal
                 2: coupled basis, the basis is fully spanned
@@ -2064,7 +2064,7 @@ def mode_class(
     dof_index[3, 0] = n_global_modes + n_dist_modes + n_local_modes
     dof_index[3, 1] = n_dof_m
 
-    if GBT_con["couple"] == 1:
+    if gbt_con["couple"] == 1:
         # uncoupled basis
         for i in range(0, len(m_a)):
             b_v_m = b_v[n_dof_m * i : n_dof_m * (i + 1), n_dof_m * i : n_dof_m * (i + 1)]

@@ -39,7 +39,7 @@ def strip(
     lengths: np.ndarray,
     springs: np.ndarray,
     constraints: np.ndarray,
-    GBT_con: GBT_Con,
+    gbt_con: GBT_Con,
     B_C: BC,
     m_all: np.ndarray,
     n_eigs: int,
@@ -67,7 +67,7 @@ def strip(
             where k=kept dof, e=dof to be eliminated. Each DOF is set as an integer where
             1=x, 2=y, 3=z, 4=q.
             The resulting constraint will be `node_e_dof = coeff * node_k_dof`
-        GBT_con (GBT_Con): GBT Configuration
+        gbt_con (GBT_Con): GBT Configuration
             | {
             |   "glob": [0|1, 0|1, ...],
             |   "dist": [0|1, 0|1, ...],
@@ -78,24 +78,24 @@ def strip(
             |   "couple": 1|2,
             |   "orth": 1|2|3,
             | }
-            GBT_con.glob,GBT_con.dist, GBT_con.local, GBT_con.other:
+            gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other:
                 vectors of 1's and 0's referring to the inclusion (1) or exclusion of a
                 given mode from the analysis,
-            GBT_con.o_space - choices of ST/O mode
+            gbt_con.o_space - choices of ST/O mode
                 | 1: ST basis
                 | 2: O space (null space of GDL) with respect to K_global
                 | 3: O space (null space of GDL) with respect to Kg_global
                 | 4: O space (null space of GDL) in vector sense
-            GBT_con.norm - code for normalization (if normalization is done at all)
+            gbt_con.norm - code for normalization (if normalization is done at all)
                 | 0: no normalization,
                 | 1: vector norm
                 | 2: strain energy norm
                 | 3: work norm
-            GBT_con.couple - coupled basis vs uncoupled basis
+            gbt_con.couple - coupled basis vs uncoupled basis
                 for general B.C. especially for non-simply supported B.C.
                 | 1: uncoupled basis, the basis will be block diagonal
                 | 2: coupled basis, the basis is fully spanned
-            GBT_con.orth - natural basis vs modal basis
+            gbt_con.orth - natural basis vs modal basis
                 | 1: natural basis
                 | 2: modal basis, axial orthogonality
                 | 3: modal basis, load dependent orthogonality
@@ -158,7 +158,7 @@ def strip(
     el_props = analysis.elem_prop(nodes=nodes, elements=elements)
 
     # ENABLE cFSM ANALYSIS IF APPLICABLE, AND FIND BASE PROPERTIES
-    if sum(GBT_con["glob"]) + sum(GBT_con["dist"]) + sum(GBT_con["local"]) + sum(GBT_con["other"]) > 0:
+    if sum(gbt_con["glob"]) + sum(gbt_con["dist"]) + sum(gbt_con["local"]) + sum(gbt_con["other"]) > 0:
         # turn on modal classification analysis
         cfsm_analysis = 1
     else:
@@ -304,7 +304,7 @@ def strip(
         if cfsm_analysis == 1:
             # PERFORM ORTHOGONALIZATION IF GBT-LIKE MODES ARE ENFORCED
             b_v = pycufsm.cfsm.base_update(
-                GBT_con=GBT_con,
+                gbt_con=gbt_con,
                 b_v_l=b_v_l,
                 length=length,
                 m_a=m_a,
@@ -324,7 +324,7 @@ def strip(
                 n_global_modes=n_global_modes,
                 n_dist_modes=n_dist_modes,
                 n_local_modes=n_local_modes,
-                GBT_con=GBT_con,
+                gbt_con=gbt_con,
                 n_dof_m=4 * n_nodes,
                 m_a=m_a,
             )  # m
@@ -647,7 +647,7 @@ def strip_new(
         lengths_old,
         springs_old,
         constraints_old,
-        GBT_con_old,
+        gbt_con_old,
         b_c_old,
         m_all_old,
         n_eigs_old,
@@ -696,7 +696,7 @@ def strip_new(
         lengths=lengths_old,
         springs=springs_old,
         constraints=constraints_old,
-        GBT_con=GBT_con_old,
+        gbt_con=gbt_con_old,
         B_C=b_c_old,
         m_all=m_all_old,
         n_eigs=n_eigs_old,
@@ -710,7 +710,7 @@ def signature_ss(
     props: np.ndarray,
     nodes: np.ndarray,
     elements: np.ndarray,
-    i_GBT_con: GBT_Con,
+    i_gbt_con: GBT_Con,
     sect_props: Sect_Props,
     lengths: np.ndarray,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -720,7 +720,7 @@ def signature_ss(
         props (np.ndarray): standard parameter
         nodes (np.ndarray): standard parameter
         elements (np.ndarray): standard parameter
-        i_GBT_con (GBT_Con): cFSM configuration options
+        i_gbt_con (GBT_Con): cFSM configuration options
         sect_props (Sect_Props): section properties
         lengths (np.ndarray): half-wavelengths
 
@@ -744,7 +744,7 @@ def signature_ss(
         lengths=lengths,
         springs=i_springs,
         constraints=i_constraints,
-        GBT_con=i_GBT_con,
+        gbt_con=i_gbt_con,
         B_C=i_b_c,
         m_all=i_m_all,
         n_eigs=10,
@@ -798,7 +798,7 @@ def m_recommend(
     (function originally in helpers; moved to fsm because it drives entire fsm analyses)
     Z. Li, Oct. 2010
     """
-    i_GBT_con: GBT_Con = {
+    i_gbt_con: GBT_Con = {
         "glob": [0],
         "dist": [0],
         "local": [0],
@@ -813,7 +813,7 @@ def m_recommend(
 
     print("Running initial pyCUFSM signature curve")
     isignature, icurve, ishapes = signature_ss(
-        props=props, nodes=nodes, elements=elements, i_GBT_con=i_GBT_con, sect_props=sect_props, lengths=lengths
+        props=props, nodes=nodes, elements=elements, i_gbt_con=i_gbt_con, sect_props=sect_props, lengths=lengths
     )
 
     curve_signature = np.zeros((len(lengths), 2))
@@ -833,23 +833,23 @@ def m_recommend(
     n_global_modes = 4
     n_other_modes = 2 * (len(nodes) - 1)
 
-    i_GBT_con["local"] = np.ones((n_local_modes, 1)).tolist()
-    i_GBT_con["dist"] = np.zeros((n_dist_modes, 1)).tolist()
-    i_GBT_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
-    i_GBT_con["other"] = np.zeros((n_other_modes, 1)).tolist()
+    i_gbt_con["local"] = np.ones((n_local_modes, 1)).tolist()
+    i_gbt_con["dist"] = np.zeros((n_dist_modes, 1)).tolist()
+    i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
+    i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
 
     print("Running pyCUFSM local modes curve")
     isignature_local, icurve_local, ishapes_local = signature_ss(
-        props=props, nodes=nodes, elements=elements, i_GBT_con=i_GBT_con, sect_props=sect_props, lengths=lengths
+        props=props, nodes=nodes, elements=elements, i_gbt_con=i_gbt_con, sect_props=sect_props, lengths=lengths
     )
 
     print("Running pyCUFSM distortional modes curve")
-    i_GBT_con["local"] = np.zeros((n_local_modes, 1)).tolist()
-    i_GBT_con["dist"] = np.ones((n_dist_modes, 1)).tolist()
-    i_GBT_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
-    i_GBT_con["other"] = np.zeros((n_other_modes, 1)).tolist()
+    i_gbt_con["local"] = np.zeros((n_local_modes, 1)).tolist()
+    i_gbt_con["dist"] = np.ones((n_dist_modes, 1)).tolist()
+    i_gbt_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
+    i_gbt_con["other"] = np.zeros((n_other_modes, 1)).tolist()
     isignature_dist, icurve_dist, ishapes_dist = signature_ss(
-        props=props, nodes=nodes, elements=elements, i_GBT_con=i_GBT_con, sect_props=sect_props, lengths=lengths
+        props=props, nodes=nodes, elements=elements, i_gbt_con=i_gbt_con, sect_props=sect_props, lengths=lengths
     )
 
     curve_signature_local = np.zeros((len(lengths), 2))

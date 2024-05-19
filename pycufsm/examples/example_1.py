@@ -134,7 +134,7 @@ def __main__() -> Dict[str, np.ndarray]:
     constraints = np.array([])
 
     # Values here correspond to signature curve basis and orthogonal based upon geometry
-    GBT_con: GBT_Con = {
+    gbt_con: GBT_Con = {
         "glob": [0],
         "dist": [0],
         "local": [0],
@@ -198,7 +198,7 @@ def __main__() -> Dict[str, np.ndarray]:
         lengths=lengths,
         springs=springs,
         constraints=constraints,
-        GBT_con=GBT_con,
+        gbt_con=gbt_con,
         B_C=B_C,
         m_all=m_all,
         n_eigs=n_eigs,
