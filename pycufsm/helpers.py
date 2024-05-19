@@ -178,7 +178,7 @@ def load_cufsm_mat(mat_file: Optional[str] = None, mat_data: Optional[Cufsm_MAT_
     if "curve" in mat_data:
         cufsm_input["curve"] = np.array(mat_data["curve"])
     if "GBTcon" in mat_data:
-        gbt_con: GBT_Con = {
+        GBT_con: GBT_Con = {
             "glob": (
                 mat_data["GBTcon"]["glob"].flatten()[0].flatten() if "glob" in mat_data["GBTcon"].dtype.names else [0]
             ),
@@ -196,7 +196,7 @@ def load_cufsm_mat(mat_file: Optional[str] = None, mat_data: Optional[Cufsm_MAT_
             "couple": mat_data["GBTcon"]["couple"] if "couple" in mat_data["GBTcon"].dtype.names else 1,
             "orth": mat_data["GBTcon"]["orth"] if "orth" in mat_data["GBTcon"].dtype.names else 1,
         }
-        cufsm_input["GBTcon"] = gbt_con
+        cufsm_input["GBTcon"] = GBT_con
     if "shapes" in mat_data:
         cufsm_input["shapes"] = np.array(mat_data["shapes"])
     if "clas" in mat_data:
@@ -321,23 +321,23 @@ def inputs_new_to_old(
             4 = q dir (twist) flag says if k_stiff is a foundation stiffness or a total stiffness
         constraints (np.ndarray): [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
             k=kept dof dof_e_node = coeff*dof_k_node_k
-        gbt_con (GBT_Con): gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
+        GBT_con (GBT_Con): GBT_con.glob,GBT_con.dist, GBT_con.local, GBT_con.other vectors of 1's
             and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
-            gbt_con.o_space - choices of ST/O mode
+            GBT_con.o_space - choices of ST/O mode
                     1: ST basis
                     2: O space (null space of GDL) with respect to K_global
                     3: O space (null space of GDL) with respect to Kg_global
                     4: O space (null space of GDL) in vector sense
-            gbt_con.norm - code for normalization (if normalization is done at all)
+            GBT_con.norm - code for normalization (if normalization is done at all)
                     0: no normalization,
                     1: vector norm
                     2: strain energy norm
                     3: work norm
-            gbt_con.couple - coupled basis vs uncoupled basis for general
+            GBT_con.couple - coupled basis vs uncoupled basis for general
                         B.C. especially for non-simply supported B.C.
                     1: uncoupled basis, the basis will be block diagonal
                     2: coupled basis, the basis is fully spanned
-            gbt_con.orth - natural basis vs modal basis
+            GBT_con.orth - natural basis vs modal basis
                     1: natural basis
                     2: modal basis, axial orthogonality
                     3: modal basis, load dependent orthogonality
@@ -452,16 +452,16 @@ def inputs_new_to_old(
 
     # Convert configurations
     if analysis_config is not None:
-        b_c_old = analysis_config["B_C"]
+        B_C_old = analysis_config["B_C"]
         n_eigs_old = analysis_config["n_eigs"]
     else:
-        b_c_old = "S-S"
+        B_C_old = "S-S"
         n_eigs_old = 10
     if cfsm_config is not None:
         o_space_conv = {"ST": 1, "K_global": 2, "Kg_global": 3, "vector": 4}
         norm_conv = {"none": 0, "vector": 1, "strain_energy": 2, "work": 3}
         orth_conv = {"natural": 1, "modal_axial": 2, "modal_load": 3}
-        gbt_con_old: GBT_Con = {
+        GBT_con_old: GBT_Con = {
             "glob": cfsm_config["glob_modes"],
             "dist": cfsm_config["dist_modes"],
             "local": cfsm_config["local_modes"],
@@ -472,7 +472,7 @@ def inputs_new_to_old(
             "orth": orth_conv[cfsm_config["orthogonality"]],
         }
     else:
-        gbt_con_old = {
+        GBT_con_old = {
             "glob": [0],
             "dist": [0],
             "local": [0],
@@ -490,8 +490,8 @@ def inputs_new_to_old(
         np.array(lengths_old),
         np.array(springs_old),
         np.array(constraints_old),
-        gbt_con_old,
-        b_c_old,
+        GBT_con_old,
+        B_C_old,
         np.array(m_all_old),
         n_eigs_old,
     )
@@ -504,7 +504,7 @@ def inputs_old_to_new(
     lengths: ArrayLike,
     springs: ArrayLike,
     constraints: ArrayLike,
-    gbt_con: GBT_Con,
+    GBT_con: GBT_Con,
     B_C: BC,
     m_all: ArrayLike,
     n_eigs: int,
@@ -531,23 +531,23 @@ def inputs_old_to_new(
             4 = q dir (twist) flag says if k_stiff is a foundation stiffness or a total stiffness
         constraints (np.ndarray): [node# e dof_e coeff node# k dof_k] e=dof to be eliminated
             k=kept dof dof_e_node = coeff*dof_k_node_k
-        gbt_con (GBT_Con): gbt_con.glob,gbt_con.dist, gbt_con.local, gbt_con.other vectors of 1's
+        GBT_con (GBT_Con): GBT_con.glob,GBT_con.dist, GBT_con.local, GBT_con.other vectors of 1's
             and 0's referring to the inclusion (1) or exclusion of a given mode from the analysis,
-            gbt_con.o_space - choices of ST/O mode
+            GBT_con.o_space - choices of ST/O mode
                     1: ST basis
                     2: O space (null space of GDL) with respect to K_global
                     3: O space (null space of GDL) with respect to Kg_global
                     4: O space (null space of GDL) in vector sense
-            gbt_con.norm - code for normalization (if normalization is done at all)
+            GBT_con.norm - code for normalization (if normalization is done at all)
                     0: no normalization,
                     1: vector norm
                     2: strain energy norm
                     3: work norm
-            gbt_con.couple - coupled basis vs uncoupled basis for general
+            GBT_con.couple - coupled basis vs uncoupled basis for general
                         B.C. especially for non-simply supported B.C.
                     1: uncoupled basis, the basis will be block diagonal
                     2: coupled basis, the basis is fully spanned
-            gbt_con.orth - natural basis vs modal basis
+            GBT_con.orth - natural basis vs modal basis
                     1: natural basis
                     2: modal basis, axial orthogonality
                     3: modal basis, load dependent orthogonality
@@ -774,14 +774,14 @@ def inputs_old_to_new(
         3: "modal_load",
     }
     cfsm_config: Cfsm_Config = {
-        "glob_modes": gbt_con["glob"],
-        "dist_modes": gbt_con["dist"],
-        "local_modes": gbt_con["local"],
-        "other_modes": gbt_con["other"],
-        "null_space": o_space_conv[gbt_con["o_space"]],
-        "normalization": norm_conv[gbt_con["norm"]],
-        "coupled": gbt_con["couple"] == 2,
-        "orthogonality": orth_conv[gbt_con["orth"]],
+        "glob_modes": GBT_con["glob"],
+        "dist_modes": GBT_con["dist"],
+        "local_modes": GBT_con["local"],
+        "other_modes": GBT_con["other"],
+        "null_space": o_space_conv[GBT_con["o_space"]],
+        "normalization": norm_conv[GBT_con["norm"]],
+        "coupled": GBT_con["couple"] == 2,
+        "orthogonality": orth_conv[GBT_con["orth"]],
     }
 
     return (

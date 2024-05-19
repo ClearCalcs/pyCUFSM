@@ -1,6 +1,7 @@
-import pytest
 import numpy as np
-from pycufsm import preprocess, helpers, fsm
+import pytest
+
+from pycufsm import fsm, helpers, preprocess
 
 # import pycufsm.examples.example_1 as ex1_main
 
@@ -141,7 +142,7 @@ def constraints():
 
 
 @pytest.fixture
-def gbt_con():
+def GBT_con():
     # Signature curve basis, orthogonal based on geometry
     return {
         "glob": [0],
@@ -156,7 +157,7 @@ def gbt_con():
 
 
 @pytest.fixture
-def b_c():
+def B_C():
     # Simply supported boundary conditions
     return "S-S"
 
@@ -197,7 +198,7 @@ def stressed_nodes():
 
 
 @pytest.fixture
-def strip(props, stressed_nodes, elements, lengths, springs, constraints, gbt_con, b_c, m_all, n_eigs, sect_props):
+def strip(props, stressed_nodes, elements, lengths, springs, constraints, GBT_con, B_C, m_all, n_eigs, sect_props):
     return fsm.strip(
         props=props,
         nodes=stressed_nodes,
@@ -205,8 +206,8 @@ def strip(props, stressed_nodes, elements, lengths, springs, constraints, gbt_co
         lengths=lengths,
         springs=springs,
         constraints=constraints,
-        gbt_con=gbt_con,
-        b_c=b_c,
+        GBT_con=GBT_con,
+        B_C=B_C,
         m_all=m_all,
         n_eigs=n_eigs,
         sect_props=sect_props,
