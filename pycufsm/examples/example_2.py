@@ -108,7 +108,7 @@ def __main__() -> Dict[str, np.ndarray]:
     constraints = np.array([])
 
     # Values here correspond to signature curve basis and orthogonal based upon geometry
-    gbt_con: GBT_Con = {
+    GBT_con: GBT_Con = {
         "glob": [0],
         "dist": [0],
         "local": [0],
@@ -120,7 +120,7 @@ def __main__() -> Dict[str, np.ndarray]:
     }
 
     # Simply-supported boundary conditions
-    b_c: BC = "S-S"
+    B_C: BC = "S-S"
 
     # For signature curve analysis, only a single array of ones makes sense here
     m_all = np.ones((len(lengths), 1))
@@ -173,8 +173,8 @@ def __main__() -> Dict[str, np.ndarray]:
         lengths=lengths,
         springs=springs,
         constraints=constraints,
-        gbt_con=gbt_con,
-        b_c=b_c,
+        GBT_con=GBT_con,
+        B_C=B_C,
         m_all=m_all,
         n_eigs=n_eigs,
         sect_props=sect_props,

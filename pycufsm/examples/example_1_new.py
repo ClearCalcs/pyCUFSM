@@ -99,7 +99,7 @@ def __main__() -> Dict[str, np.ndarray]:
     )
 
     # Values here correspond to signature curve basis and orthogonal based upon geometry
-    analysis_config: Analysis_Config = {"b_c": "S-S", "n_eigs": 10}
+    analysis_config: Analysis_Config = {"B_C": "S-S", "n_eigs": 10}
 
     # Set the section properties for this simple section
     # Normally, these might be calculated by an external package
