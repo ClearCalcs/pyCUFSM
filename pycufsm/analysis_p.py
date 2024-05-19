@@ -88,6 +88,7 @@ def k_kg_global(
     length: float,
     b_c: str,
     m_a: np.ndarray,
+    vectorize: bool,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Generates element stiffness matrix (k_global) in global coordinates
     Generate geometric stiffness matrix (kg_global) in global coordinates
@@ -100,6 +101,7 @@ def k_kg_global(
         length (np.ndarray):
         b_c (str):
         m_a (np.ndarray):
+        vectorize (bool):
 
     Returns:
         k_global (np.ndarray): global stiffness matrix
@@ -133,38 +135,77 @@ def k_kg_global(
         ty_1 = nodes[node_i, 7] * thick
         ty_2 = nodes[node_j, 7] * thick
 
-        k_l, kg_l = k_kg_local(
-            stiff_x=stiff_x,
-            stiff_y=stiff_y,
-            nu_x=nu_x,
-            nu_y=nu_y,
-            bulk=bulk,
-            thick=thick,
-            length=length,
-            ty_1=ty_1,
-            ty_2=ty_2,
-            b_strip=b_strip,
-            b_c=b_c,
-            m_a=m_a,
-        )
+        if vectorize:
+            k_l, kg_l = k_kg_local_vec(
+                stiff_x=stiff_x,
+                stiff_y=stiff_y,
+                nu_x=nu_x,
+                nu_y=nu_y,
+                bulk=bulk,
+                thick=thick,
+                length=length,
+                ty_1=ty_1,
+                ty_2=ty_2,
+                b_strip=b_strip,
+                b_c=b_c,
+                m_a=m_a,
+            )
 
-        # Transform k_local and kg_local into global coordinates
-        alpha = el_props[i, 2]
-        gamma = trans(alpha=alpha, total_m=total_m)
-        k_local = gamma @ k_l @ gamma.conj().T
-        kg_local = gamma @ kg_l @ gamma.conj().T
+            # Transform k_local and kg_local into global coordinates
+            # Porting note: The Matlab version writes a completely separate function trans_vec() here.
+            # However, there is no functional difference with the original trans() except that
+            # trans_vec() recalculates alpha. We merely do that calculation here and reuse trans().
+            alpha = np.arctan2(nodes[node_j, 2] - nodes[node_i, 2], nodes[node_j, 1] - nodes[node_i, 1])
+            gamma = trans(alpha=alpha, total_m=total_m)
+            k_local = gamma @ k_l @ gamma.conj().T
+            kg_local = gamma @ kg_l @ gamma.conj().T
 
-        # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
-        k_global, kg_global = assemble(
-            k_global=k_global,
-            kg_global=kg_global,
-            k_local=k_local,
-            kg_local=kg_local,
-            node_i=node_i,
-            node_j=node_j,
-            n_nodes=n_nodes,
-            m_a=m_a,
-        )
+            assemble_loc = np.reshape(
+                np.ones((4, 2 * total_m)) * np.array([2 * node_i - 1, 2 * node_i, 2 * node_j - 1, 2 * node_j])[:, None]
+                + np.arange(0, 4 * total_m, 2) * n_nodes,
+                (8 * total_m,),
+            ).astype(int)
+
+            # Porting note: The Matlab version calculates the number of non-zero elements in k_local and kg_local
+            # and preallocates the size of k_global and kg_global. This is not necessary in Python, as numpy arrays
+            # are dynamically sized (and even Scipy sparse matrices are dynamically sized).
+
+            k_global[assemble_loc, assemble_loc] += k_local
+            kg_global[assemble_loc, assemble_loc] += kg_local
+
+        else:
+            k_l, kg_l = k_kg_local(
+                stiff_x=stiff_x,
+                stiff_y=stiff_y,
+                nu_x=nu_x,
+                nu_y=nu_y,
+                bulk=bulk,
+                thick=thick,
+                length=length,
+                ty_1=ty_1,
+                ty_2=ty_2,
+                b_strip=b_strip,
+                b_c=b_c,
+                m_a=m_a,
+            )
+
+            # Transform k_local and kg_local into global coordinates
+            alpha = el_props[i, 2]
+            gamma = trans(alpha=alpha, total_m=total_m)
+            k_local = gamma @ k_l @ gamma.conj().T
+            kg_local = gamma @ kg_l @ gamma.conj().T
+
+            # Add element contribution of k_local to full matrix k_global and kg_local to kg_global
+            k_global, kg_global = assemble(
+                k_global=k_global,
+                kg_global=kg_global,
+                k_local=k_local,
+                kg_local=kg_local,
+                node_i=node_i,
+                node_j=node_j,
+                n_nodes=n_nodes,
+                m_a=m_a,
+            )
 
     return k_global, kg_global
 
@@ -265,6 +306,86 @@ def k_kg_local(
             kg_local[8 * i + 4 : 8 * (i + 1), 8 * j + 4 : 8 * (j + 1)] = calc_gf_mp(
                 ty_1=ty_1, ty_2=ty_2, b_strip=b_strip, i_5=i_5
             )
+
+    return k_local, kg_local
+
+
+def k_kg_local_vec(
+    stiff_x: float,
+    stiff_y: float,
+    nu_x: float,
+    nu_y: float,
+    bulk: float,
+    thick: float,
+    length: float,
+    ty_1: float,
+    ty_2: float,
+    b_strip: float,
+    b_c: str,
+    m_a: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Generate element stiffness matrix (k_local) in local coordinates
+    Generate geometric stiffness matrix (kg_local) in local coordinates
+
+    Args:
+        stiff_x (float): material property
+        stiff_y (float): material property
+        nu_x (float): material property
+        nu_y (float): material property
+        bulk (float): material property
+        thick (float): thickness of the strip (element)
+        length (np.ndarray): length of the strip in longitudinal direction
+        ty_1 (float): node stresses
+        ty_2 (float): node stresses
+        b_strip (float): width of the strip in transverse direction
+        b_c (str): ['S-S'] a string specifying boundary conditions to be analyzed:
+            'S-S' simply-pimply supported boundary condition at loaded edges
+            'C-C' clamped-clamped boundary condition at loaded edges
+            'S-C' simply-clamped supported boundary condition at loaded edges
+            'C-F' clamped-free supported boundary condition at loaded edges
+            'C-G' clamped-gcdef np.ndarray[np.double_t, ndim=2] uided supported boundary condition
+                at loaded edges
+        m_a (np.ndarray): longitudinal terms (or half-wave numbers) for this length
+
+    Returns:
+        k_local (np.ndarray): local stiffness matrix, a total_m x total_m matrix of 8 by 8
+            submatrices. k_local=[k_mp]total_m x total_m block matrix
+            each k_mp is the 8 x 8 submatrix in the DOF order [u1 v1 u2 v2 w1 theta1 w2 theta2]'
+        kg_local (np.ndarray): local geometric stiffness matrix, a total_m x total_m matrix of
+            8 by 8 submatrices. kg_local=[kg_mp]total_m x total_m block matrix
+            each kg_mp is the 8 x 8 submatrix in the DOF order [u1 v1 u2 v2 w1 theta1
+
+    Z. Li June 2008
+    modified by Z. Li, Aug. 09, 2009
+    modified by Z. Li, June 2010
+    klocal and kglocal merged by B Smith, May 2023
+    modified by Sheng Jin, Jan. 2024. Vectorized
+    """
+    e_1 = stiff_x / (1 - nu_x * nu_y)
+    e_2 = stiff_y / (1 - nu_x * nu_y)
+    d_x = stiff_x * thick**3 / (12 * (1 - nu_x * nu_y))
+    d_y = stiff_y * thick**3 / (12 * (1 - nu_x * nu_y))
+    d_1 = nu_x * stiff_y * thick**3 / (12 * (1 - nu_x * nu_y))
+    d_xy = bulk * thick**3 / 12
+
+    total_m = len(m_a)  # Total number of longitudinal terms m
+
+    k_local = np.zeros((8 * total_m, 8 * total_m))
+    kg_local = np.zeros((8 * total_m, 8 * total_m))
+
+    # According  to the original program, um changes with m, while m's value is the same in a row of the stiffness matrix
+    # After vectorizing, um will be a vector consists of all the m values.
+    # um is a column vector, so that when it is dot producted to a matrix, all the elements of a same row in the matrix will be multipled by a same number.
+    # Based on the same reason, up is constructed as a row vector
+    u_i = np.reshape(m_a * np.pi, (total_m, 1))
+    u_j = np.reshape(m_a * np.pi, (1, total_m))
+    c_1 = u_i / length
+    c_2 = u_j / length
+
+    [i_1, i_2, i_3, i_4, i_5] = bc_i1_5_vec(b_c=b_c, m_a=m_a, length=length)
+
+    list_loc = np.arange(0, 8 * total_m, 8)
+    k_local[list_loc, list_loc]
 
     return k_local, kg_local
 
