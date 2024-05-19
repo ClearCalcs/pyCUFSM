@@ -183,7 +183,7 @@ def dispshap(
     scalem: float,
     springs: np.ndarray,  # pylint: disable=unused-argument
     m_a: np.ndarray,
-    b_c: str,
+    B_C: str,
     surf_pos: float,
 ) -> None:
     """Cross section displacement function
@@ -195,7 +195,7 @@ def dispshap(
         mode (np.ndarray): _description_
         scalem (float): _description_
         springs (np.ndarray): _description_
-        b_c (str): _description_
+        B_C (str): _description_
         surf_pos (float): _description_
     """
     # Determining Scaling Factor for the displaced shape
@@ -279,13 +279,13 @@ def dispshap(
             # Transform additional displacements into global coordinates
             dlbar = helpers.gammait2(phi, disp_local)
             cutloc = 1 / surf_pos
-            if b_c.startswith("S-S"):
+            if B_C.startswith("S-S"):
                 dbarm = dbar * np.sin(m_a_j * np.pi / cutloc) + dbarm
                 dlbarm = dlbar * np.sin(m_a_j * np.pi / cutloc) + dlbarm
-            elif b_c.startswith("C-C"):
+            elif B_C.startswith("C-C"):
                 dbarm = dbar * np.sin(m_a_j * np.pi / cutloc) * np.sin(np.pi / cutloc) + dbarm
                 dlbarm = dlbar * np.sin(m_a_j * np.pi / cutloc) * np.sin(np.pi / cutloc) + dlbarm
-            elif b_c.startswith("S-C") or b_c.startswith("C-S"):
+            elif B_C.startswith("S-C") or B_C.startswith("C-S"):
                 dbarm = (
                     dbar * (np.sin((m_a_j + 1) * np.pi / cutloc) + (m_a_j + 1) * np.sin(np.pi / cutloc) / m_a_j) + dbarm
                 )
@@ -293,10 +293,10 @@ def dispshap(
                     dlbar * (np.sin((m_a_j + 1) * np.pi / cutloc) + (m_a_j + 1) * np.sin(np.pi / cutloc) / m_a_j)
                     + dlbarm
                 )
-            elif b_c.startswith("F-C") or b_c.startswith("C-F"):
+            elif B_C.startswith("F-C") or B_C.startswith("C-F"):
                 dbarm = dbar * (1 - np.cos((m_a_j - 1 / 2) * np.pi / cutloc)) + dbarm
                 dlbarm = dlbar * (1 - np.cos((m_a_j - 1 / 2) * np.pi / cutloc)) + dlbarm
-            elif b_c.startswith("G-C") or b_c.startswith("C-G"):
+            elif B_C.startswith("G-C") or B_C.startswith("C-G"):
                 dbarm = dbar * (np.sin((m_a_j - 1 / 2) * np.pi / cutloc) * np.sin(np.pi / cutloc / 2)) + dbarm
                 dlbarm = dlbar * (np.sin((m_a_j - 1 / 2) * np.pi / cutloc) * np.sin(np.pi / cutloc / 2)) + dlbarm
         # Create a vertor of undisplaced coordinates "undisp"

@@ -36,7 +36,7 @@ ForceTypes = Literal["Mxx", "Myy", "M11", "M22", "P"]
 Analysis_Config = TypedDict(
     "Analysis_Config",
     {
-        "b_c": BC,  # boundary condition type
+        "B_C": BC,  # boundary condition type
         "n_eigs": int,  # number of eigenvalues to consider
     },
 )
@@ -48,7 +48,7 @@ Cfsm_Config = TypedDict(
         "dist_modes": List[Literal[0, 1]],  # list of 1's (inclusion) and 0's (exclusion)
         "local_modes": List[Literal[0, 1]],  # list of 1's (inclusion) and 0's (exclusion)
         "other_modes": List[Literal[0, 1]],  # list of 1's (inclusion) and 0's (exclusion)
-        "null_space": Literal["ST", "k_global", "kg_global", "vector"],
+        "null_space": Literal["ST", "K_global", "Kg_global", "vector"],
         "normalization": Literal["none", "vector", "strain_energy", "work"],
         "coupled": bool,  # coupled basis vs uncoupled basis for general B.C.
         "orthogonality": Literal["natural", "modal_axial", "modal_load"],  # natural or modal basis
@@ -128,7 +128,7 @@ New_Node_Props = TypedDict(
     },
 )
 
-New_Props = TypedDict("New_Props", {"E_x": float, "E_y": float, "nu_x": float, "nu_y": float, "bulk": float})
+New_Props = TypedDict("New_Props", {"E_x": float, "E_y": float, "nu_x": float, "nu_y": float, "G_bulk": float})
 
 New_Props_min = TypedDict("New_Props_min", {"E": float, "nu": float, "f_y": float})
 

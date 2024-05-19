@@ -224,7 +224,7 @@ class Preprocess:
         return self.rflag, self.Submit, self.flags
 
     def wBound_Cond(self):
-        self.b_c = ["S-S", "C-C", "S-C", "C-F", "C-G"]
+        self.B_C = ["S-S", "C-C", "S-C", "C-F", "C-G"]
         BCtext = [
             "simple-simple",
             "clamped-clamped",

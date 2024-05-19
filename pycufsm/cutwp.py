@@ -45,7 +45,7 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
     Compute cross section properties
         This function computes the cross section properties: area, centroid,
         moment of inertia, torsional constant, shear center, warping constant,
-        b1_vals, b2_vals, elastic critical buckling load and the deformed buckling shape
+        B1_vals, B2_vals, elastic critical buckling load and the deformed buckling shape
 
     Args:
         coord (np.ndarray): node i's coordinates
@@ -86,7 +86,7 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
     BWS, Aug 2005: additional modifications, program only handles
         singly-branched open sections, or single cell closed sections, arbitrary
         section designation added for other types.
-    BWS, Dec 2006 bug fixes to b1_vals b2_vals
+    BWS, Dec 2006 bug fixes to B1_vals B2_vals
     BWS, Dec 2015 extended to not crash on disconnected and arbitrary sections
     """
     # find n_elements  == total number of elements
@@ -150,14 +150,14 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
         y_centroid = 0
 
     # Compute moment of inertia
-    i_xx = np.sum((y_diffs**2 / 12 + (y_means - y_centroid) ** 2) * lengths * thicknesses)
-    i_yy = np.sum((x_diffs**2 / 12 + (x_means - x_centroid) ** 2) * lengths * thicknesses)
-    i_xy = np.sum((x_diffs * y_diffs / 12 + (x_means - x_centroid) * (y_means - y_centroid) * lengths * thicknesses))
-    if np.abs(i_xy / area**2) < 1e-12:
-        i_xy = 0
+    I_xx = np.sum((y_diffs**2 / 12 + (y_means - y_centroid) ** 2) * lengths * thicknesses)
+    I_yy = np.sum((x_diffs**2 / 12 + (x_means - x_centroid) ** 2) * lengths * thicknesses)
+    I_xy = np.sum((x_diffs * y_diffs / 12 + (x_means - x_centroid) * (y_means - y_centroid) * lengths * thicknesses))
+    if np.abs(I_xy / area**2) < 1e-12:
+        I_xy = 0
 
     # Compute rotation angle for the principal axes
-    theta = (np.angle([(i_xx - i_yy) - 2 * i_xy * 1j]) / 2)[0]
+    theta = (np.angle([(I_xx - I_yy) - 2 * I_xy * 1j]) / 2)[0]
 
     # Transfer section coordinates to the centroid principal coordinates
     coord12 = np.array([coord[:, 0] - x_centroid, coord[:, 1] - y_centroid]).T
@@ -181,22 +181,22 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
         y_diffs12[i] = np.diff([coord12[start_node, 1], coord12[end_node, 1]])
 
     # Compute the principal moment of inertia
-    i_11 = np.sum((y_diffs12**2 / 12 + (y_means12) ** 2) * lengths * thicknesses)
-    i_22 = np.sum((x_diffs12**2 / 12 + (x_means12) ** 2) * lengths * thicknesses)
+    I_11 = np.sum((y_diffs12**2 / 12 + (y_means12) ** 2) * lengths * thicknesses)
+    I_22 = np.sum((x_diffs12**2 / 12 + (x_means12) ** 2) * lengths * thicknesses)
 
     if section == "open":
         # Compute torsional constant
-        j_torsion = np.sum(lengths * thicknesses**3) / 3
+        J_torsion = np.sum(lengths * thicknesses**3) / 3
         # Compute shear center and initialize variables
         n_nodes = len(coord)
         w_vals = np.zeros((n_nodes, 2))
         w_vals[int(ends[0, 0]), 0] = int(ends[0, 0]) + 1
         wo_vals = np.zeros((n_nodes, 2))
         wo_vals[int(ends[0, 0]), 0] = int(ends[0, 0]) + 1
-        i_wx = 0
-        i_wy = 0
+        I_wx = 0
+        I_wy = 0
         w_no = 0
-        c_warping = 0
+        C_warping = 0
         ends[:, 0:2] = (ends[:, 0:2]) + 1
         for _ in range(n_elements):
             i = 0
@@ -218,8 +218,8 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
             elif w_vals[end_node, 0] == 0:
                 w_vals[end_node, 0] = end_node + 1
                 w_vals[end_node, 1] = w_vals[start_node, 1] + p_vals * lengths[i]
-            i_wx = (
-                i_wx
+            I_wx = (
+                I_wx
                 + (
                     1
                     / 3
@@ -237,8 +237,8 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
                 * thicknesses[i]
                 * lengths[i]
             )
-            i_wy = (
-                i_wy
+            I_wy = (
+                I_wy
                 + (
                     1
                     / 3
@@ -256,9 +256,9 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
                 * thicknesses[i]
                 * lengths[i]
             )
-        if (i_xx * i_yy - i_xy**2) != 0:
-            x_shearcentre = (i_yy * i_wy - i_xy * i_wx) / (i_xx * i_yy - i_xy**2) + x_centroid
-            y_shearcentre = -(i_xx * i_wx - i_xy * i_wy) / (i_xx * i_yy - i_xy**2) + y_centroid
+        if (I_xx * I_yy - I_xy**2) != 0:
+            x_shearcentre = (I_yy * I_wy - I_xy * I_wx) / (I_xx * I_yy - I_xy**2) + x_centroid
+            y_shearcentre = -(I_xx * I_wx - I_xy * I_wy) / (I_xx * I_yy - I_xy**2) + y_centroid
         else:
             x_shearcentre = x_centroid
             y_shearcentre = y_centroid
@@ -293,8 +293,8 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
         for i in range(n_elements):
             start_node = int(ends[i, 0]) - 1
             end_node = int(ends[i, 1]) - 1
-            c_warping = (
-                c_warping
+            C_warping = (
+                C_warping
                 + 1
                 / 3
                 * (wn_vals[start_node] ** 2 + wn_vals[start_node] * wn_vals[end_node] + wn_vals[end_node] ** 2)
@@ -306,11 +306,11 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
             np.array([x_shearcentre - x_centroid, y_shearcentre - y_centroid]).T
         )
         # compute the polar radius of gyration of cross section about shear center
-        # ro = np.sqrt((i_11 + i_22) / area + s12[0] ** 2 + s12[1] ** 2)
+        # ro = np.sqrt((I_11 + I_22) / area + s12[0] ** 2 + s12[1] ** 2)
 
-        # Compute b1_vals and b2_vals
-        b1_vals = 0
-        b2_vals = b1_vals
+        # Compute B1_vals and B2_vals
+        B1_vals = 0
+        B2_vals = B1_vals
         for i in range(n_elements):
             start_node = int(ends[i, 0]) - 1
             end_node = int(ends[i, 1]) - 1
@@ -318,8 +318,8 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
             y_1 = coord12[start_node, 1]
             x_2 = coord12[end_node, 0]
             y_2 = coord12[end_node, 1]
-            b1_vals = (
-                b1_vals
+            B1_vals = (
+                B1_vals
                 + (
                     (y_1 + y_2) * (y_1**2 + y_2**2) / 4
                     + (y_1 * (2 * x_1**2 + (x_1 + x_2) ** 2) + y_2 * (2 * x_2**2 + (x_1 + x_2) ** 2)) / 12
@@ -327,8 +327,8 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
                 * lengths[i]
                 * thicknesses[i]
             )
-            b2_vals = (
-                b2_vals
+            B2_vals = (
+                B2_vals
                 + (
                     (x_1 + x_2) * (x_1**2 + x_2**2) / 4
                     + (x_1 * (2 * y_1**2 + (y_1 + y_2) ** 2) + x_2 * (2 * y_2**2 + (y_1 + y_2) ** 2)) / 12
@@ -336,21 +336,21 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
                 * lengths[i]
                 * thicknesses[i]
             )
-        b1_vals = b1_vals / i_11 - 2 * s12[1]
-        b2_vals = b2_vals / i_22 - 2 * s12[0]
+        B1_vals = B1_vals / I_11 - 2 * s12[1]
+        B2_vals = B2_vals / I_22 - 2 * s12[0]
 
-        if np.abs(b1_vals / np.sqrt(area) < 1e-12):
-            b1_vals = 0
-        if np.abs(b2_vals / np.sqrt(area) < 1e-12):
-            b2_vals = 0
+        if np.abs(B1_vals / np.sqrt(area) < 1e-12):
+            B1_vals = 0
+        if np.abs(B2_vals / np.sqrt(area) < 1e-12):
+            B2_vals = 0
     else:
         # Closed section - torsion and warping calcs not supported
-        j_torsion = None
+        J_torsion = None
         x_shearcentre = None
         y_shearcentre = None
-        c_warping = None
-        b1_vals = None
-        b2_vals = None
+        C_warping = None
+        B1_vals = None
+        B2_vals = None
         wn_vals = None
 
     ends[:, 0:2] = (ends[:, 0:2]) - 1
@@ -358,17 +358,17 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
         "A": area,
         "cx": x_centroid,
         "cy": y_centroid,
-        "Ixx": i_xx,
-        "Iyy": i_yy,
-        "Ixy": i_xy,
+        "Ixx": I_xx,
+        "Iyy": I_yy,
+        "Ixy": I_xy,
         "phi": theta,
-        "I11": i_11,
-        "I22": i_22,
-        "J": j_torsion,
+        "I11": I_11,
+        "I22": I_22,
+        "J": J_torsion,
         "x0": x_shearcentre,
         "y0": y_shearcentre,
-        "Cw": c_warping,
-        "B1": b1_vals,
-        "B2": b2_vals,
+        "Cw": C_warping,
+        "B1": B1_vals,
+        "B2": B2_vals,
         "wn": wn_vals,
     }
