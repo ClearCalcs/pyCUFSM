@@ -161,6 +161,10 @@ def strip(
     if sum(gbt_con["glob"]) + sum(gbt_con["dist"]) + sum(gbt_con["local"]) + sum(gbt_con["other"]) > 0:
         # turn on modal classification analysis
         cfsm_analysis = 1
+    else:
+        cfsm_analysis = 0
+
+    if cfsm_analysis == 1:
         # set u_p stress to 1.0 for finding kg_global and k_global for axial modes
         nodes_base = deepcopy(nodes)
         nodes_base[:, 7] = np.ones_like(nodes[:, 7])
@@ -332,10 +336,7 @@ def strip(
 
         # CREATE FINAL CONSTRAINT MATRIX
         # Determine the number of modal constraints, nm0
-        if bc_flag == 0:
-            # if no user defined constraints and fixities.
-            r_matrix = r_mode
-        else:
+        if bc_flag == 1:
             # should performed uncoupled for block diagonal basis?
             if cfsm_analysis == 1:
                 nm0 = 0
@@ -347,6 +348,9 @@ def strip(
                 r_matrix = spla.null_space(r_0_matrix.conj().T)
             else:
                 r_matrix = spla.null_space(r_u0_matrix.conj().T)
+        else:
+            # if no user defined constraints and fixities.
+            r_matrix = r_mode
 
         # INTRODUCE CONSTRAINTS AND REDUCE k_global MATRICES TO FREE PARTS ONLY
         k_global_ff = r_matrix.transpose() @ k_global @ r_matrix
@@ -679,6 +683,8 @@ def strip_new(
         nodes_stressed = stress_gen(nodes=nodes_old, forces=forces, sect_props=sect_props)
     elif np.shape(nodes)[1] == 3:
         nodes_stressed = nodes_old
+    else:
+        raise ValueError("Either 'forces' or 'yield_force' must be set, or stress must be set manually for each node")
 
     if len(lengths) == 0:
         lengths_old = lengths_recommend(nodes=nodes_old, elements=elements_old, n_lengths=n_lengths)

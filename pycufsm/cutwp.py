@@ -343,6 +343,16 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
             b1_vals = 0
         if np.abs(b2_vals / np.sqrt(area) < 1e-12):
             b2_vals = 0
+    else:
+        # Closed section - torsion and warping calcs not supported
+        j_torsion = None
+        x_shearcentre = None
+        y_shearcentre = None
+        c_warping = None
+        b1_vals = None
+        b2_vals = None
+        wn_vals = None
+
     ends[:, 0:2] = (ends[:, 0:2]) - 1
     return {
         "A": area,
