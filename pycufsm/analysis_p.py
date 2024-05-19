@@ -27,7 +27,7 @@ def m_sort(m_all: np.ndarray) -> np.ndarray:
     return m_all
 
 
-def constr_bc_flag(nodes: np.ndarray, constraints: np.ndarray) -> int:
+def constr_BC_flag(nodes: np.ndarray, constraints: np.ndarray) -> int:
     """this subroutine is to determine flags for user constraints and internal (at node) B.C.'s
 
     Args:
@@ -36,7 +36,7 @@ def constr_bc_flag(nodes: np.ndarray, constraints: np.ndarray) -> int:
             k=kept dof dofe_node = coeff*dofk_nodek
 
     Returns:
-        bc_flag (int): 1 if there are user constraints or node fixities
+        BC_flag (int): 1 if there are user constraints or node fixities
             0 if there is no user constraints and node fixities
 
     Z. Li, June 2010

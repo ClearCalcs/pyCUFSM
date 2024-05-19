@@ -34,7 +34,7 @@ cpdef np.ndarray m_sort(np.ndarray m_all):
     return m_all
 
 
-cpdef int constr_bc_flag(np.ndarray nodes, np.ndarray constraints):
+cpdef int constr_BC_flag(np.ndarray nodes, np.ndarray constraints):
     """this subroutine is to determine flags for user constraints and internal (at node) B.C.'s
 
     Args:
@@ -43,7 +43,7 @@ cpdef int constr_bc_flag(np.ndarray nodes, np.ndarray constraints):
             k=kept dof dofe_node = coeff*dofk_nodek
 
     Returns:
-        bc_flag (int): 1 if there are user constraints or node fixities
+        BC_flag (int): 1 if there are user constraints or node fixities
             0 if there is no user constraints and node fixities
     
     Z. Li, June 2010

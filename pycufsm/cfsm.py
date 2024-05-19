@@ -613,6 +613,8 @@ def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: np.ndarray) -> 
                         dof_e = n_nodes * 2 + j * 2 + 1 - 1
                     elif k == 6:
                         dof_e = n_nodes * 2 + (j + 1) * 2 - 1
+                    else:
+                        raise ValueError("Invalid k value")
 
                     dof_reg[dof_e, 0] = 0
 
@@ -640,6 +642,8 @@ def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: np.ndarray) -> 
                     dof_k = n_nodes * 2 + node_k * 2 + 1 - 1
                 elif constraints[j, 4] == 3:
                     dof_k = n_nodes * 2 + (node_k + 1) * 2 - 1
+                else:
+                    raise ValueError("Invalid constraints[j, 4] value")
 
                 # to modify r_user_matrix
                 r_user_m_matrix[:, dof_k] = r_user_m_matrix[:, dof_k] + constraints[j, 2] * r_user_m_matrix[:, dof_e]

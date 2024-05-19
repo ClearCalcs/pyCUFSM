@@ -221,11 +221,13 @@ def template_calc(sect: Sect_Geom) -> Tuple[np.ndarray, np.ndarray]:
                         y_c = rad
                         q_start = np.pi / 2
                         d_q = np.pi / 2 * j / g_1["n"]
-                    if i == 3:
+                    elif i == 3:
                         x_c = flip_b2 * rad
                         y_c = rad + depth
                         q_start = np.pi if flip_b2 == 1 else 0
                         d_q = flip_b2 * np.pi / 2 * j / g_1["n"]
+                    else:
+                        raise ValueError("Invalid geometry")
                     x_2 = x_c + rad * np.cos(q_start + d_q)
                     # note sign on 2nd term is negative due to y sign convention (down positive)
                     y_2 = y_c - rad * np.sin(q_start + d_q)

@@ -152,7 +152,7 @@ def strip(
     m_all = analysis.m_sort(m_all)
 
     # DETERMINE FLAGS FOR USER CONSTRAINTS AND INTERNAL (AT NODE) B.C.'s
-    bc_flag = analysis.constr_bc_flag(nodes=nodes, constraints=constraints)
+    BC_flag = analysis.constr_BC_flag(nodes=nodes, constraints=constraints)
 
     # GENERATE STRIP WIDTH AND DIRECTION ANGLE
     el_props = analysis.elem_prop(nodes=nodes, elements=elements)
@@ -161,6 +161,10 @@ def strip(
     if sum(GBT_con["glob"]) + sum(GBT_con["dist"]) + sum(GBT_con["local"]) + sum(GBT_con["other"]) > 0:
         # turn on modal classification analysis
         cfsm_analysis = 1
+    else:
+        cfsm_analysis = 0
+
+    if cfsm_analysis == 1:
         # set u_p stress to 1.0 for finding Kg_global and K_global for axial modes
         nodes_base = deepcopy(nodes)
         nodes_base[:, 7] = np.ones_like(nodes[:, 7])
@@ -287,7 +291,7 @@ def strip(
 
         # INTERNAL BOUNDARY CONDITIONS (ON THE NODES) AND USER DEFINED CONSTR.
         # Check for user defined constraints too
-        if bc_flag == 1:
+        if BC_flag == 1:
             # size boundary conditions and user constraints for use in R_matrix format
             # d_constrained=r_user*d_unconstrained, d=nodal DOF vector (note by
             # BWS June 5 2006)
@@ -332,10 +336,7 @@ def strip(
 
         # CREATE FINAL CONSTRAINT MATRIX
         # Determine the number of modal constraints, nm0
-        if bc_flag == 0:
-            # if no user defined constraints and fixities.
-            R_matrix = R_mode
-        else:
+        if BC_flag == 1:
             # should performed uncoupled for block diagonal basis?
             if cfsm_analysis == 1:
                 nm0 = 0
@@ -347,6 +348,9 @@ def strip(
                 R_matrix = spla.null_space(R_0_matrix.conj().T)
             else:
                 R_matrix = spla.null_space(R_u0_matrix.conj().T)
+        else:
+            # if no user defined constraints and fixities.
+            R_matrix = R_mode
 
         # INTRODUCE CONSTRAINTS AND REDUCE K_global MATRICES TO FREE PARTS ONLY
         k_global_ff = R_matrix.transpose() @ K_global @ R_matrix
@@ -679,6 +683,8 @@ def strip_new(
         nodes_stressed = stress_gen(nodes=nodes_old, forces=forces, sect_props=sect_props)
     elif np.shape(nodes)[1] == 3:
         nodes_stressed = nodes_old
+    else:
+        raise ValueError("Either 'forces' or 'yield_force' must be set, or stress must be set manually for each node")
 
     if len(lengths) == 0:
         lengths_old = lengths_recommend(nodes=nodes_old, elements=elements_old, n_lengths=n_lengths)
