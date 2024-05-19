@@ -67,6 +67,8 @@ disable = [
     "too-many-lines",
     "logging-fstring-interpolation",
 ]
+variable-rgx = '[a-zA-Z_][a-z0-9_]{2,30}$'
+argument-rgx = '[a-zA-Z_][a-z0-9_]{2,30}$'
 max-line-length = 120
 py-version = 3.8
 
