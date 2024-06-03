@@ -3,7 +3,7 @@ scipy==1.13.0
 matplotlib==3.9.0
 ipywidgets==8.1.2
 black==24.4.2
-typing_extensions==4.11.0
+typing_extensions==4.12.1
 mypy==1.10.0
 pylint==3.2.2
 cython==3.0.10
