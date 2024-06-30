@@ -1,60 +1,60 @@
 {
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/.DS_Store": true
-    },
-    "cSpell.words": [
-        "Adany",
-        "AISI",
-        "arctan",
-        "argsort",
-        "argwhere",
-        "centreline",
-        "cfsm",
-        "coeff",
-        "CUFSM",
-        "cython",
-        "discretization",
-        "dofs",
-        "dtype",
-        "eigs",
-        "LAPACK",
-        "linalg",
-        "linspace",
-        "logspace",
-        "lstsq",
-        "matplotlib",
-        "mypy",
-        "ndarray",
-        "ORTHOGONALIZATION",
-        "pspec",
-        "pycufsm",
-        "pylint",
-        "pyplot",
-        "pytest",
-        "pyximport",
-        "Sarawit",
-        "Schafer",
-        "scipy",
-        "spla",
-        "submatrices",
-        "submatrix",
-        "unlipped",
-        "Zhanjie"
-    ],
-    "cSpell.diagnosticLevel": "Hint",
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": true
-    },
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.formatOnSave": true,
-        "editor.formatOnPaste": true,
-    },
-    "mypy-type-checker.reportingScope": "workspace",
-    "pylint.severity": {
-        "refactor": "Information"
-    }
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true
+  },
+  "cSpell.words": [
+    "Adany",
+    "AISI",
+    "arctan",
+    "argsort",
+    "argwhere",
+    "centreline",
+    "cfsm",
+    "coeff",
+    "CUFSM",
+    "cython",
+    "discretization",
+    "dofs",
+    "dtype",
+    "eigs",
+    "LAPACK",
+    "linalg",
+    "linspace",
+    "logspace",
+    "lstsq",
+    "matplotlib",
+    "mypy",
+    "ndarray",
+    "ORTHOGONALIZATION",
+    "pspec",
+    "pycufsm",
+    "pylint",
+    "pyplot",
+    "pytest",
+    "pyximport",
+    "Sarawit",
+    "Schafer",
+    "scipy",
+    "spla",
+    "submatrices",
+    "submatrix",
+    "unlipped",
+    "Zhanjie"
+  ],
+  "cSpell.diagnosticLevel": "Hint",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+},
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true
+  },
+  "mypy-type-checker.reportingScope": "workspace",
+  "pylint.severity": {
+    "refactor": "Information"
+  }
 }
