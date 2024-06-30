@@ -102,7 +102,7 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
     # while len(node)>0:
     #     i =
     nodes = np.append(node[:, 0], node[:, 1])
-    nodes = np.lib.unique(nodes)
+    nodes = np.unique(nodes)
     # j = len(nodes)-1
     # if j == n_elements:
     #     section = 'close'
