@@ -374,7 +374,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: Sect_Props, restrained: 
     if np.max(abs(stress1)) == 0:
         f_yield["Mxx"] = 0
     else:
-        f_yield["Mxx"] = f_y / np.max(abs(stress1))  # type: ignore
+        f_yield["Mxx"] = f_y / np.max(abs(stress1))
     # Calculate stress at every point based on m_yy=1
     m_xx = 0
     m_yy = 1
@@ -386,7 +386,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: Sect_Props, restrained: 
     if np.max(abs(stress1)) == 0:
         f_yield["Myy"] = 0
     else:
-        f_yield["Myy"] = f_y / np.max(abs(stress1))  # type: ignore
+        f_yield["Myy"] = f_y / np.max(abs(stress1))
     # %M11_y, M22_y
     # %transform coordinates of nodes into principal coordinates
     phi = sect_props["phi"]
@@ -399,7 +399,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: Sect_Props, restrained: 
     if np.max(abs(stress1)) == 0:
         f_yield["M11"] = 0
     else:
-        f_yield["M11"] = f_y / np.max(abs(stress1)) * f_yield["M11"]  # type: ignore
+        f_yield["M11"] = f_y / np.max(abs(stress1)) * f_yield["M11"]
 
     f_yield["M22"] = 1
     stress1 = np.zeros((1, len(nodes)))
@@ -407,7 +407,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: Sect_Props, restrained: 
     if np.max(abs(stress1)) == 0:
         f_yield["M22"] = 0
     else:
-        f_yield["M22"] = f_y / np.max(abs(stress1)) * f_yield["M22"]  # type: ignore
+        f_yield["M22"] = f_y / np.max(abs(stress1)) * f_yield["M22"]
     return f_yield
 
 
