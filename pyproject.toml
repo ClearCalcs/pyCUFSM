@@ -1,13 +1,20 @@
 [build-system]
-requires = ["setuptools>=61.0", "cython", "numpy>=2.0.0rc1"]
-build-backend = "setuptools.build_meta"
+requires = [
+    "poetry-core>=1.2.0",
+    "setuptools>=61.0",
+    "cython>=3.0",
+    "numpy>=2.0.0rc1",
+]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "pycufsm"
-authors = [{ name = "Brooks Smith", email = "smith120bh@gmail.com" }]
+version = "0.1.4"
+authors = ["Brooks Smith <smith120bh@gmail.com>"]
 description = "Python CUFSM (Constrained and Unconstrained Finite Strip Method)"
-requires-python = ">=3.10"
 keywords = [
+    "FSM",
+    "finite strip",
     "CUFSM",
     "CFS",
     "thin-walled",
@@ -16,7 +23,7 @@ keywords = [
     "structural engineering",
     "structural analysis",
 ]
-license = { text = "AFL-3.0" }
+license = "AFL-3.0"
 classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
@@ -27,33 +34,50 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Academic Free License (AFL)",
 ]
-dynamic = ["version", "readme", "dependencies", "optional-dependencies"]
+readme = "README.md"
+homepage = "https://github.com/ClearCalcs/pyCUFSM"
+repository = "https://github.com/ClearCalcs/pyCUFSM"
+documentation = "https://pycufsm.readthedocs.io"
+packages = [{ include = "pycufsm" }]
+include = ["py.typed", "*.pyx"]
 
-[tool.setuptools.dynamic]
-version = { attr = "pycufsm._version.__version__" }
-readme = { file = ["README.md"] }
-dependencies = { file = "requirements.txt" }
+[tool.poetry.dependencies]
+python = ">=3.10"
+numpy = ">=1.23.5"
+scipy = ">=1.10.0"
+ipywidgets = { version = ">=8.0.0", optional = true }
+matplotlib = { version = ">=3.2", optional = true }
 
-[tool.setuptools.dynamic.optional-dependencies]
-plot = { file = "plot_requirements.txt" }
-test = { file = "test_requirements.txt" }
-dev = { file = "dev_requirements.txt" }
-jupyter = { file = "jupyter_requirements.txt" }
-doc = { file = "doc_requirements.txt" }
+[tool.poetry.group.dev.dependencies]
+numpy = "==2.0.0"
+scipy = "==1.14.0"
+matplotlib = "==3.9.0"
+typing_extensions = "==4.12.2"
+ipywidgets = "==8.1.3"
 
-[project.urls]
-"Homepage" = "https://github.com/ClearCalcs/pyCUFSM"
-"Documentation" = "https://pycufsm.readthedocs.io"
+[tool.poetry.group.test.dependencies]
+pylint = "==3.2.5"
+mypy = "==1.10.1"
+black = { version = "==24.4.2", extras = ["jupyter"] }
+pytest = "==8.2.2"
+pytest-describe = "==2.2.0"
+pytest-pspec = "==0.0.4"
+pytest-raises = "==0.11"
 
-[tool.setuptools]
-packages = ["pycufsm"]
-py-modules = ["_custom_build"]
+[tool.poetry.group.docs]
+optional = true
 
-[tool.setuptools.package-data]
-pycufsm = ["py.typed"]
+[tool.poetry.group.docs.dependencies]
+sphinx = "==7.3.7"
+sphinx_autoapi = "==3.1.2"
 
-[tool.setuptools.cmdclass]
-build_py = "_custom_build.build_py"
+[tool.poetry.extras]
+plot = ["matplotlib"]
+jupyter = ["ipywidgets", "matplotlib"]
+
+[tool.poetry.build]
+script = "build_cython_ext.py"
+generate-setup-file = true
 
 [tool.pylint]
 disable = [
@@ -80,7 +104,6 @@ strict = true
 allow_any_generics = true
 implicit_reexport = true
 exclude = ['gui_widgets\.py']
-
 
 [tool.black]
 line-length = 120
