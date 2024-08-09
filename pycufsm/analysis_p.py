@@ -841,20 +841,25 @@ def bc_i1_5(B_C: str, m_i: float, m_j: float, length: float) -> list:
     elif B_C in ("C-F", "F-C"):
         # For clamped-free supported boundary condition at loaded edges
         # calculation of I_1 is the integration of y_m*Yn from 0 to length
+
+        # TODO: Diagnose implications of the fact that I_1, I_2, and I_3
+        # can be complex numbers... As mypy has correctly flagged
+        # As a temporary workaround, I've explicitly cast the results to
+        # real numbers, but this may not give correct results.
         if m_i == m_j:
-            I_1 = 3 * length / 2 - 2 * length * (-1) ** (m_i - 1) / (m_i - 1 / 2) / np.pi
-            I_2 = (m_i - 1 / 2) ** 2 * np.pi**2 * ((-1) ** (m_i - 1) / (m_i - 1 / 2) / np.pi - 1 / 2) / length
-            I_3 = (m_j - 1 / 2) ** 2 * np.pi**2 * ((-1) ** (m_j - 1) / (m_j - 1 / 2) / np.pi - 1 / 2) / length
+            I_1 = np.real(3 * length / 2 - 2 * length * (-1) ** (m_i - 1) / (m_i - 1 / 2) / np.pi)
+            I_2 = np.real((m_i - 1 / 2) ** 2 * np.pi**2 * ((-1) ** (m_i - 1) / (m_i - 1 / 2) / np.pi - 1 / 2) / length)
+            I_3 = np.real((m_j - 1 / 2) ** 2 * np.pi**2 * ((-1) ** (m_j - 1) / (m_j - 1 / 2) / np.pi - 1 / 2) / length)
             I_4 = (m_i - 1 / 2) ** 4 * np.pi**4 / 2 / length**3
             I_5 = (m_i - 1 / 2) ** 2 * np.pi**2 / 2 / length
         else:
-            I_1 = (
+            I_1 = np.real(
                 length
                 - length * (-1) ** (m_i - 1) / (m_i - 1 / 2) / np.pi
                 - length * (-1) ** (m_j - 1) / (m_j - 1 / 2) / np.pi
             )
-            I_2 = (m_i - 1 / 2) ** 2 * np.pi**2 * ((-1) ** (m_i - 1) / (m_i - 1 / 2) / np.pi) / length
-            I_3 = (m_j - 1 / 2) ** 2 * np.pi**2 * ((-1) ** (m_j - 1) / (m_j - 1 / 2) / np.pi) / length
+            I_2 = np.real((m_i - 1 / 2) ** 2 * np.pi**2 * ((-1) ** (m_i - 1) / (m_i - 1 / 2) / np.pi) / length)
+            I_3 = np.real((m_j - 1 / 2) ** 2 * np.pi**2 * ((-1) ** (m_j - 1) / (m_j - 1 / 2) / np.pi) / length)
 
     elif B_C in ("C-G", "G-C"):
         # For clamped-guided supported boundary condition at loaded edges
