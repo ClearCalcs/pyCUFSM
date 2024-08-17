@@ -842,7 +842,7 @@ def bc_i1_5(B_C: str, m_i: float, m_j: float, length: float) -> list:
         # For clamped-free supported boundary condition at loaded edges
         # calculation of I_1 is the integration of y_m*Yn from 0 to length
 
-        # TODO: Diagnose implications of the fact that I_1, I_2, and I_3
+        # TO DO: Diagnose implications of the fact that I_1, I_2, and I_3
         # can be complex numbers... As mypy has correctly flagged
         # As a temporary workaround, I've explicitly cast the results to
         # real numbers, but this may not give correct results.
