@@ -1,4 +1,10 @@
 # pyCUFSM
+[![Python tests](https://github.com/ClearCalcs/pyCUFSM/actions/workflows/test.yaml/badge.svg)](https://github.com/ClearCalcs/pyCUFSM/actions/workflows/test.yaml)
+[![Documentation Status](https://readthedocs.org/projects/pycufsm/badge/?version=latest)](http://anastruct.readthedocs.io/en/latest/?badge=latest)
+![PyPI - Version](https://img.shields.io/pypi/v/pycufsm)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pycufsm)
+![Latest Release](https://img.shields.io/github/release-date/ClearCalcs/pyCUFSM)
+![Commits since latest release](https://img.shields.io/github/commits-since/ClearCalcs/pyCUFSM/latest)
 
 ## Description
 
