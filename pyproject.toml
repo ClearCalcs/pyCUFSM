@@ -50,7 +50,7 @@ matplotlib = { version = ">=3.2", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 numpy = "==2.1.1"
-scipy = "==1.14.0"
+scipy = "==1.14.1"
 matplotlib = "==3.9.1"
 typing_extensions = "==4.12.2"
 ipywidgets = "==8.1.3"
