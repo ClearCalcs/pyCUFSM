@@ -1240,8 +1240,8 @@ astroid = ">=3.2.4,<=3.3.0-dev0"
 colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = [
     {version = ">=0.2", markers = "python_version < \"3.11\""},
-    {version = ">=0.3.7", markers = "python_version >= \"3.12\""},
     {version = ">=0.3.6", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
+    {version = ">=0.3.7", markers = "python_version >= \"3.12\""},
 ]
 isort = ">=4.2.5,<5.13.0 || >5.13.0,<6"
 mccabe = ">=0.6,<0.8"
@@ -1539,13 +1539,13 @@ test = ["cython (>=3.0)", "defusedxml (>=0.7.1)", "pytest (>=8.0)", "setuptools 
 
 [[package]]
 name = "sphinx-autoapi"
-version = "3.2.1"
+version = "3.3.2"
 description = "Sphinx API documentation generator"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "sphinx_autoapi-3.2.1-py2.py3-none-any.whl", hash = "sha256:72fe556abc579528a46494f4fcbeaeaaf3e0b031f6514f7b496f6c36754c5430"},
-    {file = "sphinx_autoapi-3.2.1.tar.gz", hash = "sha256:1f9d56b3a98d5653d1fad5644abeed2c042cec304a126ef72c236dae4af16b90"},
+    {file = "sphinx_autoapi-3.3.2-py2.py3-none-any.whl", hash = "sha256:08afa656f7fcd45fe7dd64bf9f44698ddb8ca7c2d5cd0614c7455912ed580324"},
+    {file = "sphinx_autoapi-3.3.2.tar.gz", hash = "sha256:ebf8b44b2ebab5c28f0263ec6c2f8acdd156e9b2d539a58eca39d2f368445173"},
 ]
 
 [package.dependencies]
@@ -1778,4 +1778,4 @@ plot = ["matplotlib"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "2c9dc20f34c247e08d16b949f9de860ff615463ffa20048dd6e8fb891dd8fde8"
+content-hash = "f6453f65f5df569d6ae7501afae00c214b9a7cafecb0fc3e763ec0cabdba9d25"
