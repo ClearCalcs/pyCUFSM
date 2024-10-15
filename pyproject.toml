@@ -57,7 +57,7 @@ ipywidgets = "==8.1.3"
 
 [tool.poetry.group.test.dependencies]
 pylint = "==3.2.7"
-mypy = "==1.11.1"
+mypy = "==1.12.0"
 black = { version = "==24.8.0", extras = ["jupyter"] }
 pytest = "==8.3.2"
 pytest-describe = "==2.2.0"
