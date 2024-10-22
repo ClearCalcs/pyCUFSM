@@ -9,7 +9,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "pycufsm"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Brooks Smith <smith120bh@gmail.com>"]
 description = "Python CUFSM (Constrained and Unconstrained Finite Strip Method)"
 keywords = [
