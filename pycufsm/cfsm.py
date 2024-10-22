@@ -353,11 +353,11 @@ def base_update(
 
             n_other_modes = n_dof_m - (n_global_modes + n_dist_modes + n_local_modes)
 
-            b_v_gdl = np.zeros(((len(m_a) + 1) * (n_global_modes + n_dist_modes + n_local_modes), 1))
-            b_v_g = np.zeros(((len(m_a) + 1) * n_global_modes, 1))
-            b_v_d = np.zeros(((len(m_a) + 1) * n_dist_modes, 1))
-            b_v_l = np.zeros(((len(m_a) + 1) * n_local_modes, 1))
-            b_v_o = np.zeros(((len(m_a) + 1) * n_other_modes, 1))
+            b_v_gdl = np.zeros((len(m_a) + 1) * (n_global_modes + n_dist_modes + n_local_modes))
+            b_v_g = np.zeros((len(m_a) + 1) * n_global_modes)
+            b_v_d = np.zeros((len(m_a) + 1) * n_dist_modes)
+            b_v_l = np.zeros((len(m_a) + 1) * n_local_modes)
+            b_v_o = np.zeros((len(m_a) + 1) * n_other_modes)
             for i, m_i in enumerate(m_a):
                 # considering length-dependency on base vectors
                 b_v_m = b_v_l[:, n_dof_m * i : n_dof_m * (i + 1)]  # n_dof_m*i:n_dof_m*(i+1)
@@ -596,7 +596,7 @@ def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: np.ndarray) -> 
     """
     n_nodes = len(nodes[:, 1])
     n_dof_m = 4 * n_nodes
-    dof_reg = np.ones((n_dof_m, 1))
+    dof_reg = np.ones(n_dof_m)
     r_user_matrix = np.eye(n_dof_m * len(m_a))
     for i in range(0, len(m_a)):
         #
@@ -616,7 +616,7 @@ def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: np.ndarray) -> 
                     else:
                         raise ValueError("Invalid k value")
 
-                    dof_reg[dof_e, 0] = 0
+                    dof_reg[dof_e] = 0
 
         # to consider master-slave constraints
         for j in range(0, len(constraints)):
@@ -647,13 +647,13 @@ def constr_user(nodes: np.ndarray, constraints: np.ndarray, m_a: np.ndarray) -> 
 
                 # to modify r_user_matrix
                 r_user_m_matrix[:, dof_k] = r_user_m_matrix[:, dof_k] + constraints[j, 2] * r_user_m_matrix[:, dof_e]
-                dof_reg[dof_e, 0] = 0
+                dof_reg[dof_e] = 0
 
         # to eliminate columns from r_user_matrix
         k = -1
         r_u_matrix = np.zeros_like(r_user_m_matrix)
         for j in range(0, n_dof_m):
-            if dof_reg[j, 0] == 1:
+            if dof_reg[j] == 1:
                 k = k + 1
                 r_u_matrix[:, k] = r_user_m_matrix[:, j]
 
@@ -1434,7 +1434,7 @@ def constr_yu_yd(main_nodes: np.ndarray, meta_elements: np.ndarray) -> np.ndarra
             n_corner_nodes = n_corner_nodes + 1
 
     # to register definite and indefinite nodes
-    node_reg = np.ones((n_main_nodes, 1))
+    node_reg = np.ones(n_main_nodes)
     for i, m_node in enumerate(main_nodes):
         if m_node[4] > 2:
             # to select two non-parallel meta-elements (elem1, elem2)

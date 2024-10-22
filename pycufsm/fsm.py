@@ -145,7 +145,7 @@ def strip(
     n_nodes = len(nodes)
     curve = []
     shapes = []
-    signature = np.zeros((len(lengths), 1))
+    signature = np.zeros(len(lengths))
 
     # CLEAN UP INPUT
     # clean u_j 0's, multiple terms. or out-of-order terms in m_all
@@ -433,7 +433,7 @@ def strip(
         # shapes(:,i,1:min([n_modes,num_pos_modes]))=modes
         shapes.append(modes_full)
 
-    return signature.flatten(), np.array(curve), np.array(shapes)
+    return signature, np.array(curve), np.array(shapes)
 
 
 def strip_new(
@@ -737,7 +737,7 @@ def signature_ss(
     i_B_C: BC = "S-S"
     i_m_all = np.ones((len(lengths), 1))
 
-    isignature, icurve, ishapes = pycufsm.fsm.strip(
+    isignature, icurve, ishapes = strip(
         props=props,
         nodes=nodes,
         elements=elements,
@@ -833,10 +833,10 @@ def m_recommend(
     n_global_modes = 4
     n_other_modes = 2 * (len(nodes) - 1)
 
-    i_GBT_con["local"] = np.ones((n_local_modes, 1)).tolist()
-    i_GBT_con["dist"] = np.zeros((n_dist_modes, 1)).tolist()
-    i_GBT_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
-    i_GBT_con["other"] = np.zeros((n_other_modes, 1)).tolist()
+    i_GBT_con["local"] = np.ones(n_local_modes).tolist()
+    i_GBT_con["dist"] = np.zeros(n_dist_modes).tolist()
+    i_GBT_con["glob"] = np.zeros(n_global_modes).tolist()
+    i_GBT_con["other"] = np.zeros(n_other_modes).tolist()
 
     print("Running pyCUFSM local modes curve")
     isignature_local, icurve_local, ishapes_local = signature_ss(
@@ -844,10 +844,10 @@ def m_recommend(
     )
 
     print("Running pyCUFSM distortional modes curve")
-    i_GBT_con["local"] = np.zeros((n_local_modes, 1)).tolist()
-    i_GBT_con["dist"] = np.ones((n_dist_modes, 1)).tolist()
-    i_GBT_con["glob"] = np.zeros((n_global_modes, 1)).tolist()
-    i_GBT_con["other"] = np.zeros((n_other_modes, 1)).tolist()
+    i_GBT_con["local"] = np.zeros(n_local_modes).tolist()
+    i_GBT_con["dist"] = np.ones(n_dist_modes).tolist()
+    i_GBT_con["glob"] = np.zeros(n_global_modes).tolist()
+    i_GBT_con["other"] = np.zeros(n_other_modes).tolist()
     isignature_dist, icurve_dist, ishapes_dist = signature_ss(
         props=props, nodes=nodes, elements=elements, i_GBT_con=i_GBT_con, sect_props=sect_props, lengths=lengths
     )
