@@ -1,7 +1,11 @@
 from typing import Any, List, Literal, Optional, Union
 
 import numpy as np
-from typing_extensions import TypedDict
+
+try:
+    from typing import TypedDict  # Python 3.12+
+except ImportError:
+    from typing_extensions import TypedDict  # Python <3.12
 
 __all__ = [
     "ArrayLike",
