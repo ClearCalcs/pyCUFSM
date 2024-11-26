@@ -1246,8 +1246,8 @@ astroid = ">=3.2.4,<=3.3.0-dev0"
 colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = [
     {version = ">=0.2", markers = "python_version < \"3.11\""},
-    {version = ">=0.3.7", markers = "python_version >= \"3.12\""},
     {version = ">=0.3.6", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
+    {version = ">=0.3.7", markers = "python_version >= \"3.12\""},
 ]
 isort = ">=4.2.5,<5.13.0 || >5.13.0,<6"
 mccabe = ">=0.6,<0.8"
@@ -1784,4 +1784,4 @@ plot = ["matplotlib"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "6baf11cf9907661ae15984eb7aa12beb8aec40d3ef0344fb7b0a8cc03efb9c37"
+content-hash = "52d3d721ac2477f82d9edef67843ae85674baa4b07a3d9a35ceed240670902d0"
