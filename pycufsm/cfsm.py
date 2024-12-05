@@ -971,7 +971,9 @@ def base_vectors(
     k = 0
     for i in range(0, n_node_props):
         if node_props[i, 3] == 2:
-            el_i = np.nonzero(np.any(elements[:, 1] == i) or np.any(elements[:, 2] == i))  # adjacent element
+            el_i = np.atleast_1d(
+                np.any(elements[:, 1] == i) or np.any(elements[:, 2] == i)
+            ).nonzero()  # adjacent element
             alfa = el_props[el_i, 2]
             b_v_m[n_main_nodes + 2 * n_corner_nodes + k, n_globdist_modes + n_main_nodes + n_sub_nodes + k] = -np.sin(
                 alfa
@@ -988,7 +990,9 @@ def base_vectors(
         k = 0
         for i in range(0, n_node_props):
             if node_props[i, 3] == 3:
-                el_i = np.nonzero(np.any(elements[:, 1] == i) or np.any(elements[:, 2] == i))  # adjacent element
+                el_i = np.atleast_1d(
+                    np.any(elements[:, 1] == i) or np.any(elements[:, 2] == i)
+                ).nonzero()  # adjacent element
                 alfa = el_props[el_i[0], 2]
                 b_v_m[4 * n_main_nodes + k, n_globdist_modes + n_main_nodes + n_sub_nodes + n_edge_nodes + k] = -np.sin(
                     alfa
