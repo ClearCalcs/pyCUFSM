@@ -531,14 +531,20 @@ def mode_select(
     modifed on Jul 10, 2009 by Z. Li for general B_C
     Z. Li, June 2010
     """
-    n_m = int(sum(GBT_con["glob"]) + sum(GBT_con["dist"]) + sum(GBT_con["local"]) + sum(GBT_con["other"]))
-    b_v_red = np.zeros((len(b_v), (len(m_a) + 1) * n_m))
-    for i in range(0, len(m_a)):
-        #     b_v_m = b_v[n_dof_m*i:n_dof_m*(i+1),n_dof_m*i:n_dof_m*(i+1)]
-        n_other_modes = n_dof_m - n_global_modes - n_dist_modes - n_local_modes  # nr of other modes
-        #
+    total_m = len(m_a)
+    n_other_modes = n_dof_m - n_global_modes - n_dist_modes - n_local_modes  # nr of other modes
+
+    # Calculate total number of selected modes for sizing
+    total_selected = int(sum(GBT_con["glob"]) + sum(GBT_con["dist"]) + sum(GBT_con["local"]) + sum(GBT_con["other"]))
+
+    # Initialize with proper size - each longitudinal term can have different nmo
+    b_v_red = np.zeros((len(b_v), total_selected * total_m))
+
+    col_start = 0
+    for i in range(0, total_m):
         nmo = 0
-        b_v_red_m = np.zeros((len(b_v), n_m))
+        b_v_red_m = np.zeros((len(b_v), total_selected))
+
         for j in range(0, n_global_modes):
             if j < len(GBT_con["glob"]) and GBT_con["glob"][j] == 1:
                 b_v_red_m[:, nmo] = b_v[:, n_dof_m * i + j]
@@ -573,7 +579,10 @@ def mode_select(
         #                n_dist_modes+n_local_modes+n_other_modes)]
         #     # b_v_red[:,(nmo+1)] = b_v[:,(n_global_modes+n_dist_modes+n_local_modes+1)]
         # end
-        b_v_red[:, nmo * i : nmo * (i + 1)] = b_v_red_m
+
+        # Copy only the actual selected modes for this longitudinal term
+        b_v_red[:, col_start : col_start + nmo] = b_v_red_m[:, :nmo]
+        col_start += nmo
 
     return b_v_red
 
