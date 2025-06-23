@@ -366,7 +366,7 @@ def yield_mp(nodes: np.ndarray, f_y: float, sect_props: Sect_Props, restrained: 
     # Calculate stress at every point based on m_xx=1
     m_xx = 1
     m_yy = 0
-    stress1 = np.zeros((1, len(nodes)))
+    stress1: np.ndarray = np.zeros((1, len(nodes)))
     stress1 = stress1 - (
         (m_yy * sect_props["Ixx"] + m_xx * sect_props["Ixy"]) * (nodes[:, 1] - sect_props["cx"])
         - (m_yy * sect_props["Ixy"] + m_xx * sect_props["Iyy"]) * (nodes[:, 2] - sect_props["cy"])
@@ -444,7 +444,7 @@ def stress_gen(
     if isinstance(offset_basis, (float, int)):
         offset_basis = [offset_basis, offset_basis]
 
-    stress = np.zeros((1, len(nodes)))
+    stress: np.ndarray = np.zeros((1, len(nodes)))
     stress = stress + forces["P"] / sect_props["A"]
     if restrained:
         stress = stress - (

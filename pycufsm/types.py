@@ -205,7 +205,7 @@ Sect_Props = TypedDict(
         "Cw": Optional[float],
         "B1": Optional[float],
         "B2": Optional[float],
-        "wn": np.ndarray,
+        "wn": Optional[np.ndarray],
     },
 )
 

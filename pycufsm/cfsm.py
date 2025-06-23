@@ -804,7 +804,7 @@ def y_dofs(
     # CALCULATION FOR GLOBAL AND DISTORTIONAL BUCKLING MODES
     #
     # to create y-DOFs of main nodes for global buckling
-    d_y = np.zeros((n_main_nodes, 4))
+    d_y: np.ndarray = np.zeros((n_main_nodes, 4))
     for i, m_node in enumerate(main_nodes):
         xz_i = [m_node[1], m_node[2]] @ rot
         d_y[i, 0] = 1
@@ -920,7 +920,7 @@ def base_vectors(
     n_dof = 4 * n_node_props  # nro of DOFs
     n_edge_nodes = n_main_nodes - n_corner_nodes
     # zero out
-    b_v_m = np.zeros((n_dof, n_dof))
+    b_v_m: np.ndarray = np.zeros((n_dof, n_dof))
 
     # CALCULATION FOR GLOBAL AND DISTORTIONAL BUCKLING MODES
     # to add global and dist y DOFs to base vectors
@@ -1739,7 +1739,7 @@ def meta_elems(nodes: np.ndarray, elements: np.ndarray) -> Tuple[np.ndarray, np.
     # to assign meta-elements to main-nodes
     for i in range(0, n_main_nodes):
         k = 5
-        for j, m_elem in enumerate(meta_elements):
+        for j, m_elem in enumerate(meta_elements):  # type: ignore
             if m_elem[1] == i:
                 if len(main_nodes[0]) <= k:
                     main_nodes = np.c_[main_nodes, np.zeros(n_main_nodes)]
@@ -2100,7 +2100,7 @@ def mode_class(
         #     clas_gdlo1 = clas_gdlo1/norm_sum*100
 
         # L2 norm
-        clas_gdlo = np.zeros((1, 5))
+        clas_gdlo: np.ndarray = np.zeros((1, 5))
         for m_n in range(0, 4):
             clas_gdlo[m_n] = np.linalg.norm(cl_gdlo[m_n, :])
 
