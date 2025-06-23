@@ -1237,8 +1237,6 @@ def spring_klocal(
     k_local = np.zeros((8 * total_m, 8 * total_m))
     for i in range(0, total_m):
         for j in range(0, total_m):
-            km_mp = np.zeros((4, 4))
-            kf_mp = np.zeros((4, 4))
             u_i = m_a[i] * np.pi
             u_j = m_a[j] * np.pi
 

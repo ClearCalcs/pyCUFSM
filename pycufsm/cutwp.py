@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Optional, Sequence
 
 import numpy as np
 
@@ -145,16 +145,16 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
     x_centroid = np.sum(lengths * thicknesses * x_means) / area
     y_centroid = np.sum(lengths * thicknesses * y_means) / area
     if np.abs(x_centroid / np.sqrt(area)) < 1e-12:
-        x_centroid = 0
+        x_centroid = np.float64(0.0)
     if np.abs(y_centroid / np.sqrt(area)) < 1e-12:
-        y_centroid = 0
+        y_centroid = np.float64(0.0)
 
     # Compute moment of inertia
     I_xx = np.sum((y_diffs**2 / 12 + (y_means - y_centroid) ** 2) * lengths * thicknesses)
     I_yy = np.sum((x_diffs**2 / 12 + (x_means - x_centroid) ** 2) * lengths * thicknesses)
     I_xy = np.sum((x_diffs * y_diffs / 12 + (x_means - x_centroid) * (y_means - y_centroid) * lengths * thicknesses))
     if np.abs(I_xy / area**2) < 1e-12:
-        I_xy = 0
+        I_xy = np.float64(0.0)
 
     # Compute rotation angle for the principal axes
     theta = (np.angle([(I_xx - I_yy) - 2 * I_xy * 1j]) / 2)[0]
@@ -263,9 +263,9 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
             x_shearcentre = x_centroid
             y_shearcentre = y_centroid
         if np.abs(x_shearcentre / np.sqrt(area)) < 1e-12:
-            x_shearcentre = 0
+            x_shearcentre = np.float64(0.0)
         if np.abs(y_shearcentre / np.sqrt(area)) < 1e-12:
-            y_shearcentre = 0
+            y_shearcentre = np.float64(0.0)
         # Compute unit warping
         for _ in range(n_elements):
             i = 0
@@ -287,7 +287,7 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
                 w_vals[end_node, 0] = end_node + 1
                 w_vals[end_node, 1] = w_vals[start_node, 1] + po_vals * lengths[i]
             w_no = w_no + 1 / (2 * area) * (wo_vals[start_node, 1] + wo_vals[end_node, 1]) * thicknesses[i] * lengths[i]
-        wn_vals = np.zeros((len(wo_vals), 2))
+        wn_vals: Optional[np.ndarray] = np.zeros((len(wo_vals), 2))
         wn_vals = w_no - wo_vals[:, 1]
         # Compute the warping constant
         for i in range(n_elements):
@@ -309,7 +309,7 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
         # ro = np.sqrt((I_11 + I_22) / area + s12[0] ** 2 + s12[1] ** 2)
 
         # Compute B1_vals and B2_vals
-        B1_vals = 0
+        B1_vals = np.float64(0.0)
         B2_vals = B1_vals
         for i in range(n_elements):
             start_node = int(ends[i, 0]) - 1
@@ -340,9 +340,9 @@ def prop2(coord: np.ndarray, ends: np.ndarray) -> Sect_Props:
         B2_vals = B2_vals / I_22 - 2 * s12[0]
 
         if np.abs(B1_vals / np.sqrt(area) < 1e-12):
-            B1_vals = 0
+            B1_vals = np.float64(0.0)
         if np.abs(B2_vals / np.sqrt(area) < 1e-12):
-            B2_vals = 0
+            B2_vals = np.float64(0.0)
     else:
         # Closed section - torsion and warping calcs not supported
         J_torsion = None

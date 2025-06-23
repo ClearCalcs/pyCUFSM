@@ -277,9 +277,7 @@ def strip(
                         alpha = 0  # use global coordinates for spring
                     else:
                         # local orientation for spring
-                        # np.arctan2() function is mis-typed in numpy - given floats,
-                        # it DOES return a float.It does not always return an array
-                        alpha = np.arctan2(d_y, d_x)  # type: ignore
+                        alpha = np.arctan2(d_y, d_x)
 
                 gamma = analysis.trans(alpha=alpha, total_m=total_m)
                 k_s = gamma @ ks_l @ gamma.conj().T
@@ -854,7 +852,7 @@ def m_recommend(
 
     local_minima = []
     for i, c_sign in enumerate(curve_signature[:-2]):
-        load1 = c_sign[1]
+        load1 = curve_signature[i, 1]
         load2 = curve_signature[i + 1, 1]
         load3 = curve_signature[i + 2, 1]
         if load2 < load1 and load2 <= load3:
@@ -865,10 +863,10 @@ def m_recommend(
     n_global_modes = 4
     n_other_modes = 2 * (len(nodes) - 1)
 
-    i_GBT_con["local"] = np.ones(n_local_modes).tolist()
-    i_GBT_con["dist"] = np.zeros(n_dist_modes).tolist()
-    i_GBT_con["glob"] = np.zeros(n_global_modes).tolist()
-    i_GBT_con["other"] = np.zeros(n_other_modes).tolist()
+    i_GBT_con["local"] = [1] * n_local_modes
+    i_GBT_con["dist"] = [0] * n_dist_modes
+    i_GBT_con["glob"] = [0] * n_global_modes
+    i_GBT_con["other"] = [0] * n_other_modes
 
     print("Running pyCUFSM local modes curve")
     isignature_local, icurve_local, ishapes_local = signature_ss(
@@ -876,10 +874,10 @@ def m_recommend(
     )
 
     print("Running pyCUFSM distortional modes curve")
-    i_GBT_con["local"] = np.zeros(n_local_modes).tolist()
-    i_GBT_con["dist"] = np.ones(n_dist_modes).tolist()
-    i_GBT_con["glob"] = np.zeros(n_global_modes).tolist()
-    i_GBT_con["other"] = np.zeros(n_other_modes).tolist()
+    i_GBT_con["local"] = [0] * n_local_modes
+    i_GBT_con["dist"] = [1] * n_dist_modes
+    i_GBT_con["glob"] = [0] * n_global_modes
+    i_GBT_con["other"] = [0] * n_other_modes
     isignature_dist, icurve_dist, ishapes_dist = signature_ss(
         props=props, nodes=nodes, elements=elements, i_GBT_con=i_GBT_con, sect_props=sect_props, lengths=lengths
     )
@@ -894,7 +892,7 @@ def m_recommend(
     # cFSM local half-wavelength
     local_minima_local = []
     for i, c_sign in enumerate(curve_signature_local[:-2]):
-        load1 = c_sign[1]
+        load1 = curve_signature_local[i, 1]
         load2 = curve_signature_local[i + 1, 1]
         load3 = curve_signature_local[i + 2, 1]
         if load2 < load1 and load2 <= load3:
@@ -907,7 +905,7 @@ def m_recommend(
     # cFSM dist half-wavelength
     local_minima_dist = []
     for i, c_sign in enumerate(curve_signature_dist[:-2]):
-        load1 = c_sign[1]
+        load1 = curve_signature_dist[i, 1]
         load2 = curve_signature_dist[i + 1, 1]
         load3 = curve_signature_dist[i + 2, 1]
         if load2 < load1 and load2 <= load3:
