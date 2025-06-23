@@ -851,7 +851,7 @@ def m_recommend(
     curve_signature[:, 1] = isignature
 
     local_minima = []
-    for i, c_sign in enumerate(curve_signature[:-2]):
+    for i in range(len(curve_signature[:-2])):
         load1 = curve_signature[i, 1]
         load2 = curve_signature[i + 1, 1]
         load3 = curve_signature[i + 2, 1]
@@ -891,7 +891,7 @@ def m_recommend(
 
     # cFSM local half-wavelength
     local_minima_local = []
-    for i, c_sign in enumerate(curve_signature_local[:-2]):
+    for i in range(len(curve_signature_local[:-2])):
         load1 = curve_signature_local[i, 1]
         load2 = curve_signature_local[i + 1, 1]
         load3 = curve_signature_local[i + 2, 1]
@@ -904,7 +904,7 @@ def m_recommend(
 
     # cFSM dist half-wavelength
     local_minima_dist = []
-    for i, c_sign in enumerate(curve_signature_dist[:-2]):
+    for i in range(len(curve_signature_dist[:-2])):
         load1 = curve_signature_dist[i, 1]
         load2 = curve_signature_dist[i + 1, 1]
         load3 = curve_signature_dist[i + 2, 1]
