@@ -388,22 +388,54 @@ def strip(
         #             which='SM'
         #         )
         # else:
-        [length_factors, modes] = spla.eig(a=k_global_ff, b=kg_global_ff)
+        k_global_ff_sym = (k_global_ff + np.transpose(k_global_ff)) / 2
+        kg_global_ff_sym = (kg_global_ff + np.transpose(kg_global_ff)) / 2
+        [length_factors, modes] = spla.eig(a=k_global_ff_sym, b=kg_global_ff_sym)
         # CLEAN UP THE EIGEN SOLUTION
         # eigenvalues are along the diagonal of matrix length_factors
-        # length_factors = np.diag(length_factors)
-        # find all the positive eigenvalues and corresponding vectors, squeeze out the rest
-        index = np.logical_and(length_factors > 0, abs(np.imag(length_factors)) < 0.00001)
-        length_factors = length_factors[index]
-        modes = modes[:, index]
-        # sort from small to large
-        index = np.argsort(length_factors)
-        length_factors = length_factors[index]
-        modes = modes[:, index]
-        # only the real part is of interest
-        # (eigensolver may give some small nonzero imaginary parts)
+        # Ensure length_factors is 1D
+        if len(length_factors.shape) > 1:
+            length_factors = np.diag(length_factors)
+
+        # Enhanced eigenvalue filtering for robustness
+        # 1. Filter out eigenvalues with large imaginary parts (numerical noise)
+        # 2. Filter out negative or very small eigenvalues (not physically meaningful)
+        # 3. Filter out eigenvalues that are too large (likely spurious)
+
+        # Tolerance for imaginary parts (should be very small for real eigenvalues)
+        imag_tol = 1e-10
+        # Minimum positive eigenvalue (avoid numerical zeros)
+        min_pos_tol = 1e-12
+        # Maximum eigenvalue (avoid spurious large values)
+        max_eigen_tol = 1e6
+
+        # Filter eigenvalues
+        is_real = abs(np.imag(length_factors)) < imag_tol
+        is_positive = np.real(length_factors) > min_pos_tol
+        is_reasonable = np.real(length_factors) < max_eigen_tol
+
+        # Combine all filters
+        valid_indices = np.logical_and.reduce([is_real, is_positive, is_reasonable])
+
+        if np.sum(valid_indices) == 0:
+            # If no valid eigenvalues found, relax the filtering slightly
+            print(f"Warning: No valid eigenvalues found for length {lengths[i]}, relaxing filters")
+            is_real = abs(np.imag(length_factors)) < 1e-8
+            is_positive = np.real(length_factors) > 1e-15
+            valid_indices = np.logical_and.reduce([is_real, is_positive, is_reasonable])
+
+        length_factors = length_factors[valid_indices]
+        modes = modes[:, valid_indices]
+
+        # Extract real parts (should be very close to real anyway due to filtering)
         length_factors = np.real(length_factors)
         modes = np.real(modes)
+
+        # Sort from small to large (MATLAB behavior)
+        if len(length_factors) > 0:
+            sort_indices = np.argsort(length_factors)
+            length_factors = length_factors[sort_indices]
+            modes = modes[:, sort_indices]
 
         # truncate down to reasonable number of modes to be kept
         num_pos_modes = len(length_factors)
