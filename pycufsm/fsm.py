@@ -205,6 +205,7 @@ def strip(
         cfsm_analysis = 0
 
     # LOOP OVER ALL THE LENGTHS TO BE INVESTIGATED
+    max_n_modes = 0
     for i, length in enumerate(lengths):
         # longitudinal terms to be included for this length
         m_a = m_all[i]
@@ -462,8 +463,15 @@ def strip(
         curve.append(length_factors)
         # shapes(:,i,1:min([n_modes,num_pos_modes]))=modes
         shapes.append(modes_full)
+        max_n_modes = max(max_n_modes, n_modes)
 
-    return signature, np.array(curve), np.array(shapes)
+    uniform_curve = np.full((max_n_modes, len(lengths)), np.nan)
+    uniform_shapes = np.full((max_n_modes, len(lengths), len(nodes)), np.nan)
+    for i in range(len(lengths)):
+        uniform_curve[: len(curve[i]), i] = curve[i]
+        uniform_shapes[: len(shapes[i]), i, :] = shapes[i]
+
+    return signature, uniform_curve, uniform_shapes
 
 
 def strip_new(
