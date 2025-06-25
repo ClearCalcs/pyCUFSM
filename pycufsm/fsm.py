@@ -466,10 +466,10 @@ def strip(
         max_n_modes = max(max_n_modes, n_modes)
 
     uniform_curve = np.full((max_n_modes, len(lengths)), np.nan)
-    uniform_shapes = np.full((max_n_modes, len(lengths), len(nodes)), np.nan)
+    uniform_shapes = np.full((max_n_modes, len(lengths), 4 * len(nodes)), np.nan)
     for i in range(len(lengths)):
         uniform_curve[: len(curve[i]), i] = curve[i]
-        uniform_shapes[: len(shapes[i]), i, :] = shapes[i]
+        uniform_shapes[: len(curve[i]), i, :] = shapes[i].T
 
     return signature, uniform_curve, uniform_shapes
 
@@ -871,10 +871,10 @@ def m_recommend(
     n_global_modes = 4
     n_other_modes = 2 * (len(nodes) - 1)
 
-    i_GBT_con["local"] = [1] * n_local_modes
-    i_GBT_con["dist"] = [0] * n_dist_modes
-    i_GBT_con["glob"] = [0] * n_global_modes
-    i_GBT_con["other"] = [0] * n_other_modes
+    i_GBT_con["local"] = np.ones(n_local_modes, dtype=int).tolist()
+    i_GBT_con["dist"] = np.zeros(n_dist_modes, dtype=int).tolist()
+    i_GBT_con["glob"] = np.zeros(n_global_modes, dtype=int).tolist()
+    i_GBT_con["other"] = np.zeros(n_other_modes, dtype=int).tolist()
 
     print("Running pyCUFSM local modes curve")
     isignature_local, icurve_local, ishapes_local = signature_ss(
@@ -882,10 +882,10 @@ def m_recommend(
     )
 
     print("Running pyCUFSM distortional modes curve")
-    i_GBT_con["local"] = [0] * n_local_modes
-    i_GBT_con["dist"] = [1] * n_dist_modes
-    i_GBT_con["glob"] = [0] * n_global_modes
-    i_GBT_con["other"] = [0] * n_other_modes
+    i_GBT_con["local"] = np.zeros(n_local_modes, dtype=int).tolist()
+    i_GBT_con["dist"] = np.ones(n_dist_modes, dtype=int).tolist()
+    i_GBT_con["glob"] = np.zeros(n_global_modes, dtype=int).tolist()
+    i_GBT_con["other"] = np.zeros(n_other_modes, dtype=int).tolist()
     isignature_dist, icurve_dist, ishapes_dist = signature_ss(
         props=props, nodes=nodes, elements=elements, i_GBT_con=i_GBT_con, sect_props=sect_props, lengths=lengths
     )

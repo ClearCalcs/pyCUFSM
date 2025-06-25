@@ -1743,13 +1743,13 @@ def meta_elems(nodes: np.ndarray, elements: np.ndarray) -> Tuple[np.ndarray, np.
             if m_elem[1] == i:
                 if len(main_nodes[0]) <= k:
                     main_nodes = np.c_[main_nodes, np.zeros(n_main_nodes)]
-                main_nodes[i, k] = j + 0.2
+                main_nodes[i, k] = float(j + 0.2)
                 k = k + 1
 
             if m_elem[2] == i:
                 if len(main_nodes[0]) <= k:
                     main_nodes = np.c_[main_nodes, np.zeros(n_main_nodes)]
-                main_nodes[i, k] = j + 0.1
+                main_nodes[i, k] = float(j + 0.1)
                 k = k + 1
 
     # to finish node_assign with the new numbers of subdividing nodes
